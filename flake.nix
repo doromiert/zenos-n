@@ -189,10 +189,9 @@
                     ./src/users/doromiert/graphical.nix
 
                     # 7. Hardware & Community Optimizations
-                    inputs.nixos-hardware.nixosModules.common-cpu-amd
-                    inputs.nixos-hardware.nixosModules.common-gpu-amd
+                    inputs.nixos-hardware.nixosModules.lenovo-thinkpad-l13-yoga
+                    inputs.nixos-hardware.nixosModules.common-cpu-intel
                     inputs.nixos-hardware.nixosModules.common-pc-ssd
-                    inputs.nix-gaming.nixosModules.platformOptimizations
                     
                     # 8. External Module Activation
                     inputs.home-manager.nixosModules.home-manager
