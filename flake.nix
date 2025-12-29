@@ -1,5 +1,5 @@
 {
-    description = "ZenOS N (NixOS-based ZenOS) - Codename Cacao";
+    description = "ZenOS N (NixOS-based ZenOS)";
 
     # Vanity Metadata
     metadata = {
