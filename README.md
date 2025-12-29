@@ -1,4 +1,4 @@
-# Specification Sheet: ZenOS 1.0N 
+# Specification Sheet: ZenOS N 
 
 ## 1. Vision & Overview
 **Project Name:** ZenOS 1.0N
