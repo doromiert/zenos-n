@@ -6,6 +6,7 @@ echo "Initializing Nix configuration structure..."
 
 mkdir -p src
 mkdir -p src/hosts
+mkdir -p src/scripts
 mkdir -p resources
 
 touch flake.nix
