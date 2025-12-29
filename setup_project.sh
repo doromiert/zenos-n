@@ -16,7 +16,7 @@ touch flake.nix
 
 hosts=(
     
-    "doromi-tul-ii"
+    "doromi-tul-2"
     "doromipad"
     "doromi-server"
 )
