@@ -8,13 +8,17 @@ in
 {
 	boot.loader = {
 		# 1. Standard systemd-boot for generation management
-		systemd-boot.enable = true;
-		systemd-boot.configurationLimit = 10; # Keep the menu small
+		systemd-boot = {
+			enable = true;
+			configurationLimit = 10; # Keep the menu small
+		};
 		
 		# 2. Prevent NixOS from fighting rEFInd for the #1 Boot Order slot
 		# This ensures rEFInd stays as the primary EFI boot entry.
-		efi.canTouchEfiVariables = false;
-		efi.efiSysMountPoint = "/boot"; # Adjust to "/boot/efi" if necessary
+		efi = {
+			canTouchEfiVariables = false;
+			efiSysMountPoint = "/boot"; # Adjust to "/boot/efi" if necessary
+		};
 	};
 
 	# Activation Scripts: These run every time you 'nixos-rebuild switch'
