@@ -5,8 +5,8 @@ set -e
 echo "Initializing Nix configuration structure..."
 
 mkdir -p src
-mkdir -p resources
 mkdir -p src/hosts
+mkdir -p resources
 
 touch flake.nix
 
@@ -37,7 +37,6 @@ users=(
     # useful
     "shareduser"
 )
-
 
 for host in "${hosts[@]}"; do
     mkdir -p "src/hosts/$host"
