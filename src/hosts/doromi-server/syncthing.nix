@@ -1,1 +1,0 @@
-# DS-specific syncthing settings

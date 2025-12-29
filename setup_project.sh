@@ -45,9 +45,8 @@ users=(
 
 for host in "${hosts[@]}"; do
     mkdir -p "src/hosts/$host"
-    touch "src/hosts/$host/main.nix"
-    touch "src/hosts/$host/hardware.nix"
-    touch "src/hosts/$host/syncthing.nix"
+    cp -r templates/host "src/hosts/$host"
+    find "src/hosts/$host" -type f -exec sed -i "s/PLACEHOLDER/$host/g" {} +
 done
 
 for user in "${users[@]}"; do

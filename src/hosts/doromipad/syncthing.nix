@@ -1,1 +1,0 @@
-# DP-specific syncthing settings

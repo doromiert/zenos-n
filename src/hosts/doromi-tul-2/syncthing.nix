@@ -1,1 +1,0 @@
-# DT2-specific syncthing settings
