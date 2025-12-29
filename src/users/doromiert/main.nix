@@ -4,8 +4,8 @@
 {
     users.users.doromiert = {
         isNormalUser = true;
-        description = "doromiert";
-        extraGroups = [ "wheel" ];
+        description = "";
+        extraGroups = [  ];
         shell = pkgs.zsh;
         initialPassword = "setmelater";
     }
@@ -14,27 +14,6 @@
 
         # never touch this
         home.stateVersion = "25.11";        
-
-        home.file = {
-            ".config/zsh".source = ./zsh;
-            ".local/bin".source = ./bin;
-        };
-
-        home.directories = {
-            downloads = "${config.home.homeDirectory}/Downloads";
-            documents = "${config.home.homeDirectory}/Documents";
-            desktop = "${config.home.homeDirectory}/Desktop";
-            funny = "${config.home.homeDirectory}/Funny";
-            projects = "${config.home.homeDirectory}/Projects";
-            threeD = "${config.home.homeDirectory}/3D";
-            android = "${config.home.homeDirectory}/Android";
-            ai = "${config.home.homeDirectory}/AI";
-            appsAndScripts = "${config.home.homeDirectory}/Apps & Scripts";
-            doom = "${config.home.homeDirectory}/Doom";
-            rift = "${config.home.homeDirectory}/Rift";
-            random = "${config.home.homeDirectory}/Random";
-            passwords = "${config.home.homeDirectory}/Passwords";
-        };
 
         programs = {
 
