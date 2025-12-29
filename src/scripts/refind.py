@@ -5,8 +5,8 @@ import re
 
 # Paths
 PROFILE_DIR = "/nix/var/nix/profiles/"
-OUTPUT_FILE = "/boot/EFI/refind/nixos-entries.conf"
-ICON_PATH = "/EFI/refind/icons/os_nixos.png"
+OUTPUT_FILE = "/boot/EFI/refind/zenos-entries.conf"
+ICON_PATH = "/EFI/refind/icons/os_zenos.png"
 
 def get_gens():
     # Find all system-*-link files
@@ -21,7 +21,7 @@ def generate_config():
         return
 
     with open(OUTPUT_FILE, "w") as f:
-        f.write(f'menuentry "NixOS" {{\n')
+        f.write(f'menuentry "ZenOS" {{\n')
         f.write(f'    icon {ICON_PATH}\n')
         
         for i, gen in enumerate(gens):
