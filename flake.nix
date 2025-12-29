@@ -17,6 +17,11 @@
         # Unstable branch for bleeding edge tools/games
         nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
 
+        chaotic = {
+            url = "github:chaotic-cx/nyx";
+            inputs.nixpkgs.follows = "nixpkgs";
+        };
+
         home-manager = {
             url = "github:nix-community/home-manager/release-25.11";
             inputs.nixpkgs.follows = "nixpkgs";

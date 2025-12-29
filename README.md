@@ -1,9 +1,30 @@
 # Specification Sheet: ZenOS N 
 
-## 1. Vision & Overview
-**Project Name:** ZenOS 1.0N
+## TODOS
+- [x] Initialize `flake.nix` with `nixos-25.11`, `chaotic-nyx`, and `home-manager` inputs.
+- [ ] Configure `doromi-tul-ii` hardware profile with `swapDevices` and Ryzen 9/RX 6900XT optimizations.
+- [ ] Implement NixOS-agnostic styling module using `stylix` (Atkinson Hyperlegible + Custom Cursor).
+- [ ] Set up `rEFInd` with the Negative Zero theme and Plymouth pulsing pulse script.
+- [ ] Define `server-mode.target` for "Away" mode:
+    - [ ] Script to switch CPU governor to `powersave`.
+    - [ ] Hook to stop `display-manager.service` and start maintenance tasks.
+- [ ] Configure Libvirt/QEMU for `doromi-server` VM with VirtIO and shared `/host` bridge.
+- [ ] Setup GPU Passthrough hooks (vfio-pci) for the Windows guest on the RX 6900XT.
+- [ ] Port GNOME extension list to `home-manager` dconf settings.
+- [ ] Script the "Janitor Daemon":
+    - [ ] Write `janitor.py` using `watchdog`.
+    - [ ] Create a systemd user service in Nix to manage the daemon.
+- [ ] Configure Firefox PWA and `firefox-gnome-theme` via Nix user modules.
+- [ ] Define the Gamescope launch command for Steam as a global alias/wrapper.
+- [ ] Deploy `doromi-server` NixOS profile with Jellyfin, Immich, and Forgejo.
+- [ ] Configure Cloudflare Tunnel ingress rules for remote service access.
+- [ ] Set up `rquickshare` and GSConnect for Android/Nothing Phone (2) integration.
+- [ ] Implement the `nix-collect-garbage` auto-trigger within the "Away" mode lifecycle.
 
-**Identity:** The flagship OS environment for Negative Zero hardware.
+## 1. Vision & Overview
+**Project Name:** ZenOS N
+
+**Identity:** The flagship (nix-based) OS environment for Negative Zero hardware.
 
 **Goal:** A monolithic NixOS Flake repository managing a "Meta-Distro" environment.
 
@@ -121,37 +142,3 @@ The repository utilizes a single `flake.nix` entry point.
 * **Code:** Forgejo (Git Server).
 * **Gaming:** Minecraft Server (Declarative).
 * **Access:** SSH, Cloudflare Tunnel.
-
-## 9. File Structure (Flake)
-```text
-.
-├── flake.nix
-├── resources/
-│   ├── zenos-logo.png          # 512x512 Transparent
-│   ├── plymouth/               # Custom pulsing script
-│   ├── GoogleDot-Black/
-│   ├── Adwaita-hacks/
-│   └── wallpapers/
-├── hosts/
-│   ├── doromi-tul-ii/          # Main PC
-│   │   ├── main.nix
-│   │   ├── hardware.nix        # Includes swapDevices
-│   │   ├── power-modes.nix     # "Away" mode systemd targets
-│   │   └── virtualization.nix  # GPU Pass-through hooks
-│   ├── doromipad/
-│   └── doromi-server/
-├── modules/
-│   ├── core/
-│   │   ├── chaotic.nix         # Chaotic-Nyx config
-│   │   ├── janitor.nix         # Systemd service for Python watchdog
-│   │   └── ...
-│   ├── desktop/
-│   │   ├── gnome-extensions.nix
-│   │   └── styling.nix
-│   ├── roles/
-│   └── server/
-└── users/
-    └── doromiert/
-        ├── scripts/
-        │   └── janitor.py
-        └── home.nix
