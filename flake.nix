@@ -1,8 +1,7 @@
 {
-    description = "ZenOS N (NixOS-based ZenOS)";
+    description = "ZenOS N (NixOS-based ZenOS) - Codename Cacao";
 
-    # Vanity Metadata (Custom attributes for organizational clarity)
-    # These can be accessed via self.metadata within your system
+    # Vanity Metadata
     metadata = {
         name = "ZenOS N";
         version = "1.0";
@@ -11,230 +10,149 @@
     };
 
     inputs = {
-        # Primary System Provider (Stable 25.11)
+        # --- Package Sources ---
         nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
-        
-        # Unstable branch for bleeding edge tools/games
         nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
 
-        chaotic = {
-            url = "github:chaotic-cx/nyx";
-            inputs.nixpkgs.follows = "nixpkgs";
-        };
-
+        # --- System Utilities & Optimization ---
+        chaotic.url = "github:chaotic-cx/nyx";
         home-manager = {
             url = "github:nix-community/home-manager/release-25.11";
             inputs.nixpkgs.follows = "nixpkgs";
         };
-
-        # Styling engine for consistent UI/UX across ZenOS
         stylix = {
             url = "github:danth/stylix";
             inputs.nixpkgs.follows = "nixpkgs";
         };
 
+        # --- Hardware & Gaming ---
+        nixos-hardware.url = "github:nixos/nixos-hardware";
         nix-gaming = {
             url = "github:fufexan/nix-gaming";
             inputs.nixpkgs.follows = "nixpkgs";
         };
 
-        vsc-extensions = {
-            url = "github:nix-community/nix-vscode-extensions";
-            inputs.nixpkgs.follows = "nixpkgs";
-        };
-
-        nixos-hardware.url = "github:nixos/nixos-hardware";
-        
+        # --- Development & Custom Tools ---
+        vsc-extensions.url = "github:nix-community/nix-vscode-extensions";
         swisstag.url = "github:doromiert/swisstag";
 
-        # Experimental lab inputs
+        # --- Experimental/Lab ---
         nix-experimental = {
             url = "github:rirolab/nyx";
             inputs.nixpkgs.follows = "nixpkgs";
         };
     };
 
-    outputs = { self, nixpkgs, nixpkgs-unstable, ... }@inputs: 
+    outputs = { self, nixpkgs, nixpkgs-unstable, ... }@inputs:
     let
         system = "x86_64-linux";
-
-        # Import stable nixpkgs with unfree packages allowed
-        stable = import nixpkgs {
-            inherit system;
-            config = { allowUnfree = true; };
-        };
         
-        # Helper to allow using unstable packages in stable modules
-        # Usage: environment.systemPackages = [ pkgs.unstable.steam ];
-        overlay-unstable = final: prev: {
-            unstable = import nixpkgs-unstable {
+        # Centralized configuration for ease of maintenance
+        # This function generates a host configuration with common defaults
+        mkHost = { hostName, extraModules ? [], isServer ? false }: 
+            nixpkgs.lib.nixosSystem {
                 inherit system;
-                config.allowUnfree = true;
-            };
-        };
-    in {
-        nixosConfigurations = {
-            doromitul2 = stable.lib.nixosSystem {
-                inherit system;
-                
-                # specialArgs passes variables into every .nix file in your config
                 specialArgs = { 
-                    inherit inputs;
-                    # Pass self so modules can access self.metadata
-                    inherit self;
-                    # Alternative to overlay: direct access to unstable
+                    inherit inputs self hostName;
+                    # Define unstable pkgs here so it's consistent across all hosts
                     pkgs-unstable = import nixpkgs-unstable {
                         inherit system;
                         config.allowUnfree = true;
                     };
                 };
-                
                 modules = [
-                    # 1. Global Nix Settings & Overlays
+                    # 1. Base Logic & Overlays
                     ({ config, pkgs, ... }: { 
-                        nixpkgs.overlays = [ overlay-unstable ]; 
-                        # Set custom ZenOS versioning in the system state
+                        nixpkgs.overlays = [ 
+                            (final: prev: {
+                                unstable = import nixpkgs-unstable {
+                                    inherit system;
+                                    config.allowUnfree = true;
+                                };
+                            })
+                        ]; 
                         system.configurationRevision = self.rev or "dirty";
                         system.stateVersion = "25.11";
+                        networking.hostName = hostName;
                     })
 
-                    # 2. Device Specific (Main PC: doromi tul II)
-                    ./src/hosts/doromi-tul-2/main.nix
-                    ./src/hosts/doromi-tul-2/hardware.nix
-                    ./src/hosts/doromi-tul-2/syncthing.nix
-
-                    # 3. Core Modules (The ZenOS Foundation)
+                    # 2. Universal ZenOS Foundation (Core)
                     ./src/modules/core/branding.nix
                     ./src/modules/core/misc-services.nix
                     ./src/modules/core/security.nix
                     ./src/modules/core/shell.nix
                     ./src/modules/core/syncthing.nix
 
-                    # 4. Roles (Workflows)
+                    # 3. Desktop Environment (If not a server)
+                    (if !isServer then ./src/modules/desktop/gnome.nix else {})
+                    (if !isServer then ./src/modules/desktop/styling.nix else {})
+
+                    # 4. Global External Modules
+                    inputs.home-manager.nixosModules.home-manager
+                    inputs.stylix.nixosModules.stylix
+
+                ] ++ extraModules;
+            };
+    in {
+        nixosConfigurations = {
+            # --- Main PC: doromi tul II ---
+            # Ryzen 9 7900 + RX 6900XT
+            doromitul2 = mkHost {
+                hostName = "doromitul2";
+                extraModules = [
+                    ./src/hosts/doromi-tul-2/main.nix
+                    ./src/hosts/doromi-tul-2/hardware.nix
+                    ./src/hosts/doromi-tul-2/syncthing.nix
+                    
                     ./src/modules/roles/creative.nix
                     ./src/modules/roles/gaming.nix
                     ./src/modules/roles/dev.nix
                     ./src/modules/roles/virtualization.nix
                     ./src/modules/roles/web.nix
 
-                    # 5. Desktop Environment & UX
-                    ./src/modules/desktop/gnome.nix
-                    ./src/modules/desktop/styling.nix
-
-                    # 6. User Configurations
                     ./src/users/doromiert/main.nix
                     ./src/users/doromiert/graphical.nix
 
-                    # 7. Hardware & Community Optimizations
                     inputs.nixos-hardware.nixosModules.common-cpu-amd
                     inputs.nixos-hardware.nixosModules.common-gpu-amd
                     inputs.nixos-hardware.nixosModules.common-pc-ssd
                     inputs.nix-gaming.nixosModules.platformOptimizations
-                    
-                    # 8. External Module Activation
-                    inputs.home-manager.nixosModules.home-manager
-                    inputs.stylix.nixosModules.stylix
                 ];
             };
 
-            doromipad = stable.lib.nixosSystem {
-                inherit system;
-                
-                # specialArgs passes variables into every .nix file in your config
-                specialArgs = { 
-                    inherit inputs;
-                    # Pass self so modules can access self.metadata
-                    inherit self;
-                    # Alternative to overlay: direct access to unstable
-                    pkgs-unstable = import nixpkgs-unstable {
-                        inherit system;
-                        config.allowUnfree = true;
-                    };
-                };
-                
-                modules = [
-                    # 1. Global Nix Settings & Overlays
-                    ({ config, pkgs, ... }: { 
-                        nixpkgs.overlays = [ overlay-unstable ]; 
-                        # Set custom ZenOS versioning in the system state
-                        system.configurationRevision = self.rev or "dirty";
-                        system.stateVersion = "25.11";
-                    })
-
-                    # 2. Device Specific (Main PC: doromi tul II)
+            # --- Laptop: ThinkPad L13 (doromipad) ---
+            doromipad = mkHost {
+                hostName = "doromipad";
+                extraModules = [
                     ./src/hosts/doromipad/main.nix
                     ./src/hosts/doromipad/hardware.nix
                     ./src/hosts/doromipad/syncthing.nix
 
-                    # 3. Core Modules (The ZenOS Foundation)
-                    ./src/modules/core/branding.nix
-                    ./src/modules/core/misc-services.nix
-                    ./src/modules/core/security.nix
-                    ./src/modules/core/shell.nix
-                    ./src/modules/core/syncthing.nix
-
-                    # 4. Roles (Workflows)
                     ./src/modules/roles/creative.nix
                     ./src/modules/roles/tablet.nix
                     ./src/modules/roles/dev.nix
                     ./src/modules/roles/virtualization.nix
                     ./src/modules/roles/web.nix
 
-                    # 5. Desktop Environment & UX
-                    ./src/modules/desktop/gnome.nix
-                    ./src/modules/desktop/styling.nix
-
-                    # 6. User Configurations
                     ./src/users/doromiert/main.nix
                     ./src/users/doromiert/graphical.nix
 
-                    # 7. Hardware & Community Optimizations
                     inputs.nixos-hardware.nixosModules.lenovo-thinkpad-l13-yoga
                     inputs.nixos-hardware.nixosModules.common-cpu-intel
                     inputs.nixos-hardware.nixosModules.common-pc-ssd
-                    
-                    # 8. External Module Activation
-                    inputs.home-manager.nixosModules.home-manager
-                    inputs.stylix.nixosModules.stylix
                 ];
             };
-            doromi-server = stable.lib.nixosSystem {
-                inherit system;
-                
-                # specialArgs passes variables into every .nix file in your config
-                specialArgs = { 
-                    inherit inputs;
-                    # Pass self so modules can access self.metadata
-                    inherit self;
-                    # Alternative to overlay: direct access to unstable
-                    pkgs-unstable = import nixpkgs-unstable {
-                        inherit system;
-                        config.allowUnfree = true;
-                    };
-                };
-                
-                modules = [
-                    # 1. Global Nix Settings & Overlays
-                    ({ config, pkgs, ... }: { 
-                        nixpkgs.overlays = [ overlay-unstable ]; 
-                        # Set custom ZenOS versioning in the system state
-                        system.configurationRevision = self.rev or "dirty";
-                        system.stateVersion = "25.11";
-                    })
 
-                    # 2. Device Specific (Main PC: doromi tul II)
+            # --- Home Server: doromi-server ---
+            doromi-server = mkHost {
+                hostName = "doromi-server";
+                isServer = true;
+                extraModules = [
                     ./src/hosts/doromi-server/main.nix
                     ./src/hosts/doromi-server/hardware.nix
                     ./src/hosts/doromi-server/syncthing.nix
 
-                    # 3. Core Modules (The ZenOS Foundation)
-                    ./src/modules/core/branding.nix
-                    ./src/modules/core/misc-services.nix
-                    ./src/modules/core/security.nix
-                    ./src/modules/core/shell.nix
-                    ./src/modules/core/syncthing.nix
-
-                    # 4. services
+                    # Server Services
                     ./src/server/cloudflare.nix
                     ./src/server/copyparty.nix
                     ./src/server/forgejo.nix
@@ -242,7 +160,7 @@
                     ./src/server/jellyfin.nix
                     ./src/server/minecraft.nix
 
-                    # 5. User Configurations
+                    # Multi-user Configuration
                     ./src/users/aether/main.nix
                     ./src/users/blade0/main.nix
                     ./src/users/cnb/main.nix
@@ -257,13 +175,8 @@
                     ./src/users/shareduser/main.nix
                     ./src/users/xen/main.nix
 
-                    # 6. Hardware & Community Optimizations
                     inputs.nixos-hardware.nixosModules.common-cpu-amd
                     inputs.nixos-hardware.nixosModules.common-gpu-amd
-                    
-                    # 7. External Module Activation
-                    inputs.home-manager.nixosModules.home-manager
-                    inputs.stylix.nixosModules.stylix
                 ];
             };
         };
