@@ -55,32 +55,7 @@ for user in "${users[@]}"; do
     find "src/users/$user" -type f -exec sed -i "s/PLACEHOLDER/$user/g" {} +
 done
 
-# Core
-touch src/modules/core/branding.nix
-touch src/modules/core/security.nix
-touch src/modules/core/shell.nix
-touch src/modules/core/syncthing.nix # will contain all devices we want to use
-touch src/modules/core/misc-services.nix
-
-# Desktop
-touch src/modules/desktop/gnome.nix
-touch src/modules/desktop/styling.nix
-
-# Roles
-touch src/modules/roles/creative.nix
-touch src/modules/roles/gaming.nix
-touch src/modules/roles/tablet.nix
-touch src/modules/roles/virtualization.nix
-touch src/modules/roles/web.nix
-touch src/modules/roles/dev.nix
-
-# Server
-touch src/modules/server/cloudflare.nix
-touch src/modules/server/forgejo.nix
-touch src/modules/server/immich.nix
-touch src/modules/server/jellyfin.nix
-touch src/modules/server/copyparty.nix
-touch src/modules/server/minecraft.nix
+cp -r "templates/modules" "src" 
 
 echo "Structure created successfully."
 tree .
