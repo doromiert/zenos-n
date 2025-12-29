@@ -4,11 +4,13 @@ set -e
 
 echo "Initializing Nix configuration structure..."
 
-mkdir -p modules/core
-mkdir -p modules/desktop
-mkdir -p modules/roles
-mkdir -p modules/server
-mkdir -p users/doromiert/resources
+mkdir -p src
+mkdir -p resources
+mkdir -p src/modules/core
+mkdir -p src/modules/desktop
+mkdir -p src/modules/roles
+mkdir -p src/modules/server
+mkdir -p hosts
 
 touch flake.nix
 
@@ -40,45 +42,47 @@ users=(
     "shareduser"
 )
 
+
 for host in "${hosts[@]}"; do
-    mkdir "hosts/$host"
-    touch "hosts/$host/main.nix"
-    touch "hosts/$host/hardware.nix"
-    touch "hosts/$host/syncthing.nix"
+    mkdir -p "src/hosts/$host"
+    touch "src/hosts/$host/main.nix"
+    touch "src/hosts/$host/hardware.nix"
+    touch "src/hosts/$host/syncthing.nix"
 done
 
 for user in "${users[@]}"; do
-    mkdir "users/$user"
-    touch "users/$user/main.nix" # for both server and graphical envs
-    touch "users/$user/graphical.nix"
+    mkdir -p "src/users/$user"
+    mkdir -p "src/users/$user/resources"
+    touch "src/users/$user/main.nix" # for both server and graphical envs
+    touch "src/users/$user/graphical.nix"
 done
 
 # Core
-touch modules/core/branding.nix
-touch modules/core/security.nix
-touch modules/core/shell.nix
-touch modules/core/syncthing.nix # will contain all devices we want to use
-touch modules/core/misc-services.nix
+touch src/modules/core/branding.nix
+touch src/modules/core/security.nix
+touch src/modules/core/shell.nix
+touch src/modules/core/syncthing.nix # will contain all devices we want to use
+touch src/modules/core/misc-services.nix
 
 # Desktop
-touch modules/desktop/gnome.nix
-touch modules/desktop/styling.nix
+touch src/modules/desktop/gnome.nix
+touch src/modules/desktop/styling.nix
 
 # Roles
-touch modules/roles/creative.nix
-touch modules/roles/gaming.nix
-touch modules/roles/tablet.nix
-touch modules/roles/virtualization.nix
-touch modules/roles/web.nix
-touch modules/roles/dev.nix
+touch src/modules/roles/creative.nix
+touch src/modules/roles/gaming.nix
+touch src/modules/roles/tablet.nix
+touch src/modules/roles/virtualization.nix
+touch src/modules/roles/web.nix
+touch src/modules/roles/dev.nix
 
 # Server
-touch modules/server/cloudflare.nix
-touch modules/server/forgejo.nix
-touch modules/server/immich.nix
-touch modules/server/jellyfin.nix
-touch modules/server/copyparty.nix
-touch modules/server/minecraft.nix
+touch src/modules/server/cloudflare.nix
+touch src/modules/server/forgejo.nix
+touch src/modules/server/immich.nix
+touch src/modules/server/jellyfin.nix
+touch src/modules/server/copyparty.nix
+touch src/modules/server/minecraft.nix
 
 echo "Structure created successfully."
 tree .
