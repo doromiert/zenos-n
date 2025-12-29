@@ -41,13 +41,13 @@ users=(
 
 for host in "${hosts[@]}"; do
     mkdir -p "src/hosts/$host"
-    cp -r templates/host/* "src/hosts/$host"
+    cp -r --no-clobber templates/host/* "src/hosts/$host"
     find "src/hosts/$host" -type f -exec sed -i "s/PLACEHOLDER/$host/g" {} +
 done
 
 for user in "${users[@]}"; do
     mkdir -p "src/users/$user"
-    cp -r templates/user/* "src/users/$user"
+    cp -r --no-clobber templates/user/* "src/users/$user"
     find "src/users/$user" -type f -exec sed -i "s/PLACEHOLDER/$user/g" {} +
 done
 
