@@ -82,6 +82,7 @@
                     ./src/modules/core/security.nix
                     ./src/modules/core/shell.nix
                     ./src/modules/core/syncthing.nix
+                    ./src/modules/core/boot.nix
 
                     # 3. Desktop Environment (If not a server)
                     (if !isServer then ./src/modules/desktop/gnome.nix else {})
