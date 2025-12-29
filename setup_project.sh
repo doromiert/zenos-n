@@ -51,7 +51,7 @@ for user in "${users[@]}"; do
     find "src/users/$user" -type f -exec sed -i "s/PLACEHOLDER/$user/g" {} +
 done
 
-cp -r "templates/modules" "src" 
+cp -r --no-clobber "templates/modules" "src" 
 
 echo "Structure created successfully."
 tree .
