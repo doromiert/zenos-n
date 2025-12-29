@@ -2,8 +2,11 @@
 
 ## 1. Vision & Overview
 **Project Name:** ZenOS 1.0N
+
 **Identity:** The flagship OS environment for Negative Zero hardware.
+
 **Goal:** A monolithic NixOS Flake repository managing a "Meta-Distro" environment.
+
 **Core Philosophy:** "Hybrid & Portable" — The Main PC acts as a high-performance Workstation and Hypervisor, isolating Server functions into a declarative VM for stability, while specific power states manage energy efficiency.
 
 ## 2. Architecture: The Flake
