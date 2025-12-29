@@ -52,9 +52,8 @@ done
 
 for user in "${users[@]}"; do
     mkdir -p "src/users/$user"
-    mkdir -p "src/users/$user/resources"
-    touch "src/users/$user/main.nix" # for both server and graphical envs
-    touch "src/users/$user/graphical.nix"
+    cp -r templates/user "src/users/$user"
+    find "src/users/$user" -type f -exec sed -i "s/PLACEHOLDER/$user/g" {} +
 done
 
 # Core

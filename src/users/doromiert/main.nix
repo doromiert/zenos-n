@@ -1,1 +1,0 @@
-# kitchen sink for the user
