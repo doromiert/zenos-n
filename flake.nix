@@ -125,7 +125,7 @@
             doromitul2 = mkHost {
                 hostName = "doromitul2";
                 desktop = "gnome";
-                roles = [ "creative" "gaming" "dev" "virtualization" "web" ];
+                roles = [ "creative" "gaming" "dev" "virtualization" "containers" "web" ];
                 extraModules = [
                     inputs.nixos-hardware.nixosModules.common-cpu-amd
                     inputs.nixos-hardware.nixosModules.common-gpu-amd
@@ -138,7 +138,7 @@
                 hostName = "vm-desktop-test";
                 desktop = "gnome";
                 excludeCoreModules = [ "syncthing" ];
-                roles = [ "creative" "gaming" "dev" "virtualization" "web" ];
+                roles = [ "creative" "gaming" "dev" "virtualization" "containers" "web" ];
                 extraModules = [
                     inputs.nixos-hardware.nixosModules.common-cpu-amd
                     inputs.nixos-hardware.nixosModules.common-gpu-amd
@@ -148,7 +148,7 @@
             doromipad = mkHost {
                 hostName = "doromipad";
                 desktop = "gnome";
-                roles = [ "creative" "tablet" "dev" "virtualization" "web" ];
+                roles = [ "creative" "tablet" "dev" "virtualization" "containers" "web" ];
                 extraModules = [
                     inputs.nixos-hardware.nixosModules.lenovo-thinkpad-l13-yoga
                     inputs.nixos-hardware.nixosModules.common-cpu-intel
@@ -164,6 +164,7 @@
                     "hubi" "jeyphr" "lenni" "meowster" "saphhie" 
                     "saxum" "shareduser" "xen" 
                 ];
+                roles = [ "containers" ];
                 serverServices = [
                     "cloudflare" "copyparty" "forgejo" 
                     "immich" "jellyfin" "minecraft"
