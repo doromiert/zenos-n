@@ -91,7 +91,7 @@ in {
       sudo -u "$username" -H firefoxpwa runtime install || true
       
       ${makePWA "$username" "YouTube" "https://www.youtube.com" "youtube" [ extensions.ublock extensions.sponsorblock ]}
-      ${makePWA "$username" "Figma" "https://www.figma.com" "select-for-figma" [ extensions.ua-switcher ]}
+      ${makePWA "$username" "Select for Figma" "https://www.figma.com" "select-for-figma" [ extensions.ua-switcher ]}
       ${makePWA "$username" "Gemini" "https://gemini.google.com" "internet-chat" [ ]}
       ${makePWA "$username" "Twitter" "https://x.com" "twitter" [ extensions.ublock extensions.minimal-twitter ]}
       ${makePWA "$username" "GitHub" "https://github.com" "github" [ ]}
