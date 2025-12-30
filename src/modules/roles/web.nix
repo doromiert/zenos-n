@@ -119,7 +119,7 @@ in {
         install_url = "file://${ext.src}";
       }) (with extensions; { inherit ublock ua-switcher violentmonkey cssoverride js-disabler keepassxc; });
 
-      Preferences = {
+      preferences = {
         "toolkit.legacyUserProfileCustomizations.stylesheets" = true;
         "browser.tabs.drawInTitlebar" = true;
         "svg.context-properties.content.enabled" = true;

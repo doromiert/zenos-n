@@ -6,7 +6,7 @@
         "org/gnome/desktop/wm/keybindings" = {
             close = [ "<Super>q" ];
             maximize = [ "<Super>w" ];
-            minimize = [ "<Super>Page_Down" ];
+            toggle-minimized = [ "<Super>Page_Down" ];
             activate-window-menu = [ "<Super>space" ];
             
             # Workspaces
