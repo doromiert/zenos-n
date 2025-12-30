@@ -16,6 +16,7 @@ hosts=(
     "doromi-tul-2"
     "doromipad"
     "doromi-server"
+    "vm-desktop-test"
 )
 
 users=(

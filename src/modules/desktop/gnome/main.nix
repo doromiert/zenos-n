@@ -27,6 +27,11 @@ let
     ];
 in
 {
+
+    imports = [
+        ./styling.nix
+    ];
+
     # 1. Core Desktop Services
     services = {
         xserver = {
