@@ -31,9 +31,12 @@
 
         vsc-extensions.url = "github:nix-community/nix-vscode-extensions";
         swisstag.url = "github:doromiert/swisstag";
+        nixcord.url = "github:kaylorben/nixcord"; 
+
+        nix-minecraft = "github:Infinidoge/nix-minecraft";
     };
 
-    outputs = { self, nixpkgs, nixpkgs-unstable, ... }@inputs:
+    outputs = { self, nixpkgs, nixpkgs-unstable, nixcord, stylix, nix-gaming, vsc-extensions, swisstag, nixcord, home-manager, chaotic, nix-minecraft, ... }@inputs:
     let
         system = "x86_64-linux";
         lib = nixpkgs.lib;

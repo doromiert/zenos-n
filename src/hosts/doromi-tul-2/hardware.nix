@@ -34,7 +34,6 @@ in
         "preempt=full"
         "threadirqs"
         "amd_pstate=active"
-        # REMOVED: static hugepages to keep RAM available for host/server
     ];
 
     # -- Filesystems --
@@ -49,7 +48,34 @@ in
         options = [ "fmask=0022" "dmask=0022" ];
     };
     
-    swapDevices = [ { device = "/dev/disk/by-uuid/REPLACE_WITH_SWAP_UUID"; } ];
+    # -- Swap & Memory Management --
+    
+    # 1. Physical Swapfile (Safety Net)
+    # Replaced partition-based swap with a flexible file-based approach.
+    # Note: If your root is Btrfs, NixOS handles the No_COW attribute automatically.
+    swapDevices = [ {
+        device = "/var/lib/swapfile";
+        size = 16 * 1024; # 16GB
+        priority = 0;    # Only used if zram fills up
+    } ];
+
+    # 2. zram (Dynamic In-Memory Swap)
+    # Uses ZSTD compression to effectively increase available RAM.
+    zramSwap = {
+        enable = true;
+        memoryPercent = 50; 
+        priority = 100;    # Higher priority than disk-based swap
+        algorithm = "zstd";
+    };
+
+    # 3. Kernel Tuning for Swap/zram
+    # High swappiness (180) tells the kernel to prefer zram over dropping cache.
+    boot.kernel.sysctl = {
+        "vm.swappiness" = 180;
+        "vm.watermark_boost_factor" = 0;
+        "vm.watermark_scale_factor" = 125;
+        "vm.page-cluster" = 0; # Optimized for zram (disables readahead on swap)
+    };
 
     # -- Hardware Specifics --
     networking.useDHCP = lib.mkDefault true;
@@ -57,8 +83,7 @@ in
     hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
     
     # -- Memory Management (KSM) --
-    # Kernel Samepage Merging: Identifies identical memory pages and merges them.
-    # Very useful for running multiple VMs (Server + Gaming) simultaneously.
+    # Merges identical memory pages. Excellent for shared VM memory.
     hardware.ksm.enable = true;
 
     # -- Graphics (Mesa/Vulkan) --
@@ -106,6 +131,7 @@ in
         glxinfo
         amdgpu_top
         btop
+        nvme-cli
     ];
 
     # -- Multi-User Environment Variables --

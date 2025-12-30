@@ -45,7 +45,7 @@ let
   '';
 
 in {
-  environment.systemPackages = [ pkgs.firefoxpwa pkgs.keepassxc ];
+  environment.systemPackages = [ pkgs.firefoxpwa pkgs.keepassxc pkgs.chromium ];
 
   environment.etc = {
     "firefox/pwa-custom-chrome".source = paths.pwaChrome;
