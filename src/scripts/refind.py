@@ -6,7 +6,7 @@ import re
 # Paths
 PROFILE_DIR = "/nix/var/nix/profiles/"
 OUTPUT_FILE = "/boot/EFI/refind/zenos-entries.conf"
-ICON_PATH = "/EFI/refind/icons/os_zenos.png"
+ICON_PATH = "/EFI/refind/themes/refind-ambience-hack/icons/os_zenos.png"
 
 def get_gens():
     # Find all system-*-link files
