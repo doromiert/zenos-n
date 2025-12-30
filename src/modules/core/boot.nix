@@ -6,7 +6,7 @@ let
     refindScript = ../../scripts/refind.py;
     # Path to resources (Theme, icons, etc.)
     # Nix will copy this directory to the store, ensuring reproducibility.
-    refindResources = ../../resources/Refind;
+    refindResources = ../../../resources/Refind;
 in
 {
     boot.loader = {

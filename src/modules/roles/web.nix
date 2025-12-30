@@ -114,12 +114,12 @@ in {
     nativeMessagingHosts.packages = [ pkgs.firefoxpwa pkgs.keepassxc ];
     
     policies = {
-      ExtensionSettings = lib.mapAttrs (name: ext: {
+      ExtensionSettings = lib.mapAttrs' (name: ext: lib.nameValuePair ext.id {
         installation_mode = "normal_installed";
         install_url = "file://${ext.src}";
       }) (with extensions; { inherit ublock ua-switcher violentmonkey cssoverride js-disabler keepassxc; });
 
-      preferences = {
+      Preferences = {
         "toolkit.legacyUserProfileCustomizations.stylesheets" = true;
         "browser.tabs.drawInTitlebar" = true;
         "svg.context-properties.content.enabled" = true;
