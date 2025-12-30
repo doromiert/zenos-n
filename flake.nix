@@ -56,8 +56,7 @@
         mkHost = { 
             hostName, 
             extraModules ? [], 
-            isServer ? false, 
-            desktop ? null, # New argument for desktop selection
+            desktop ? null, # Logic now relies solely on this
             excludeCoreModules ? [],
             users ? [ "doromiert" ],
             roles ? [],
@@ -110,7 +109,8 @@
                     ] ++ (map (user: ./src/users + "/${user}/main.nix") users) ++ [
                     
                     # 7. Conditional Graphical User Modules
-                    ] ++ (if !isServer then (map (user: ./src/users + "/${user}/graphical.nix") users) else []) ++ [
+                    # If a desktop is selected, we assume users need their graphical configs
+                    ] ++ (if desktop != null then (map (user: ./src/users + "/${user}/graphical.nix") users) else []) ++ [
 
                     # 8. Automatic Role Import
                     ] ++ (map (role: ./src/modules/roles/${role}.nix) roles) ++ [
@@ -158,8 +158,7 @@
 
             doromi-server = mkHost {
                 hostName = "doromi-server";
-                isServer = true;
-                # desktop defaults to null
+                # desktop omitted (defaults to null), so graphical modules are skipped
                 users = [ 
                     "aether" "blade0" "cnb" "doromiert" "ecodz" 
                     "hubi" "jeyphr" "lenni" "meowster" "saphhie" 
