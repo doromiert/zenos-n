@@ -55,6 +55,7 @@
 
         mkHost = { 
             hostName, 
+            mainUser ? "doromiert", # Added mainUser argument
             extraModules ? [], 
             desktop ? null, # Logic now relies solely on this
             excludeCoreModules ? [],
@@ -74,6 +75,14 @@
                 modules = [
                     # 1. Base Logic & Overlays
                     ({ config, pkgs, ... }: { 
+                        # Define the mainUser option and set it
+                        options.mainUser = lib.mkOption {
+                            type = lib.types.str;
+                            default = mainUser;
+                            description = "The primary user of the system.";
+                        };
+                        config.mainUser = mainUser;
+
                         nixpkgs.overlays = [ 
                             (final: prev: {
                                 unstable = import nixpkgs-unstable {
@@ -124,6 +133,8 @@
         nixosConfigurations = {
             doromitul2 = mkHost {
                 hostName = "doromitul2";
+                mainUser = "doromiert";
+                users = [ "doromiert", "hubi" ];
                 desktop = "gnome";
                 roles = [ "creative" "gaming" "dev" "virtualization" "containers" "web" ];
                 extraModules = [
@@ -136,6 +147,7 @@
 
             vm-desktop = mkHost {
                 hostName = "vm-desktop-test";
+                mainUser = "doromiert";
                 desktop = "gnome";
                 excludeCoreModules = [ "syncthing" ];
                 roles = [ "creative" "gaming" "dev" "virtualization" "containers" "web" ];
@@ -147,6 +159,8 @@
 
             doromipad = mkHost {
                 hostName = "doromipad";
+                mainUser = "doromiert";
+                users = [ "doromiert", "hubi" ];
                 desktop = "gnome";
                 roles = [ "creative" "tablet" "dev" "virtualization" "containers" "web" ];
                 extraModules = [
@@ -158,6 +172,7 @@
 
             doromi-server = mkHost {
                 hostName = "doromi-server";
+                mainUser = "doromiert";
                 # desktop omitted (defaults to null), so graphical modules are skipped
                 users = [ 
                     "aether" "blade0" "cnb" "doromiert" "ecodz" 

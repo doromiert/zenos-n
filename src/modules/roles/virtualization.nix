@@ -1,7 +1,8 @@
-{ config, pkgs, ... }:{
-    
+{ config, pkgs, ... }:
+
+{
     # -------------------------------------------------------------------------
-    # Virtualization Configuration (libvirtd + virt-manager)
+    # Libvirt & QEMU Configuration
     # -------------------------------------------------------------------------
     virtualisation.libvirtd = {
         enable = true;
@@ -13,52 +14,26 @@
                 enable = true;
                 packages = [ pkgs.OVMFFull.fd ];
             };
-            swtpm.enable = true; # Required for Windows 11 / TPM emulation
+            swtpm.enable = true; # TPM emulation for Windows 11
         };
     };
 
-    # Enable virt-manager GUI
     programs.virt-manager.enable = true;
 
     # -------------------------------------------------------------------------
-    # Containerization (Docker)
+    # Guest Interaction
     # -------------------------------------------------------------------------
-    virtualisation.docker = {
-        enable = true;
-        # Use rootless mode if preferred for security, but standard is often 
-        # better for server-heavy workflows like yours (Jellyfin, Immich).
-        rootless = {
-            enable = false;
-            setSocketVariable = true;
-        };
-        # Daemon configuration for storage efficiency
-        daemon.settings = {
-            "storage-driver" = "overlay2";
-        };
-    };
+    services.spice-vdagentd.enable = true;
 
     # -------------------------------------------------------------------------
-    # User Permissions & Packages
+    # Permissions & Packages
     # -------------------------------------------------------------------------
-    # Replace 'user' with your actual username in the main config
-    # This adds the user to the required groups to manage VMs and Containers
-    users.users.${config.mainUser}.extraGroups = [ 
-        "libvirtd" 
-        "docker" 
-        "kvm" 
-    ];
+    users.users.${config.mainUser}.extraGroups = [ "libvirtd" "kvm" ];
 
     environment.systemPackages = with pkgs; [
-        # CLI Tools
-        docker-compose
         bridge-utils
         dnsmasq
         vde2
-        
-        # Virtualization Helpers
-        spice-vdagent # For better guest interaction
+        spice-vdagent
     ];
-
-    # Enable Spice for clipboard sharing between Host/Guest
-    services.spice-vdagentd.enable = true;
 }
