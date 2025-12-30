@@ -5,10 +5,10 @@
     users.users.doromiert = {
         isNormalUser = true;
         description = "doromiert";
-        extraGroups = [ "wheel" ];
+        extraGroups = [ "wheel" "networkmanager" ];
         shell = pkgs.zsh;
         initialPassword = "setmelater";
-    }
+    };
 
     home-manager.users.doromiert = {
 
@@ -16,24 +16,32 @@
         home.stateVersion = "25.11";        
 
         home.file = {
-            ".config/zsh".source = ./zsh;
-            ".local/bin".source = ./bin;
+            ".config/zsh".source = ./resources/p10k.zsh;
+            # ".local/bin".source = ./bin;
         };
 
-        home.directories = {
-            downloads = "${config.home.homeDirectory}/Downloads";
-            documents = "${config.home.homeDirectory}/Documents";
-            desktop = "${config.home.homeDirectory}/Desktop";
-            funny = "${config.home.homeDirectory}/Funny";
-            projects = "${config.home.homeDirectory}/Projects";
-            threeD = "${config.home.homeDirectory}/3D";
-            android = "${config.home.homeDirectory}/Android";
-            ai = "${config.home.homeDirectory}/AI";
-            appsAndScripts = "${config.home.homeDirectory}/Apps & Scripts";
-            doom = "${config.home.homeDirectory}/Doom";
-            rift = "${config.home.homeDirectory}/Rift";
-            random = "${config.home.homeDirectory}/Random";
-            passwords = "${config.home.homeDirectory}/Passwords";
+        xdg.userDirs = {
+            enable = true;
+            createDirectories = true;
+
+            # Standard XDG paths
+            download = "/home/doromiert/Downloads";
+            documents = "/home/doromiert/Documents";
+            desktop = "/home/doromiert/Desktop";
+
+            # Custom paths go into extraConfig
+            extraConfig = {
+                XDG_FUNNY_DIR = "/home/doromiert/Funny";
+                XDG_PROJECTS_DIR = "/home/doromiert/Projects";
+                XDG_THREED_DIR = "/home/doromiert/3D";
+                XDG_ANDROID_DIR = "/home/doromiert/Android";
+                XDG_AI_DIR = "/home/doromiert/AI";
+                XDG_APPS_SCRIPTS_DIR = "/home/doromiert/Apps & Scripts";
+                XDG_DOOM_DIR = "/home/doromiert/Doom";
+                XDG_RIFT_DIR = "/home/doromiert/Rift";
+                XDG_RANDOM_DIR = "/home/doromiert/Random";
+                XDG_PASSWORDS_DIR = "/home/doromiert/Passwords";
+            };
         };
 
         programs = {
@@ -46,7 +54,7 @@
             zsh = {
 
                 enable = true;
-                enableCompletions = true;
+                enableCompletion = true;
                 autosuggestion.enable = true;
                 syntaxHighlighting.enable = true;
 
@@ -80,12 +88,12 @@
                 enable = true;
                 settings = {
                     user = {
-                        name  = "";
-                        email = "";
+                        name  = "doromiert";
+                        email = "doromiert@gmail.com";
                     };
                     init.defaultBranch = "main";
                 };
             };
         };
-    }
+    };
 }

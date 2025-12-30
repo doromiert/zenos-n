@@ -6,15 +6,11 @@
     # -------------------------------------------------------------------------
     virtualisation.libvirtd = {
         enable = true;
+        onBoot = "ignore";
+        onShutdown = "shutdown";
         qemu = {
             package = pkgs.qemu_kvm;
             runAsRoot = true;
-            # High-performance settings for Ryzen 9 7900
-            ovmf = {
-                enable = true;
-                packages = [ pkgs.OVMFFull.fd ];
-            };
-            swtpm.enable = true; # TPM emulation for Windows 11
         };
     };
 

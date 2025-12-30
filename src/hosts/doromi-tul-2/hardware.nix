@@ -12,7 +12,7 @@ let
     ];
 
     # List of users allowed to use Virtualization and the dGPU
-    trustedUsers = [ "doromiert" "hubi" ]; 
+    trustedUsers = [ "doromiert" ]; 
 in
 {
     imports = [ (modulesPath + "/installer/scan/not-detected.nix") ];
@@ -38,14 +38,14 @@ in
 
     # -- Filesystems --
     fileSystems."/" = { 
-        device = "/dev/disk/by-uuid/REPLACE_WITH_ROOT_UUID";
-        fsType = "ext4"; 
+        device = "/dev/disk/by-uuid/892a748c-3cc0-4106-b03d-b7cb21a8eeea";
+        fsType = "ext4";
     };
 
-    fileSystems."/boot" = { 
-        device = "/dev/disk/by-uuid/REPLACE_WITH_BOOT_UUID";
+    fileSystems."/boot" = {
+        device = "/dev/disk/by-uuid/D332-20EE";
         fsType = "vfat";
-        options = [ "fmask=0022" "dmask=0022" ];
+        options = [ "fmask=0077" "dmask=0077" ];
     };
     
     # -- Swap & Memory Management --
@@ -92,26 +92,9 @@ in
         enable32Bit = true;
         extraPackages = with pkgs; [
             rocmPackages.clr.icd 
-            vaapiVdpau
+            libva-vdpau-driver
             libvdpau-va-gl
-            amdvlk 
         ];
-    };
-
-    # -- Virtualization Support (Libvirt/QEMU) --
-    virtualisation.libvirtd = {
-        enable = true;
-        onBoot = "ignore";
-        onShutdown = "shutdown";
-        qemu = {
-            package = pkgs.qemu_kvm;
-            ovmf.enable = true;
-            runAsRoot = true;
-            verbatimConfig = ''
-                user = "${builtins.head trustedUsers}"
-                group = "libvirtd"
-            '';
-        };
     };
 
     # -- Multi-User Hardware Access --
@@ -128,7 +111,6 @@ in
         virt-manager
         pciutils    
         looking-glass-client 
-        glxinfo
         amdgpu_top
         btop
         nvme-cli

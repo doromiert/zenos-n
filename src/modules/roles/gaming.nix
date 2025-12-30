@@ -15,15 +15,11 @@ let
   '';
 
 in {
-  # Import Nix-Gaming platform optimizations (kernel tweaks, etc.)
-  imports = [ 
-    inputs.nix-gaming.nixosModules.platformOptimizations 
-  ];
 
   # -- Steam Configuration --
   programs.steam = {
     enable = true;
-    gamescopeSession.enable = false; # Disabled: Using Gamescope as a window in DE only
+    # gamescopeSession.enable = false; # Disabled: Using Gamescope as a window in DE only
     remotePlay.openFirewall = true; # Open ports for Steam Remote Play
     dedicatedServer.openFirewall = true;
     
@@ -33,9 +29,16 @@ in {
     ];
   };
 
+  # jovian = {
+  #   steam.enable = true;
+  #   decky-loader = {
+  #     enable = true;
+  #   };
+  # };
+
   # -- VR Configuration --
   # ALVR firewall rules are critical for Quest 3 streaming
-  services.alvr = {
+  programs.alvr = {
     enable = true;
     openFirewall = true; 
   };
@@ -50,7 +53,7 @@ in {
     mangohud
     gamemode
     steam-rom-manager
-    decky-loader
+    # decky-loader
     appimage-run     # Required for Suyu
     yuzu-suyu-wrapper # Exposes 'yuzu' command
     
@@ -62,7 +65,7 @@ in {
     prismlauncher
     
     # Emulators (Verify availability in your flake inputs/unstable)
-    ryujinx               # Switch (Alternate)
+    ryubing               # Switch (Alternate)
     dolphin-emu           # GC/Wii
     pcsx2                 # PS2
     rpcs3                 # PS3

@@ -1,14 +1,6 @@
 {
     description = "ZenOS N (NixOS-based ZenOS)";
 
-    # Flake metadata
-    metadata = {
-        name = "ZenOS N";
-        version = "1.0";
-        codename = "Cacao";
-        maintainer = "doromiert";
-    };
-
     inputs = {
         nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
         nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
@@ -18,25 +10,23 @@
             url = "github:nix-community/home-manager/release-25.11";
             inputs.nixpkgs.follows = "nixpkgs";
         };
-        stylix = {
-            url = "github:danth/stylix";
-            inputs.nixpkgs.follows = "nixpkgs";
-        };
 
         nixos-hardware.url = "github:nixos/nixos-hardware";
         nix-gaming = {
             url = "github:fufexan/nix-gaming";
-            inputs.nixpkgs.follows = "nixpkgs";
+        };
+        jovian = {
+            url = "github:Jovian-Experiments/Jovian-NixOS";
         };
 
         vsc-extensions.url = "github:nix-community/nix-vscode-extensions";
         swisstag.url = "github:doromiert/swisstag";
         nixcord.url = "github:kaylorben/nixcord"; 
 
-        nix-minecraft = "github:Infinidoge/nix-minecraft";
+        nix-minecraft.url = "github:Infinidoge/nix-minecraft";
     };
 
-    outputs = { self, nixpkgs, nixpkgs-unstable, nixcord, stylix, nix-gaming, vsc-extensions, swisstag, nixcord, home-manager, chaotic, nix-minecraft, ... }@inputs:
+    outputs = { self, nixpkgs, nixpkgs-unstable, nixcord, nix-gaming, vsc-extensions, swisstag, home-manager, chaotic, nix-minecraft, jovian, ... }@inputs:
     let
         system = "x86_64-linux";
         lib = nixpkgs.lib;
@@ -77,31 +67,34 @@
                 };
                 modules = [
                     # 1. Base Logic & Overlays
-                    ({ config, pkgs, ... }: { 
+                    ({ config, pkgs, lib, networking, ... }: { 
                         # Define the mainUser option and set it
                         options.mainUser = lib.mkOption {
                             type = lib.types.str;
                             default = mainUser;
                             description = "The primary user of the system.";
                         };
-                        config.mainUser = mainUser;
+                        config = {
+                            nixpkgs.config.allowUnfree = true;
+                            mainUser = mainUser;
+                            networking.hostName = hostName;
+                            nixpkgs.overlays = [ 
+                                (final: prev: {
+                                    unstable = import nixpkgs-unstable {
+                                        inherit system;
+                                        config.allowUnfree = true;
+                                    };
+                                })
+                            ]; 
+                            system.configurationRevision = self.rev or "dirty";
+                            system.stateVersion = "25.11";
+                            home-manager.useGlobalPkgs = true;
 
-                        nixpkgs.overlays = [ 
-                            (final: prev: {
-                                unstable = import nixpkgs-unstable {
-                                    inherit system;
-                                    config.allowUnfree = true;
-                                };
-                            })
-                        ]; 
-                        system.configurationRevision = self.rev or "dirty";
-                        system.stateVersion = "25.11";
-                        networking.hostName = hostName;
+                        };
                     })
 
                     # 2. External Modules
                     inputs.home-manager.nixosModules.home-manager
-                    inputs.stylix.nixosModules.stylix
 
                     # 3. Universal ZenOS Foundation (Dynamic Import)
                     # Automatically imports all modules in src/modules/core unless excluded
@@ -111,7 +104,7 @@
                     # Imports src/modules/desktop/${desktop}/main.nix if 'desktop' is set
                     ] ++ (if desktop != null then [
                         ./src/modules/desktop/${desktop}/main.nix
-                        ./src/modules/desktop/styling.nix
+                        ./src/modules/desktop/${desktop}/styling.nix
                     ] else []) ++ [
 
                     # 5. Automatic Host Directory Import (Excluding resources)
@@ -133,22 +126,33 @@
                 ] ++ extraModules;
             };
     in {
+
+        # Flake metadata
+        metadata = {
+            name = "ZenOS N";
+            version = "1.0";
+            codename = "Cacao";
+            maintainer = "doromiert";
+        };
+
         nixosConfigurations = {
-            doromitul2 = mkHost {
-                hostName = "doromitul2";
+            doromi-tul-2 = mkHost {
+                hostName = "doromi-tul-2";
                 mainUser = "doromiert";
-                users = [ "doromiert", "hubi" ];
+                users = [ "doromiert" "hubi" ];
                 desktop = "gnome";
-                roles = [ "creative" "gaming" "dev" "virtualization" "containers" "web" ];
+                excludeCoreModules = [ "syncthing" ]; 
+                roles = [ "creative" "gaming" "web" "dev" "virtualization" "containers" ];
                 extraModules = [
                     inputs.nixos-hardware.nixosModules.common-cpu-amd
                     inputs.nixos-hardware.nixosModules.common-gpu-amd
                     inputs.nixos-hardware.nixosModules.common-pc-ssd
                     inputs.nix-gaming.nixosModules.platformOptimizations
+                    inputs.jovian.nixosModules.default
                 ];
             };
 
-            vm-desktop = mkHost {
+            vm-desktop-test = mkHost {
                 hostName = "vm-desktop-test";
                 mainUser = "doromiert";
                 desktop = "gnome";
@@ -163,7 +167,7 @@
             doromipad = mkHost {
                 hostName = "doromipad";
                 mainUser = "doromiert";
-                users = [ "doromiert", "hubi" ];
+                users = [ "doromiert" "hubi" ];
                 desktop = "gnome";
                 roles = [ "creative" "tablet" "dev" "virtualization" "containers" "web" ];
                 extraModules = [

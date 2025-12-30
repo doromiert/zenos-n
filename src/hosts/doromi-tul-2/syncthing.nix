@@ -4,7 +4,7 @@
         dataDir = "/home/doromiert/.local/share/syncthing";
         configDir = "/home/doromiert/.config/syncthing";
         
-        folders = {
+        settings.folders = {
             
             # 1. Books
             "books" = {

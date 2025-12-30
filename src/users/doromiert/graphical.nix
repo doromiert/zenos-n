@@ -1,13 +1,13 @@
 { config, pkgs, inputs, ... }: {
     # Ensure the Nixcord module is imported
-    imports = [
-        ./shortcuts.nix
-        inputs.nixcord.homeModules.nixcord
-    ];
 
     home-manager.users.doromiert = {
+        imports = [
+            ./shortcuts.nix
+            inputs.nixcord.homeModules.nixcord
+        ];
         # Regular packages
-        packages = with pkgs; [
+        home.packages = with pkgs; [
             telegram-desktop
         ];
 
@@ -15,7 +15,7 @@
             enable = true;
             discord = {
                 enable = true;
-                vencord = true;
+                vencord.enable = true;
             };
 
             config = {
@@ -27,7 +27,7 @@
                 # Highly Practical Plugin Configuration [p13.9 focus]
                 plugins = {
                     # Essentials
-                    fakeNitro.enable = {
+                    fakeNitro = {
                         enable = true;
                         transformEmojis = true;
                     };
@@ -43,8 +43,8 @@
                     
                     # Privacy & Utility
                     callTimer.enable = true;
-                    clearURLs.enable = true;
-                    copyUserURLs.enable = true;
+                    ClearURLs.enable = true;
+                    CopyUserURLs.enable = true;
                     
                     # Performance/Fixes
                     vencordToolbox.enable = true;
@@ -52,11 +52,13 @@
                     webScreenShareFixes.enable = true;
 
                     # Custom RPC
-                    customRPC = {
+                    CustomRPC = {
                         enable = true;
-                        type = 0; # Playing
-                        name = "Sex 2";
-                        details = "Duos";
+                        config = {
+                            type = 0; # Playing
+                            name = "Sex 2";
+                            details = "Duos";
+                        };
                     };
                 };
             };

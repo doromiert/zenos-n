@@ -1,41 +1,34 @@
-{ config, pkgs, inputs, ... }:
+{ config, pkgs, lib, ... }:
 
 let
   # -- Helper: Package Local Resources --
   cursorPkg = pkgs.runCommand "zenos-cursor" {} ''
     mkdir -p $out/share/icons
-    cp -r ${../../resources/GoogleDot-Black} $out/share/icons/GoogleDot-Black
+    cp -r ${../../../../resources/GoogleDot-Black} $out/share/icons/GoogleDot-Black
   '';
 
   iconPkg = pkgs.runCommand "zenos-icons" {} ''
     mkdir -p $out/share/icons
-    cp -r ${../../resources/Adwaita-hacks} $out/share/icons/Adwaita-hacks
+    cp -r ${../../../../resources/Adwaita-hacks} $out/share/icons/Adwaita-hacks
   '';
 
-  # [ ! ] Installs the Custom Mime XML
-  # NixOS will automatically run update-mime-database when this is in systemPackages
   mimePkg = pkgs.runCommand "zenos-mimetypes" {} ''
     mkdir -p $out/share/mime/packages
-    # Copies your structure: resources/mimetypes/share/mime/packages/zenos-custom.xml
-    cp -r ${../../resources/mimetypes}/* $out/
+    cp -r ${../../../../resources/mimetypes}/* $out/
   '';
 
-  # -- Helper: Emulator Association Generator --
-  # Creates individual .desktop files for "Open With" support based on your Python script
   mkAssoc = name: exec: mimes: pkgs.makeDesktopItem {
     name = "zeroplay-assoc-${name}";
     desktopName = "ZeroPlay: ${name}";
     genericName = "Emulator";
     comment = "Launch with ${name}";
-    icon = name; # Matches the svg icon names
+    icon = name;
     inherit exec;
     categories = [ "Game" "Emulator" ];
     mimeTypes = mimes;
   };
 
-  # -- Mappings derived from zeroplay-manager.py --
   emulatorAssocs = [
-    # Modern / High Level
     (mkAssoc "yuzu"        "yuzu %f"        [ "application/x-switch-rom" ])
     (mkAssoc "pcsx2"       "pcsx2 %f"       [ "application/x-ps2-rom" ])
     (mkAssoc "rpcs3"       "rpcs3 %f"       [ "application/x-ps3-rom" ])
@@ -46,79 +39,79 @@ let
     (mkAssoc "flycast"     "flycast %f"     [ "application/x-dreamcast-rom" ])
     (mkAssoc "xemu"        "xemu %f"        [ "application/x-xbox-rom" ])
     (mkAssoc "xenia"       "xenia %f"       [ "application/x-xbox360-rom" ])
-    
-    # Classics (Standalone preference)
     (mkAssoc "mesen"       "mesen %f"       [ "application/x-nes-rom" ])
     (mkAssoc "bsnes"       "bsnes %f"       [ "application/x-snes-rom" ])
-
-    # RetroArch Fallbacks (Systems where Core usage is standard or wrapper script implied)
-    # Includes: Genesis, Saturn, GBA, GB, GBC, DS, Wii U (Cemu often runs via Wine/RA)
     (mkAssoc "retroarch"   "retroarch %f"   [ 
-      "application/x-genesis-rom"
-      "application/x-saturn-rom"
-      "application/x-gba-rom"
-      "application/x-gameboy-rom"
-      "application/x-gameboy-color-rom"
-      "application/x-nintendo-ds-rom"
+      "application/x-genesis-rom" "application/x-saturn-rom"
+      "application/x-gba-rom" "application/x-gameboy-rom"
+      "application/x-gameboy-color-rom" "application/x-nintendo-ds-rom"
       "application/x-wiiu-rom" 
     ])
   ];
-
-  wallpaper = ../../resources/wallpapers/default.png;
 in
 {
-  # ---------------------------------------------------------------------------
-  # ZenOS 1.0N: Styling (Stylix)
-  # ---------------------------------------------------------------------------
-  stylix = {
-    enable = true;
-    image = wallpaper; 
-    polarity = "dark";
+  # 1. Fonts Configuration (System-wide)
+  fonts = {
+    packages = with pkgs; [
+      atkinson-hyperlegible
+      atkinson-hyperlegible-mono
+      noto-fonts
+      noto-fonts-color-emoji
+    ];
+    fontconfig = {
+      defaultFonts = {
+        monospace = [ "Atkinson Hyperlegible Mono" ];
+        sansSerif = [ "Atkinson Hyperlegible" ];
+        serif     = [ "Noto Serif" ];
+      };
+    };
+  };
 
-    cursor = {
+  # 2. Qt and GTK Styling
+  # Note: To apply cursors and themes system-wide without Stylix, we add them to environment.
+  qt = {
+    enable = true;
+    platformTheme = "gnome"; # Or "qt5ct" / "qt6ct" if not using GNOME
+    style = "adwaita-dark";
+  };
+
+  # 3. System Packages
+  environment.systemPackages = with pkgs; [ 
+    iconPkg 
+    mimePkg
+    cursorPkg
+    # Ensure theme engines are present
+    adwaita-qt
+    gnome-themes-extra
+  ] ++ emulatorAssocs;
+
+  # 4. Global Environment Variables (For Cursors/Themes)
+  environment.variables = {
+    XCURSOR_THEME = "GoogleDot-Black";
+    XCURSOR_SIZE = "24";
+  };
+
+  # 5. User-specific Overrides (via Home Manager)
+  home-manager.users.doromiert = { ... }: {
+    home.pointerCursor = {
       package = cursorPkg;
       name = "GoogleDot-Black";
       size = 24;
+      gtk.enable = true;
+      x11.enable = true;
     };
 
-    fonts = {
-      monospace = {
-        package = pkgs.atkinson-hyperlegible-mono;
-        name = "Atkinson Hyperlegible Mono";
-      };
-      sansSerif = {
-        package = pkgs.atkinson-hyperlegible;
-        name = "Atkinson Hyperlegible";
-      };
-      serif = {
-        package = pkgs.noto-fonts;
-        name = "Noto Serif";
-      };
-      
-      sizes = {
-        terminal = 12;
-        applications = 10;
-        desktop = 10;
-      };
-    };
-  };
-
-  # -- Apply System Packages --
-  # These are added to system-wide environment
-  environment.systemPackages = [ 
-    iconPkg 
-    mimePkg 
-  ] ++ emulatorAssocs; # Expands the list of desktop items
-
-  # -- User Interface Config (Dconf) --
-  home-manager.users.doromiert = { pkgs, ... }: {
     dconf.settings = {
       "org/gnome/desktop/interface" = {
         icon-theme = "Adwaita-hacks";
+        cursor-theme = "GoogleDot-Black";
+        font-name = "Atkinson Hyperlegible 11";
+        document-font-name = "Atkinson Hyperlegible 11";
+        monospace-font-name = "Atkinson Hyperlegible Mono 11";
       };
     };
   };
 
-  # -- Boot Animation --
+  # 6. Boot Animation
   boot.plymouth.enable = true;
 }

@@ -1,8 +1,8 @@
 # will contain the -0 ZenOS N branding
 { ... }: {
-    system.nixos.variant_id = "N";
+    # system.nixos.variant_id = "N";
     system.nixos.variantName = "NixOS-based version";
-    system.nixos.codeName = "Cacao";
+    # system.nixos.codeName = "Cacao";
     system.nixos.label = "zenOS";
 
     environment.etc."os-release".text = ''

@@ -9,7 +9,7 @@ let
         burn-my-windows
         compiz-windows-effect
         compiz-alike-magic-lamp-effect
-        rounded-window-corners
+        rounded-window-corners-reborn
         blur-my-shell
         
         # UX / Navigation
@@ -18,7 +18,6 @@ let
         coverflow-alt-tab
         hide-top-bar
         mouse-tail
-        tweaks-system-menu
         
         # System
         gsconnect
@@ -34,29 +33,28 @@ in
 
     # 1. Core Desktop Services
     services = {
-        xserver = {
-            enable = true;
-            displayManager.gdm.enable = true;
-            desktopManager.gnome.enable = true;
-        };
+        # xserver = {
+        #     enable = true;
+        # };
+        displayManager.gdm.enable = true;
+        desktopManager.gnome.enable = true;
         
         # Ensure standard GNOME services are running
         udev.packages = with pkgs; [ gnome-settings-daemon ];
 
+        pulseaudio.enable = false;
         pipewire = {
             enable = true;
-        };
+            alsa.enable = true;
+            alsa.support32Bit = true;
+            pulse.enable = true;
+            # If you want to use JACK applications, uncomment this
+            #jack.enable = true;
 
-        xdg = {
-            portal = {
-                enable = true;
-                extraPortals = with pkgs; [
-                xdg-desktop-portal-wlr
-                xdg-desktop-portal-gtk
-                ];
-            };
+            # use the example session manager (no others are packaged yet so this is enabled by default,
+            # no need to redefine it in your config for now)
+            #media-session.enable = true;
         };
-
     };
 
     # 2. System-wide Packages (Extensions and Tools)
@@ -72,13 +70,13 @@ in
             gnome-photos
             gnome-tour
             gedit
-        ]) ++ (with pkgs.gnome; [
             cheese
             gnome-music
             gnome-maps
             epiphany
             gnome-contacts
             gnome-weather
+        ]) ++ (with pkgs.gnome; [
         ]);
     };
 

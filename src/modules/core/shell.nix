@@ -7,14 +7,7 @@
         autosuggestions.enable = true;
         syntaxHighlighting.enable = true;
 
-        zplug = {
-            enable = true;
-            plugins = [
-                { name = "romkatv/powerlevel10k"; tags = [ "as:theme" "depth:1" ]; }
-            ];
-        };
-
-        history.size = 10000;
+        histSize = 10000;
 
         # [P13.9] Practical Aliases using eza
         shellAliases = {
@@ -28,7 +21,7 @@
             noc = "sudo nix-collect-garbage -d";
         };
 
-        initExtra = ''
+        shellInit = ''
             # Navigation: Search-based keys + word-jumping (Ctrl + Arrows)
             bindkey "^[[A" up-line-or-search
             bindkey "^[[B" down-line-or-search
@@ -47,7 +40,6 @@
     # SSH Service (Keeping the server enabled, but removing the shell shortcuts)
     services.openssh = {
         enable = true;
-        settings.PasswordAuthentication = false;
         settings.PermitRootLogin = "no";
     };
 

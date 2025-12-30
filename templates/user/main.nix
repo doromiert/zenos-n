@@ -8,12 +8,12 @@
         extraGroups = [  ];
         shell = pkgs.zsh;
         initialPassword = "setmelater";
-    }
+    };
 
     home-manager.users.PLACEHOLDER = {
 
         # never touch this
-        home.stateVersion = "25.11";        
+        stateVersion = "25.11";        
 
         programs = {
 
@@ -66,5 +66,5 @@
                 };
             };
         };
-    }
+    };
 }

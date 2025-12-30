@@ -4,11 +4,11 @@
 {
     users.users.hubi = {
         isNormalUser = true;
-        description = "";
-        extraGroups = [  ];
+        description = "hubi";
+        extraGroups = [ "networkmanager" ];
         shell = pkgs.zsh;
         initialPassword = "setmelater";
-    }
+    };
 
     home-manager.users.hubi = {
 
@@ -25,7 +25,7 @@
             zsh = {
 
                 enable = true;
-                enableCompletions = true;
+                enableCompletion = true;
                 autosuggestion.enable = true;
                 syntaxHighlighting.enable = true;
 
@@ -66,5 +66,5 @@
                 };
             };
         };
-    }
+    };
 }
