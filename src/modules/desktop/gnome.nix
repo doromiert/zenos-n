@@ -24,11 +24,6 @@ let
         gsconnect
         clipboard-indicator
         notification-timeout
-        
-        # Utilities used in previous version
-        appindicator
-        dash-to-dock
-        just-perfection
     ];
 in
 {
@@ -42,6 +37,21 @@ in
         
         # Ensure standard GNOME services are running
         udev.packages = with pkgs; [ gnome-settings-daemon ];
+
+        pipewire = {
+            enable = true;
+        };
+
+        xdg = {
+            portal = {
+                enable = true;
+                extraPortals = with pkgs; [
+                xdg-desktop-portal-wlr
+                xdg-desktop-portal-gtk
+                ];
+            };
+        };
+
     };
 
     # 2. System-wide Packages (Extensions and Tools)
@@ -76,7 +86,6 @@ in
                 "org/gnome/desktop/interface" = {
                     color-scheme = "prefer-dark";
                     enable-hot-corners = false;
-                    clock-show-weekday = true;
                 };
 
                 # Shell & Extension Management
@@ -87,46 +96,11 @@ in
                     enabled-extensions = map (ext: ext.extensionUuid) extensions;
                     
                     favorite-apps = [
-                        "firefox.desktop"
+                        "nautilus.desktop"
                         "org.gnome.Nautilus.desktop"
-                        "org.gnome.Console.desktop"
-                        "code.desktop"
                     ];
-                };
-
-                # Extension Specific Defaults
-                "org/gnome/shell/extensions/dash-to-dock" = {
-                    dock-position = "BOTTOM";
-                    extend-height = false;
-                    dash-max-icon-size = 48;
-                };
-
-                "org/gnome/shell/extensions/forge" = {
-                    tiling-mode-enabled = true;
-                };
-
-                "org/gnome/shell/extensions/hidetopbar" = {
-                    enable-active-window-hits = true;
                 };
             };
         }];
-    };
-
-    # 4. Font Configuration (Optimized for GNOME)
-    fonts = {
-        packages = with pkgs; [
-            noto-fonts
-            noto-fonts-cjk-sans
-            noto-fonts-emoji
-            font-awesome
-            (nerdfonts.override { fonts = [ "FiraCode" "JetBrainsMono" ]; })
-        ];
-        fontconfig = {
-            defaultFonts = {
-                serif = [ "Noto Serif" ];
-                sansSerif = [ "Noto Sans" ];
-                monospace = [ "JetBrainsMono Nerd Font" ];
-            };
-        };
     };
 }
