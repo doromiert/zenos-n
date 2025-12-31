@@ -1,108 +1,123 @@
 {
-
-  pkgs,
   inputs,
   ...
 }:
 {
   # Ensure the Nixcord module is imported
 
-  home-manager.users.doromiert = {
-    imports = [
-      ./shortcuts.nix
-      ./dconf.nix
-      inputs.nixcord.homeModules.nixcord
-    ];
+  home-manager.users.doromiert =
+    {
+      lib,
+      pkgs,
+      ...
+    }:
+    let
+      # [P5.4] & [P6.6] VS Code Settings Definition
+      vscodeSettings = {
+        # UI/UX Cleanliness
+        "editor.fontFamily" = "'Atkinson Hyperlegible Mono', monospace";
+        "editor.fontSize" = 14;
+        "window.menuBarVisibility" = "toggle";
+        "window.titleBarStyle" = "custom";
+        "workbench.colorTheme" = "Adwaita Dark";
 
-    # Regular packages
-    home.packages = with pkgs; [
-      telegram-desktop
-      # [P13.D] Ensure formatter is available for the LSP
-      nixfmt-rfc-style
-    ];
+        # Structural Settings
+        "editor.formatOnSave" = true;
+        "editor.tabSize" = 4;
+        "editor.insertSpaces" = true;
+        "editor.detectIndentation" = false;
 
-    xdg.configFile."Code/User/settings.json".text = builtins.toJSON {
-      # [P5.4] UI/UX Cleanliness
-      "editor.fontFamily" = "'Atkinson Hyperlegible Mono', monospace";
-      "editor.fontSize" = 14;
-      "window.menuBarVisibility" = "toggle";
-      "window.titleBarStyle" = "custom";
-      "workbench.colorTheme" = "Adwaita Dark";
+        # Nix Integration
+        "nix.enableLanguageServer" = true;
+        "nix.serverPath" = "nixd";
 
-      # [P6.6] Structural Settings
-      "editor.formatOnSave" = true;
-      "editor.tabSize" = 4;
-      "editor.insertSpaces" = true;
-      "editor.detectIndentation" = false;
-
-      # Nix Integration
-      "nix.enableLanguageServer" = true;
-      "nix.serverPath" = "nixd";
-
-      # [ ! ] CLEANUP: Server settings moved to .nixd.nix at project root.
-      # This prevents the "unknown node type" error caused by forcing <nixpkgs>.
-
-      # Extensions Config
-      "gitlens.codeLens.enabled" = true;
-      "vim.useSystemClipboard" = true;
-      "vim.hlsearch" = true;
-    };
-
-    programs.nixcord = {
-      enable = true;
-      discord = {
-        enable = true;
-        vencord.enable = true;
+        # Extensions Config
+        "gitlens.codeLens.enabled" = true;
+        "vim.useSystemClipboard" = true;
+        "vim.hlsearch" = true;
       };
 
-      config = {
-        useQuickCss = true;
+      # Generate the JSON file in the Nix store
+      settingsFile = pkgs.writeText "vscode-settings.json" (builtins.toJSON vscodeSettings);
+    in
+    {
+      imports = [
+        ./shortcuts.nix
+        ./dconf.nix
+        inputs.nixcord.homeModules.nixcord
+      ];
 
-        # Global Vencord Settings
-        enabledThemes = [ ];
+      # Regular packages
+      home.packages = with pkgs; [
+        telegram-desktop
+        # [P13.D] Ensure formatter is available for the LSP
+        nixfmt-rfc-style
+      ];
 
-        # Highly Practical Plugin Configuration [p13.9 focus]
-        plugins = {
-          # Essentials
-          fakeNitro = {
-            enable = true;
-            transformEmojis = true;
-          };
+      # [ ! ] ACTIVATION SCRIPT
+      # Copies settings.json from store to config dir and makes it writable (chmod u+w)
+      # This replaces xdg.configFile to allow runtime edits by VS Code.
+      home.activation.configureVscode = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        $DRY_RUN_CMD mkdir -p $HOME/.config/Code/User
+        $DRY_RUN_CMD cp -f "${settingsFile}" "$HOME/.config/Code/User/settings.json"
+        $DRY_RUN_CMD chmod u+w "$HOME/.config/Code/User/settings.json"
+      '';
 
-          # UI Improvements
-          betterFolders = {
-            enable = true;
-            sidebar = true;
-            sidebarAnim = true;
-          };
-          memberCount.enable = true;
-          showHiddenThings.enable = true;
+      programs.nixcord = {
+        enable = true;
+        discord = {
+          enable = true;
+          vencord.enable = true;
+        };
 
-          # Privacy & Utility
-          callTimer.enable = true;
-          ClearURLs.enable = true;
-          CopyUserURLs.enable = true;
+        config = {
+          useQuickCss = true;
 
-          # Performance/Fixes
-          vencordToolbox.enable = true;
-          webKeybinds.enable = true;
-          webScreenShareFixes.enable = true;
+          # Global Vencord Settings
+          enabledThemes = [ ];
 
-          # Custom RPC
-          CustomRPC = {
-            enable = true;
-            config = {
-              type = 0; # Playing
-              name = "Sex 2";
-              details = "Duos";
+          # Highly Practical Plugin Configuration [p13.9 focus]
+          plugins = {
+            # Essentials
+            fakeNitro = {
+              enable = true;
+              transformEmojis = true;
+            };
+
+            # UI Improvements
+            betterFolders = {
+              enable = true;
+              sidebar = true;
+              sidebarAnim = true;
+            };
+            memberCount.enable = true;
+            showHiddenThings.enable = true;
+
+            # Privacy & Utility
+            callTimer.enable = true;
+            ClearURLs.enable = true;
+            CopyUserURLs.enable = true;
+
+            # Performance/Fixes
+            vencordToolbox.enable = true;
+            webKeybinds.enable = true;
+            webScreenShareFixes.enable = true;
+
+            # Custom RPC
+            CustomRPC = {
+              enable = true;
+              config = {
+                type = 0; # Playing
+                name = "Sex 2";
+                details = "Duos";
+              };
             };
           };
         };
+
+        quickCss = ''
+
+        '';
       };
-
-      quickCss = ''
-
-      '';
     };
-  };
 }
