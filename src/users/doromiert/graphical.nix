@@ -1,4 +1,4 @@
-{ config, pkgs, inputs, ... }: {
+{ config, pkgs, inputs, lib, ... }: {
     # Ensure the Nixcord module is imported
 
     home-manager.users.doromiert = {
@@ -6,6 +6,7 @@
             ./shortcuts.nix
             inputs.nixcord.homeModules.nixcord
         ];
+
         # Regular packages
         home.packages = with pkgs; [
             telegram-desktop
@@ -13,38 +14,28 @@
         
         programs.vscode = {
             enable = true;
-            # [P5.1] FOSS Philosophy: Uncomment the line below to use VSCodium instead
-            # package = pkgs.vscodium; 
-            
-            # [P9] Efficiency: Extensions managed here are immutable (cannot install via GUI)
-            extensions = with pkgs.vscode-extensions; [
-                # Essential for your NixOS/CachyOS workflow
-                bbenoist.nix
-                jnoortheen.nix-ide
-                mkhl.direnv 
-                
-                # Practical Utilities [P13.9]
-                eamodio.gitlens
-                esbenp.prettier-vscode
-                # ms-vscode.cpptools # [P4.1] Uncomment for C/C++
-            ] ++ pkgs.vscode-utils.extensionsFromVscodeMarketplace [
-                # Use this logic ONLY for extensions not found in nixpkgs
-                # {
-                #    name = "remote-ssh-edit";
-                #    publisher = "ms-vscode-remote";
-                #    version = "0.47.2";
-                #    sha256 = "1hp6gjh4xp2m1xlm1jsdzxw9d8frkiidhph6nvl24d0h8z34n1kx";
-                # }
-            ];
-
-            # Define settings.json here
             userSettings = {
+                # Your Requested Overrides
                 "editor.fontFamily" = "'Atkinson Hyperlegible Mono', monospace";
                 "editor.formatOnSave" = true;
                 "nix.enableLanguageServer" = true;
-                "nix.serverPath" = "nil";
+                "nix.serverPath" = "${pkgs.nixd}/bin/nixd";
                 "window.menuBarVisibility" = "toggle";
-                "workbench.colorTheme" = "Default Dark Modern";
+                "workbench.colorTheme" = "Adwaita Dark";
+
+                # Structural/Philosophy Settings [P6.6]
+                "editor.tabSize" = 4;
+                "editor.insertSpaces" = true;
+                "editor.detectIndentation" = false;
+                
+                # UI/UX Cleanliness [P5.4]
+                "window.titleBarStyle" = "custom";
+                "editor.fontSize" = 14;
+                "gitlens.codeLens.enabled" = true;
+                
+                # Vim Integration
+                "vim.useSystemClipboard" = true;
+                "vim.hlsearch" = true;
             };
         };
 

@@ -93,6 +93,7 @@
                             system.configurationRevision = self.rev or "dirty";
                             system.stateVersion = "25.11";
                             home-manager.useGlobalPkgs = true;
+                            home-manager.backupFileExtension = "backup";
 
                         };
                     })

@@ -14,7 +14,7 @@
 
         # never touch this
         home.stateVersion = "25.11";        
-
+        
         home.file = {
             ".config/zsh".source = ./resources/p10k.zsh;
             # ".local/bin".source = ./bin;
