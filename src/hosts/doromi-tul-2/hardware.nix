@@ -15,6 +15,21 @@ let
     trustedUsers = [ "doromiert" ]; 
 in
 {
+    system.activationScripts = {
+        deviceRefindSettings = {
+            supportsDryActivation = true;
+            text = ''
+                echo "Deploying device-specific rEFInd resources..."
+                
+                # Check if the store path exists (it always should if Nix builds successfully)
+                # -L: Dereference symlinks (copy actual file content)
+                # -f: Force overwrite of existing files
+                # -r: Recursive
+                # --no-preserve=mode: Ensures files on target are writable (fixes Read-Only Store issues)
+                cp -Lrf --no-preserve=mode "${./resources/refind-device.conf}" /boot/EFI/refind/refind-device.conf
+            '';
+        };
+    };
     imports = [ (modulesPath + "/installer/scan/not-detected.nix") ];
 
     # -- Kernel --
