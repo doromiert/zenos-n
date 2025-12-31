@@ -5,189 +5,190 @@
   <mime-type type="application/x-xbox-rom">
     <comment>Xbox ROM</comment>
     <icon name="xbox"/>
-    <glob pattern="*.XB.iso"/>
-    <glob pattern="*.XB.xbe"/>
-    <glob pattern="*.XB.cci"/>
+    <glob pattern="*.XB.iso" weight="100"/>
+    <glob pattern="*.XB.xbe" weight="100"/>
+    <glob pattern="*.XB.cci" weight="100"/>
   </mime-type>
 
   <mime-type type="application/x-xbox360-rom">
     <comment>Xbox 360 ROM</comment>
     <icon name="xbox-360"/>
-    <glob pattern="*.X360.iso"/>
-    <glob pattern="*.X360.xex"/>
-    <glob pattern="*.X360.zip"/>
+    <glob pattern="*.X360.iso" weight="100"/>
+    <glob pattern="*.X360.xex" weight="100"/>
+    <glob pattern="*.X360.zip" weight="100"/>
   </mime-type>
 
   <!-- Nintendo -->
   <mime-type type="application/x-nes-rom">
     <comment>NES ROM</comment>
     <icon name="nes"/>
-    <glob pattern="*.NES.nes"/>
-    <glob pattern="*.NES.unf"/>
-    <glob pattern="*.NES.zip"/>
-    <glob pattern="*.NES.7z"/>
+    <glob pattern="*.NES.nes" weight="100"/>
+    <glob pattern="*.NES.unf" weight="100"/>
+    <glob pattern="*.NES.zip" weight="100"/>
+    <glob pattern="*.NES.7z" weight="100"/>
   </mime-type>
 
   <mime-type type="application/x-snes-rom">
     <comment>SNES ROM</comment>
     <icon name="snes"/>
-    <glob pattern="*.SNES.smc"/>
-    <glob pattern="*.SNES.sfc"/>
-    <glob pattern="*.SNES.fig"/>
-    <glob pattern="*.SNES.swc"/>
-    <glob pattern="*.SNES.zip"/>
-    <glob pattern="*.SNES.7z"/>
+    <glob pattern="*.SNES.smc" weight="100"/>
+    <glob pattern="*.SNES.sfc" weight="100"/>
+    <glob pattern="*.SNES.fig" weight="100"/>
+    <glob pattern="*.SNES.swc" weight="100"/>
+    <glob pattern="*.SNES.zip" weight="100"/>
+    <glob pattern="*.SNES.7z" weight="100"/>
   </mime-type>
 
   <mime-type type="application/x-n64-rom">
     <comment>Nintendo 64 ROM</comment>
     <icon name="n64"/>
-    <glob pattern="*.N64.n64"/>
-    <glob pattern="*.N64.z64"/>
-    <glob pattern="*.N64.v64"/>
-    <glob pattern="*.N64.zip"/>
-    <glob pattern="*.N64.7z"/>
+    <glob pattern="*.N64.n64" weight="100"/>
+    <glob pattern="*.N64.z64" weight="100"/>
+    <glob pattern="*.N64.v64" weight="100"/>
+    <glob pattern="*.N64.zip" weight="100"/>
+    <glob pattern="*.N64.7z" weight="100"/>
   </mime-type>
 
   <mime-type type="application/x-nintendo-ds-rom">
     <comment>Nintendo DS ROM</comment>
     <icon name="ds"/>
-    <glob pattern="*.DS.nds"/>
-    <glob pattern="*.DS.ids"/>
-    <glob pattern="*.DS.zip"/>
-    <glob pattern="*.DS.7z"/>
+    <glob pattern="*.DS.nds" weight="100"/>
+    <glob pattern="*.DS.ids" weight="100"/>
+    <glob pattern="*.DS.zip" weight="100"/>
+    <glob pattern="*.DS.7z" weight="100"/>
   </mime-type>
 
   <mime-type type="application/x-nintendo-3ds-rom">
     <comment>Nintendo 3DS ROM</comment>
     <icon name="3ds"/>
-    <glob pattern="*.3DS.3ds"/>
-    <glob pattern="*.3DS.cia"/>
-    <glob pattern="*.3DS.app"/>
-    <glob pattern="*.3DS.zip"/>
+    <glob pattern="*.3DS.3ds" weight="100"/>
+    <glob pattern="*.3DS.cia" weight="100"/>
+    <glob pattern="*.3DS.app" weight="100"/>
+    <glob pattern="*.3DS.zip" weight="100"/>
   </mime-type>
 
   <mime-type type="application/x-gba-rom">
     <comment>Game Boy Advance ROM</comment>
     <icon name="gba"/>
-    <glob pattern="*.GBA.gba"/>
-    <glob pattern="*.GBA.zip"/>
-    <glob pattern="*.GBA.7z"/>
+    <glob pattern="*.GBA.gba" weight="100"/>
+    <glob pattern="*.GBA.zip" weight="100"/>
+    <glob pattern="*.GBA.7z" weight="100"/>
   </mime-type>
 
   <mime-type type="application/x-gamecube-rom">
     <comment>GameCube ROM</comment>
     <icon name="gamecube"/>
-    <glob pattern="*.GC.iso"/>
-    <glob pattern="*.GC.gcm"/>
-    <glob pattern="*.GC.rvz"/>
+    <glob pattern="*.GC.iso" weight="100"/>
+    <glob pattern="*.GC.gcm" weight="100"/>
+    <glob pattern="*.GC.rvz" weight="100"/>
   </mime-type>
 
   <mime-type type="application/x-wii-rom">
     <comment>Wii ROM</comment>
     <icon name="wii"/>
-    <glob pattern="*.WII.iso"/>
-    <glob pattern="*.WII.wbfs"/>
-    <glob pattern="*.WII.rvz"/>
-    <glob pattern="*.WII.ciso"/>
+    <glob pattern="*.WII.iso" weight="100"/>
+    <glob pattern="*.WII.wbfs" weight="100"/>
+    <glob pattern="*.WII.rvz" weight="100"/>
+    <glob pattern="*.WII.ciso" weight="100"/>
   </mime-type>
 
   <mime-type type="application/x-wiiu-rom">
     <comment>Wii U ROM</comment>
     <icon name="wiiu"/>
-    <glob pattern="*.WIIU.wud"/>
-    <glob pattern="*.WIIU.wux"/>
-    <glob pattern="*.WIIU.rpx"/>
+    <glob pattern="*.WIIU.wud" weight="100"/>
+    <glob pattern="*.WIIU.wux" weight="100"/>
+    <glob pattern="*.WIIU.rpx" weight="100"/>
   </mime-type>
 
   <mime-type type="application/x-switch-rom">
     <comment>Nintendo Switch ROM</comment>
     <icon name="switch"/>
-    <glob pattern="*.NS.nsp"/>
-    <glob pattern="*.NS.xci"/>
-    <glob pattern="*.NS.nca"/>
-    <glob pattern="*.NS.nro"/>
+    <glob pattern="*.NS.nsp" weight="100"/>
+    <glob pattern="*.NS.xci" weight="100"/>
+    <glob pattern="*.NS.nca" weight="100"/>
+    <glob pattern="*.NS.nro" weight="100"/>
   </mime-type>
   
   <mime-type type="application/x-gameboy-rom">
     <comment>Game Boy ROM</comment>
     <icon name="gameboy"/>
-    <glob pattern="*.GB.gb"/>
-    <glob pattern="*.GB.zip"/>
-    <glob pattern="*.GB.7z"/>
+    <glob pattern="*.GB.gb" weight="100"/>
+    <glob pattern="*.GB.zip" weight="100"/>
+    <glob pattern="*.GB.7z" weight="100"/>
   </mime-type>
 
   <mime-type type="application/x-gameboy-color-rom">
     <comment>Game Boy Color ROM</comment>
     <icon name="gameboy"/>
-    <glob pattern="*.GBC.gbc"/>
-    <glob pattern="*.GBC.zip"/>
-    <glob pattern="*.GBC.7z"/>
+    <glob pattern="*.GBC.gbc" weight="100"/>
+    <glob pattern="*.GBC.zip" weight="100"/>
+    <glob pattern="*.GBC.7z" weight="100"/>
   </mime-type>
 
   <!-- Sony -->
   <mime-type type="application/x-ps1-rom">
     <comment>PlayStation ROM</comment>
     <icon name="ps1"/>
-    <glob pattern="*.PS1.cue"/>
-    <glob pattern="*.PS1.bin"/>
-    <glob pattern="*.PS1.chd"/>
-    <glob pattern="*.PS1.pbp"/>
-    <glob pattern="*.PS1.iso"/>
+    <glob pattern="*.PS1.cue" weight="100"/>
+    <glob pattern="*.PS1.bin" weight="100"/>
+    <glob pattern="*.PS1.chd" weight="100"/>
+    <glob pattern="*.PS1.pbp" weight="100"/>
+    <glob pattern="*.PS1.iso" weight="100"/>
   </mime-type>
 
   <mime-type type="application/x-ps2-rom">
     <comment>PlayStation 2 ROM</comment>
     <icon name="ps2"/>
-    <glob pattern="*.PS2.iso"/>
-    <glob pattern="*.PS2.bin"/>
-    <glob pattern="*.PS2.cue"/>
-    <glob pattern="*.PS2.chd"/>
-    <glob pattern="*.PS2.gz"/>
+    <glob pattern="*.PS2.iso" weight="100"/>
+    <glob pattern="*.PS2.bin" weight="100"/>
+    <glob pattern="*.PS2.cue" weight="100"/>
+    <glob pattern="*.PS2.chd" weight="100"/>
+    <glob pattern="*.PS2.gz" weight="100"/>
   </mime-type>
 
   <mime-type type="application/x-ps3-rom">
     <comment>PlayStation 3 ROM</comment>
     <icon name="ps3"/>
-    <glob pattern="*.PS3.iso"/>
-    <glob pattern="*.PS3.pkg"/>
-    <glob pattern="*.PS3.bin"/>
+    <glob pattern="*.PS3.iso" weight="100"/>
+    <glob pattern="*.PS3.pkg" weight="100"/>
+    <glob pattern="*.PS3.bin" weight="100"/>
   </mime-type>
 
   <!-- SEGA -->
   <mime-type type="application/x-dreamcast-rom">
     <comment>Dreamcast ROM</comment>
     <icon name="dreamcast"/>
-    <glob pattern="*.DC.gdi"/>
-    <glob pattern="*.DC.cdi"/>
-    <glob pattern="*.DC.chd"/>
+    <glob pattern="*.DC.gdi" weight="100"/>
+    <glob pattern="*.DC.cdi" weight="100"/>
+    <glob pattern="*.DC.chd" weight="100"/>
   </mime-type>
 
   <mime-type type="application/x-genesis-rom">
     <comment>Sega Genesis ROM</comment>
     <icon name="genesis"/>
-    <glob pattern="*.GEN.md"/>
-    <glob pattern="*.GEN.bin"/>
-    <glob pattern="*.GEN.gen"/>
-    <glob pattern="*.GEN.smd"/>
-    <glob pattern="*.GEN.zip"/>
-    <glob pattern="*.GEN.7z"/>
+    <glob pattern="*.GEN.md" weight="100"/>
+    <glob pattern="*.GEN.bin" weight="100"/>
+    <glob pattern="*.GEN.gen" weight="100"/>
+    <glob pattern="*.GEN.smd" weight="100"/>
+    <glob pattern="*.GEN.zip" weight="100"/>
+    <glob pattern="*.GEN.7z" weight="100"/>
   </mime-type>
 
   <mime-type type="application/x-saturn-rom">
     <comment>Sega Saturn ROM</comment>
     <icon name="saturn"/>
-    <glob pattern="*.SAT.cue"/>
-    <glob pattern="*.SAT.bin"/>
-    <glob pattern="*.SAT.iso"/>
-    <glob pattern="*.SAT.chd"/>
+    <glob pattern="*.SAT.cue" weight="100"/>
+    <glob pattern="*.SAT.bin" weight="100"/>
+    <glob pattern="*.SAT.iso" weight="100"/>
+    <glob pattern="*.SAT.chd" weight="100"/>
   </mime-type>
 
   <!-- nix -->
-  <mime-type type="application/x-nix">
-    <comment>nix configuration file</comment>
+  <mime-type type="text/x-nix">
+    <comment>Nix configuration file</comment>
+    <sub-class-of type="text/plain"/>
     <icon name="nix"/>
-    <glob pattern="*.nix"/>
+    <glob pattern="*.nix" weight="100"/>
   </mime-type>
 
 </mime-info>

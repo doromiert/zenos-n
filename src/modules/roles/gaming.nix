@@ -29,12 +29,12 @@ in {
     ];
   };
 
-  # jovian = {
-  #   steam.enable = true;
-  #   decky-loader = {
-  #     enable = true;
-  #   };
-  # };
+  jovian = {
+    steam.enable = true;
+    decky-loader = {
+      enable = true;
+    };
+  };
 
   # -- VR Configuration --
   # ALVR firewall rules are critical for Quest 3 streaming

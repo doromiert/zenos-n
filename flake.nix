@@ -74,7 +74,11 @@
                             default = mainUser;
                             description = "The primary user of the system.";
                         };
+
                         config = {
+                            environment.systemPackages = [ 
+                                inputs.swisstag.packages.${pkgs.system}.default
+                            ];
                             nixpkgs.config.allowUnfree = true;
                             mainUser = mainUser;
                             networking.hostName = hostName;

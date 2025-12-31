@@ -31,6 +31,12 @@ in
         ./styling.nix
     ];
 
+    xdg.portal = {
+        enable = true;
+        extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
+        config.common.default = [ "gtk" ];
+    };
+
     # 1. Core Desktop Services
     services = {
         # xserver = {
