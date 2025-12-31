@@ -2,6 +2,35 @@
 
 let
     # -- Helper: Package Local Resources --
+    wallpaperPkg = pkgs.runCommand "zenos-wallpapers" {} ''
+        dest=$out/share/backgrounds/zenos
+        mkdir -p $dest
+        mkdir -p $out/share/gnome-background-properties
+        
+        # Copy all wallpapers from source
+        cp -r ${../../../../resources/wallpapers}/* $dest/
+
+        # Start generating the XML
+        echo '<?xml version="1.0"?>' > $out/share/gnome-background-properties/zenos.xml
+        echo '<!DOCTYPE wallpapers SYSTEM "gnome-wp-list.dtd">' >> $out/share/gnome-background-properties/zenos.xml
+        echo '<wallpapers>' >> $out/share/gnome-background-properties/zenos.xml
+
+        # Loop through every file in the destination to create entries
+        for img in "$dest"/*.{png,jpg,jpeg}; do
+            [ -e "$img" ] || continue
+            filename=$(basename "$img")
+            name="''${filename%.*}" # Strip extension for the display name
+
+            printf "  <wallpaper>\n" >> $out/share/gnome-background-properties/zenos.xml
+            printf "    <name>ZenOS: %s</name>\n" "$name" >> $out/share/gnome-background-properties/zenos.xml
+            printf "    <filename>%s</filename>\n" "$img" >> $out/share/gnome-background-properties/zenos.xml
+            printf "    <options>zoom</options>\n" >> $out/share/gnome-background-properties/zenos.xml
+            printf "  </wallpaper>\n" >> $out/share/gnome-background-properties/zenos.xml
+        done
+
+        echo '</wallpapers>' >> $out/share/gnome-background-properties/zenos.xml
+    '';
+
     cursorPkg = pkgs.runCommand "zenos-cursor" {} ''
         mkdir -p $out/share/icons
         cp -r ${../../../../resources/GoogleDot-Black} $out/share/icons/GoogleDot-Black
@@ -79,6 +108,7 @@ in
         iconPkg 
         mimePkg
         cursorPkg
+        wallpaperPkg
         
         # Theming Packages
         adw-gtk3              # Required for GTK_THEME="adw-gtk3-dark"
@@ -99,7 +129,30 @@ in
 
         # Qt Style Force (Host + Flatpak)
         QT_STYLE_OVERRIDE = "adwaita-dark";
+
+        # wall
+        ZENOS_WALLPAPER = "${wallpaperPkg}/share/backgrounds/zenos/default.png";
     };
+
+    # 7. Global GNOME Defaults
+    programs.dconf.profiles.user.databases = [
+      {
+        settings = {
+          "org/gnome/desktop/background" = {
+            picture-uri = "file://${wallpaperPkg}/share/backgrounds/zenos/default.png";
+            picture-uri-dark = "file://${wallpaperPkg}/share/backgrounds/zenos/default.png";
+            primary-color = "#000000";
+            secondary-color = "#000000";
+            picture-options = "zoom";
+          };
+          "org/gnome/desktop/screensaver" = {
+            picture-uri = "file://${wallpaperPkg}/share/backgrounds/zenos/default.png";
+            primary-color = "#000000";
+            secondary-color = "#000000";
+          };
+        };
+      }
+    ];
 
     # 5. User-specific Overrides (via Home Manager)
     home-manager.users.doromiert = { ... }: {
