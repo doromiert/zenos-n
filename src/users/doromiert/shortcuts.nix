@@ -8,7 +8,7 @@
       toggle-maximized = [ "<Super>w" ];
       minimize = [ "<Super>Page_Down" ];
       activate-window-menu = [ "<Super>space" ];
-      
+
       # Workspaces
       switch-to-workspace-left = [ "<Super><Control>Left" ];
       switch-to-workspace-right = [ "<Super><Control>Right" ];
@@ -64,7 +64,7 @@
     };
 
     # --- Extensions ---
-    
+
     # Clipboard Indicator
     "org/gnome/shell/extensions/clipboard-indicator" = {
       toggle-menu = [ "<Control><Super>v" ];
@@ -72,46 +72,46 @@
 
     # Forge (Tiling)
     "org/gnome/shell/extensions/forge/keybindings" = {
-      con-split-horizontal = [];
-      con-split-layout-toggle = [];
-      con-split-vertical = [];
-      con-stacked-layout-toggle = [];
-      con-tabbed-layout-toggle = [];
-      con-tabbed-showtab-decoration-toggle = [];
-      focus-border-toggle = [];
-      prefs-open = [];
-      prefs-tiling-toggle = [];
+      con-split-horizontal = [ ];
+      con-split-layout-toggle = [ ];
+      con-split-vertical = [ ];
+      con-stacked-layout-toggle = [ ];
+      con-tabbed-layout-toggle = [ ];
+      con-tabbed-showtab-decoration-toggle = [ ];
+      focus-border-toggle = [ ];
+      prefs-open = [ ];
+      prefs-tiling-toggle = [ ];
       window-focus-down = [ "<Super>Down" ];
       window-focus-left = [ "<Super>Left" ];
       window-focus-right = [ "<Super>Right" ];
       window-focus-up = [ "<Super>Up" ];
-      window-gap-size-decrease = [];
-      window-gap-size-increase = [];
+      window-gap-size-decrease = [ ];
+      window-gap-size-increase = [ ];
       window-move-down = [ "<Shift><Super>Down" ];
       window-move-left = [ "<Shift><Super>Left" ];
       window-move-right = [ "<Shift><Super>Right" ];
       window-move-up = [ "<Shift><Super>Up" ];
-      window-resize-bottom-decrease = [];
-      window-resize-bottom-increase = [];
-      window-resize-left-decrease = [];
-      window-resize-left-increase = [];
-      window-resize-right-decrease = [];
-      window-resize-right-increase = [];
-      window-resize-top-decrease = [];
-      window-resize-top-increase = [];
-      window-snap-center = [];
-      window-snap-one-third-left = [];
-      window-snap-one-third-right = [];
-      window-snap-two-third-left = [];
-      window-snap-two-third-right = [];
-      window-swap-down = [];
-      window-swap-last-active = [];
-      window-swap-left = [];
-      window-swap-right = [];
-      window-swap-up = [];
-      window-toggle-always-float = [];
+      window-resize-bottom-decrease = [ ];
+      window-resize-bottom-increase = [ ];
+      window-resize-left-decrease = [ ];
+      window-resize-left-increase = [ ];
+      window-resize-right-decrease = [ ];
+      window-resize-right-increase = [ ];
+      window-resize-top-decrease = [ ];
+      window-resize-top-increase = [ ];
+      window-snap-center = [ ];
+      window-snap-one-third-left = [ ];
+      window-snap-one-third-right = [ ];
+      window-snap-two-third-left = [ ];
+      window-snap-two-third-right = [ ];
+      window-swap-down = [ ];
+      window-swap-last-active = [ ];
+      window-swap-left = [ ];
+      window-swap-right = [ ];
+      window-swap-up = [ ];
+      window-toggle-always-float = [ ];
       window-toggle-float = [ "<Super>f" ];
-      workspace-active-tile-toggle = [];
+      workspace-active-tile-toggle = [ ];
     };
   };
 }

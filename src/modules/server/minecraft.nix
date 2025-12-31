@@ -1,4 +1,5 @@
 # minecraft server config
-{ ... }: {
-    
+{ ... }:
+{
+
 }

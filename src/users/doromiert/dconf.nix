@@ -1,30 +1,44 @@
-{ lib, pkgs, ... }:
+{
+  lib,
+  pkgs,
+  config,
+  ...
+}:
 
 let
   mkUint32 = lib.hm.gvariant.mkUint32;
   mkTuple = lib.hm.gvariant.mkTuple;
-  mkVariant = lib.hm.gvariant.mkVariant;
 in
 {
   # Provision the Burn My Windows profile
-  xdg.configFile."burn-my-windows/profiles/bmw.conf".source = ./resources/bmw.conf;
 
   # [P13.A.4] Activation scripts for complex GVariant structures
   # This bypasses Home Manager's strict typing for complex dictionaries
   home.activation = {
-    applyBmsPipelines = lib.hm.dag.entryAfter ["writeBoundary"] ''
+    provisionBmwProfile = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      BMW_DIR="${config.home.homeDirectory}/.config/burn-my-windows/profiles"
+      BMW_CONF="${./resources/bmw.conf}"
+
+      # Ensure directory exists
+      run mkdir -p "$BMW_DIR"
+
+      # Force copy (overwrite existing symlink if present) and set writable
+      run cp -fL "$BMW_CONF" "$BMW_DIR/bmw.conf"
+      run chmod 644 "$BMW_DIR/bmw.conf"
+    '';
+    applyBmsPipelines = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       run ${pkgs.dconf}/bin/dconf write /org/gnome/shell/extensions/blur-my-shell/pipelines "$(cat ${./resources/bms_settings.txt})"
     '';
-    
-    applyRwcrSettings = lib.hm.dag.entryAfter ["writeBoundary"] ''
+
+    applyRwcrSettings = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       run ${pkgs.dconf}/bin/dconf write /org/gnome/shell/extensions/rounded-window-corners-reborn/global-rounded-corner-settings "$(cat ${./resources/rwcr_settings.txt})"
     '';
 
-    applyGscCommands = lib.hm.dag.entryAfter ["writeBoundary"] ''
+    applyGscCommands = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       run ${pkgs.dconf}/bin/dconf write /org/gnome/shell/extensions/gsconnect/device/865f1fa442c84b45ae4f512266515aed/plugin/runcommand/command-list "$(cat ${./resources/gsc_commands.txt})"
     '';
 
-    applyGscNotifications = lib.hm.dag.entryAfter ["writeBoundary"] ''
+    applyGscNotifications = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       run ${pkgs.dconf}/bin/dconf write /org/gnome/shell/extensions/gsconnect/device/865f1fa442c84b45ae4f512266515aed/plugin/notification/applications "$(cat ${./resources/gsc_notifications.txt})"
     '';
   };
@@ -105,7 +119,11 @@ in
     "org/gnome/shell/extensions/coverflowalttab" = {
       desaturate-factor = 0.0;
       icon-style = "Classic";
-      switcher-background-color = mkTuple [ 1.0 1.0 1.0 ];
+      switcher-background-color = mkTuple [
+        1.0
+        1.0
+        1.0
+      ];
       use-glitch-effect = true;
     };
 
@@ -131,12 +149,79 @@ in
 
     "org/gnome/shell/extensions/gsconnect/device/865f1fa442c84b45ae4f512266515aed" = {
       certificate-pem = "-----BEGIN CERTIFICATE-----\\nMIIBijCCATGgAwIBAgIBATAKBggqhkjOPQQDBDBPMSkwJwYDVQQDDCA4NjVmMWZh\\nNDQyYzg0YjQ1YWU0ZjUxMjI2NjUxNWFlZDEUMBIGA1UECwwLS0RFIENvbm5lY3Qx\\nDDAKBgNVBAoMA0tERTAeFw0yNDA1MDEyMjAwMDBaFw0zNTA1MDEyMjAwMDBaME8x\\nKTAnBgNVBAMMIDg2NWYxZmE0NDJjODRiNDVhZTRmNTEyMjY2NTE1YWVkMRQwEgYD\\nVQQLDAtLREUgQ29ubmVjdDEMMAoGA1UECgwDS0RFMFkwEwYHKoZIzj0CAQYIKoZI\\nzj0DAQcDQgAE87ID03jlWxkfn7e7Iky/fq0JbYD/N5h3cPOr7xMT8nzUfnJoP143\\ndj92U72WaqCJ7AGzz47/BWDvbyfuKvXHLjAKBggqhkjOPQQDBANHADBEAiAcHGyv\\n/2jeC5gUeIrElppKdv7//9f/KVJs0YN2ROmdWQIgW1yOAHa7GS0ZRJqbGXqoCdP5\\nVaE3UONLDbT/HFPwoz8=\\n-----END CERTIFICATE-----\\n";
-      incoming-capabilities = [ "kdeconnect.battery" "kdeconnect.clipboard" "kdeconnect.clipboard.connect" "kdeconnect.contacts.request_all_uids_timestamps" "kdeconnect.contacts.request_vcards_by_uid" "kdeconnect.findmyphone.request" "kdeconnect.mousepad.keyboardstate" "kdeconnect.mousepad.request" "kdeconnect.mpris" "kdeconnect.mpris.request" "kdeconnect.notification" "kdeconnect.notification.action" "kdeconnect.notification.reply" "kdeconnect.notification.request" "kdeconnect.ping" "kdeconnect.runcommand" "kdeconnect.sftp.request" "kdeconnect.share.request" "kdeconnect.share.request.update" "kdeconnect.sms.request" "kdeconnect.sms.request_attachment" "kdeconnect.sms.request_conversation" "kdeconnect.sms.request_conversations" "kdeconnect.systemvolume" "kdeconnect.telephony.request_mute" ];
+      incoming-capabilities = [
+        "kdeconnect.battery"
+        "kdeconnect.clipboard"
+        "kdeconnect.clipboard.connect"
+        "kdeconnect.contacts.request_all_uids_timestamps"
+        "kdeconnect.contacts.request_vcards_by_uid"
+        "kdeconnect.findmyphone.request"
+        "kdeconnect.mousepad.keyboardstate"
+        "kdeconnect.mousepad.request"
+        "kdeconnect.mpris"
+        "kdeconnect.mpris.request"
+        "kdeconnect.notification"
+        "kdeconnect.notification.action"
+        "kdeconnect.notification.reply"
+        "kdeconnect.notification.request"
+        "kdeconnect.ping"
+        "kdeconnect.runcommand"
+        "kdeconnect.sftp.request"
+        "kdeconnect.share.request"
+        "kdeconnect.share.request.update"
+        "kdeconnect.sms.request"
+        "kdeconnect.sms.request_attachment"
+        "kdeconnect.sms.request_conversation"
+        "kdeconnect.sms.request_conversations"
+        "kdeconnect.systemvolume"
+        "kdeconnect.telephony.request_mute"
+      ];
       last-connection = "lan://192.168.1.12:1716";
       name = "Nothing Phone 2";
-      outgoing-capabilities = [ "kdeconnect.battery" "kdeconnect.clipboard" "kdeconnect.clipboard.connect" "kdeconnect.connectivity_report" "kdeconnect.contacts.response_uids_timestamps" "kdeconnect.contacts.response_vcards" "kdeconnect.findmyphone.request" "kdeconnect.mousepad.echo" "kdeconnect.mousepad.keyboardstate" "kdeconnect.mousepad.request" "kdeconnect.mpris" "kdeconnect.mpris.request" "kdeconnect.notification" "kdeconnect.notification.request" "kdeconnect.ping" "kdeconnect.presenter" "kdeconnect.runcommand.request" "kdeconnect.sftp" "kdeconnect.share.request" "kdeconnect.sms.attachment_file" "kdeconnect.sms.messages" "kdeconnect.systemvolume.request" "kdeconnect.telephony" ];
+      outgoing-capabilities = [
+        "kdeconnect.battery"
+        "kdeconnect.clipboard"
+        "kdeconnect.clipboard.connect"
+        "kdeconnect.connectivity_report"
+        "kdeconnect.contacts.response_uids_timestamps"
+        "kdeconnect.contacts.response_vcards"
+        "kdeconnect.findmyphone.request"
+        "kdeconnect.mousepad.echo"
+        "kdeconnect.mousepad.keyboardstate"
+        "kdeconnect.mousepad.request"
+        "kdeconnect.mpris"
+        "kdeconnect.mpris.request"
+        "kdeconnect.notification"
+        "kdeconnect.notification.request"
+        "kdeconnect.ping"
+        "kdeconnect.presenter"
+        "kdeconnect.runcommand.request"
+        "kdeconnect.sftp"
+        "kdeconnect.share.request"
+        "kdeconnect.sms.attachment_file"
+        "kdeconnect.sms.messages"
+        "kdeconnect.systemvolume.request"
+        "kdeconnect.telephony"
+      ];
       paired = true;
-      supported-plugins = [ "battery" "clipboard" "connectivity_report" "contacts" "findmyphone" "mousepad" "mpris" "notification" "ping" "presenter" "runcommand" "sftp" "share" "sms" "systemvolume" "telephony" ];
+      supported-plugins = [
+        "battery"
+        "clipboard"
+        "connectivity_report"
+        "contacts"
+        "findmyphone"
+        "mousepad"
+        "mpris"
+        "notification"
+        "ping"
+        "presenter"
+        "runcommand"
+        "sftp"
+        "share"
+        "sms"
+        "systemvolume"
+        "telephony"
+      ];
       type = "phone";
     };
 
@@ -159,7 +244,10 @@ in
 
     "org/gnome/shell/extensions/gsconnect/preferences" = {
       window-maximized = false;
-      window-size = mkTuple [ 945 478 ];
+      window-size = mkTuple [
+        945
+        478
+      ];
     };
 
     # --- Hide Top Bar ---
@@ -211,7 +299,10 @@ in
 
     # --- Tweaks System Menu ---
     "org/gnome/shell/extensions/tweaks-system-menu" = {
-      applications = [ "org.gnome.tweaks.desktop" "com.mattjakeman.ExtensionManager.desktop" ];
+      applications = [
+        "org.gnome.tweaks.desktop"
+        "com.mattjakeman.ExtensionManager.desktop"
+      ];
     };
   };
 }

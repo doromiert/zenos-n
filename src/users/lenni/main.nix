@@ -2,69 +2,75 @@
 { config, pkgs, ... }:
 
 {
-    users.users.lenni = {
-        isNormalUser = true;
-        description = "";
-        extraGroups = [  ];
-        shell = pkgs.zsh;
-        initialPassword = "setmelater";
-    }
+  users.users.lenni = {
+    isNormalUser = true;
+    description = "";
+    extraGroups = [ ];
+    shell = pkgs.zsh;
+    initialPassword = "setmelater";
+  };
 
-    home-manager.users.lenni = {
+  home-manager.users.lenni = {
 
-        # never touch this
-        home.stateVersion = "25.11";        
+    # never touch this
+    stateVersion = "25.11";
 
-        programs = {
+    programs = {
 
-            direnv = {
-                enable = true;
-                nix-direnv.enable = true;
-            };
+      direnv = {
+        enable = true;
+        nix-direnv.enable = true;
+      };
 
-            zsh = {
+      zsh = {
 
-                enable = true;
-                enableCompletions = true;
-                autosuggestion.enable = true;
-                syntaxHighlighting.enable = true;
+        enable = true;
+        enableCompletions = true;
+        autosuggestion.enable = true;
+        syntaxHighlighting.enable = true;
 
-                shellAliases = {
+        shellAliases = {
 
-                };
-
-                history.size = 10000;
-
-                zplug = {
-                    enable = true;
-                    plugins = [
-                        { name = "zsh-users/zsh-autosuggestions"; } 
-                        { name = "romkatv/powerlevel10k"; tags = [ as:theme depth:1 ]; }
-                    ];
-                };
-
-                initContent = ''
-                    bindkey "''${key[Up]}" up-line-or-search
-                    bindkey "''${key[Down]}" down-line-or-search
-                '';
-            };
-
-            zoxide = {
-                
-                enable = true;
-                enableZshIntegration = true;
-            };
-
-            git = {
-                enable = true;
-                settings = {
-                    user = {
-                        name  = "";
-                        email = "";
-                    };
-                    init.defaultBranch = "main";
-                };
-            };
         };
-    }
+
+        history.size = 10000;
+
+        zplug = {
+          enable = true;
+          plugins = [
+            { name = "zsh-users/zsh-autosuggestions"; }
+            {
+              name = "romkatv/powerlevel10k";
+              tags = [
+                "as:theme"
+                "depth:1"
+              ];
+            }
+          ];
+        };
+
+        initContent = ''
+          bindkey "''${key[Up]}" up-line-or-search
+          bindkey "''${key[Down]}" down-line-or-search
+        '';
+      };
+
+      zoxide = {
+
+        enable = true;
+        enableZshIntegration = true;
+      };
+
+      git = {
+        enable = true;
+        settings = {
+          user = {
+            name = "";
+            email = "";
+          };
+          init.defaultBranch = "main";
+        };
+      };
+    };
+  };
 }

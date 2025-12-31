@@ -1,4 +1,5 @@
 # copyparty config
-{ ... }: {
-    
+{ ... }:
+{
+
 }
