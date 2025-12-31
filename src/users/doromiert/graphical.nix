@@ -13,31 +13,28 @@
             telegram-desktop
         ];
         
-        programs.vscode = {
-            enable = true;
-            userSettings = {
-                # Your Requested Overrides
-                "editor.fontFamily" = "'Atkinson Hyperlegible Mono', monospace";
-                "editor.formatOnSave" = true;
-                "nix.enableLanguageServer" = true;
-                "nix.serverPath" = "${pkgs.nixd}/bin/nixd";
-                "window.menuBarVisibility" = "toggle";
-                "workbench.colorTheme" = "Adwaita Dark";
-
-                # Structural/Philosophy Settings [P6.6]
-                "editor.tabSize" = 4;
-                "editor.insertSpaces" = true;
-                "editor.detectIndentation" = false;
-                
-                # UI/UX Cleanliness [P5.4]
-                "window.titleBarStyle" = "custom";
-                "editor.fontSize" = 14;
-                "gitlens.codeLens.enabled" = true;
-                
-                # Vim Integration
-                "vim.useSystemClipboard" = true;
-                "vim.hlsearch" = true;
-            };
+        xdg.configFile."Code/User/settings.json".text = builtins.toJSON {
+            # [P5.4] UI/UX Cleanliness
+            "editor.fontFamily" = "'Atkinson Hyperlegible Mono', monospace";
+            "editor.fontSize" = 14;
+            "window.menuBarVisibility" = "toggle";
+            "window.titleBarStyle" = "custom";
+            "workbench.colorTheme" = "Adwaita Dark";
+            
+            # [P6.6] Structural Settings
+            "editor.formatOnSave" = true;
+            "editor.tabSize" = 4;
+            "editor.insertSpaces" = true;
+            "editor.detectIndentation" = false;
+            
+            # Nix Integration
+            "nix.enableLanguageServer" = true;
+            "nix.serverPath" = "${pkgs.nixd}/bin/nixd";
+            
+            # Extensions Config (These will work because the System binary has the exts)
+            "gitlens.codeLens.enabled" = true;
+            "vim.useSystemClipboard" = true;
+            "vim.hlsearch" = true;
         };
 
         programs.nixcord = {

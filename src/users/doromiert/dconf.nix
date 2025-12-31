@@ -1,4 +1,4 @@
-{ lib, ... }:
+{ lib, pkgs, ... }:
 
 let
   mkUint32 = lib.hm.gvariant.mkUint32;
@@ -9,6 +9,26 @@ in
   # Provision the Burn My Windows profile
   xdg.configFile."burn-my-windows/profiles/bmw.conf".source = ./resources/bmw.conf;
 
+  # [P13.A.4] Activation scripts for complex GVariant structures
+  # This bypasses Home Manager's strict typing for complex dictionaries
+  home.activation = {
+    applyBmsPipelines = lib.hm.dag.entryAfter ["writeBoundary"] ''
+      run ${pkgs.dconf}/bin/dconf write /org/gnome/shell/extensions/blur-my-shell/pipelines "$(cat ${./resources/bms_settings.txt})"
+    '';
+    
+    applyRwcrSettings = lib.hm.dag.entryAfter ["writeBoundary"] ''
+      run ${pkgs.dconf}/bin/dconf write /org/gnome/shell/extensions/rounded-window-corners-reborn/global-rounded-corner-settings "$(cat ${./resources/rwcr_settings.txt})"
+    '';
+
+    applyGscCommands = lib.hm.dag.entryAfter ["writeBoundary"] ''
+      run ${pkgs.dconf}/bin/dconf write /org/gnome/shell/extensions/gsconnect/device/865f1fa442c84b45ae4f512266515aed/plugin/runcommand/command-list "$(cat ${./resources/gsc_commands.txt})"
+    '';
+
+    applyGscNotifications = lib.hm.dag.entryAfter ["writeBoundary"] ''
+      run ${pkgs.dconf}/bin/dconf write /org/gnome/shell/extensions/gsconnect/device/865f1fa442c84b45ae4f512266515aed/plugin/notification/applications "$(cat ${./resources/gsc_notifications.txt})"
+    '';
+  };
+
   dconf.settings = {
     # --- Alphabetical App Grid ---
     "org/gnome/shell/extensions/alphabetical-app-grid" = {
@@ -18,49 +38,7 @@ in
     # --- Blur My Shell ---
     "org/gnome/shell/extensions/blur-my-shell" = {
       settings-version = 2;
-      pipelines = {
-        pipeline_default = mkVariant {
-          name = mkVariant "Default";
-          effects = mkVariant [
-            (mkVariant {
-              type = mkVariant "native_static_gaussian_blur";
-              id = mkVariant "effect_000000000000";
-              params = mkVariant {
-                radius = mkVariant 30;
-                brightness = mkVariant 0.29999999999999999;
-                unscaled_radius = mkVariant 100;
-              };
-            })
-            (mkVariant {
-              type = mkVariant "noise";
-              id = mkVariant "effect_08907494042010";
-              params = mkVariant {
-                noise = mkVariant 0.40000000000000002;
-              };
-            })
-          ];
-        };
-        pipeline_default_rounded = mkVariant {
-          name = mkVariant "Default rounded";
-          effects = mkVariant [
-            (mkVariant {
-              type = mkVariant "native_static_gaussian_blur";
-              id = mkVariant "effect_000000000001";
-              params = mkVariant {
-                radius = mkVariant 30;
-                brightness = mkVariant 0.59999999999999998;
-              };
-            })
-            (mkVariant {
-              type = mkVariant "corner";
-              id = mkVariant "effect_000000000002";
-              params = mkVariant {
-                radius = mkVariant 24;
-              };
-            })
-          ];
-        };
-      };
+      # pipelines handled by activation script
     };
 
     "org/gnome/shell/extensions/blur-my-shell/appfolder" = {
@@ -107,7 +85,6 @@ in
 
     # --- Burn My Windows ---
     "org/gnome/shell/extensions/burn-my-windows" = {
-      # This path aligns with the xdg.configFile target above
       active-profile = "/home/doromiert/.config/burn-my-windows/profiles/bmw.conf";
       last-extension-version = 47;
       last-prefs-version = 47;
@@ -172,23 +149,9 @@ in
       send-content = true;
     };
 
-    "org/gnome/shell/extensions/gsconnect/device/865f1fa442c84b45ae4f512266515aed/plugin/notification" = {
-      # This is a large JSON object stored as a string
-      applications = "{\"Printers\":{\"iconName\":\"org.gnome.Settings-printers-symbolic\",\"enabled\":true},\"Events and Tasks Reminders\":{\"iconName\":\"org.gnome.Evolution-alarm-notify\",\"enabled\":true},\"Telegram\":{\"iconName\":\"org.telegram.desktop\",\"enabled\":true},\"Zenity\":{\"iconName\":\"application-x-executable\",\"enabled\":true},\"Disks\":{\"iconName\":\"org.gnome.DiskUtility\",\"enabled\":true},\"Software\":{\"iconName\":\"org.gnome.Software\",\"enabled\":true},\"Date & Time\":{\"iconName\":\"org.gnome.Settings-time-symbolic\",\"enabled\":true},\"Disk Usage Analyzer\":{\"iconName\":\"org.gnome.baobab\",\"enabled\":true},\"Power\":{\"iconName\":\"org.gnome.Settings-power-symbolic\",\"enabled\":true},\"Black Box\":{\"iconName\":\"com.raggesilver.BlackBox\",\"enabled\":true},\"Color Management\":{\"iconName\":\"org.gnome.Settings-color-symbolic\",\"enabled\":true},\"Console\":{\"iconName\":\"org.gnome.Console\",\"enabled\":true},\"Files\":{\"iconName\":\"org.gnome.Nautilus\",\"enabled\":true},\"Clocks\":{\"iconName\":\"org.gnome.clocks\",\"enabled\":true},\"File Roller\":{\"iconName\":\"org.gnome.FileRoller\",\"enabled\":true},\"Vesktop\":{\"iconName\":\"dev.vencord.Vesktop\",\"enabled\":true},\"Firefox\":{\"iconName\":\"\",\"enabled\":true},\"SimpleX Chat\":{\"iconName\":\"chat.simplex.simplex\",\"enabled\":true},\"Carburetor\":{\"iconName\":\"io.frama.tractor.carburetor\",\"enabled\":true},\"Parabolic\":{\"iconName\":\"org.nickvision.tubeconverter\",\"enabled\":true},\"Tuba\":{\"iconName\":\"dev.geopjr.Tuba\",\"enabled\":true},\"Online Accounts\":{\"iconName\":\"dialog-warning\",\"enabled\":true},\"CachyOS Update\":{\"iconName\":\"system-reboot\",\"enabled\":true},\"Alpaca\":{\"iconName\":\"document-save-symbolic\",\"enabled\":true},\"GPU Screen Recorder\":{\"iconName\":\"com.dec05eba.gpu_screen_recorder\",\"enabled\":true},\"Notify\":{\"iconName\":\"com.ranfdev.Notify\",\"enabled\":true},\"File Shredder\":{\"iconName\":\"com.github.ADBeveridge.Raider\",\"enabled\":true},\"Bottles\":{\"iconName\":\"com.usebottles.bottles\",\"enabled\":true},\"Pika Backup\":{\"iconName\":\"org.gnome.World.PikaBackup\",\"enabled\":true},\"Constrict\":{\"iconName\":\"io.github.wartybix.Constrict\",\"enabled\":true},\"Fractal\":{\"iconName\":\"org.gnome.Fractal\",\"enabled\":true},\"Pika Backup Monitor\":{\"iconName\":\"org.gnome.World.PikaBackup\",\"enabled\":true},\"Fragments\":{\"iconName\":\"folder-download-symbolic\",\"enabled\":true},\"Telegram Desktop\":{\"iconName\":\"\",\"enabled\":true},\"Varia\":{\"iconName\":\"io.github.giantpinkrobots.varia\",\"enabled\":true},\"Characters\":{\"iconName\":\"org.gnome.Characters\",\"enabled\":true},\"Polari\":{\"iconName\":\"org.gnome.Polari\",\"enabled\":true}}";
-    };
+    # Notifications handled by activation script
 
-    "org/gnome/shell/extensions/gsconnect/device/865f1fa442c84b45ae4f512266515aed/plugin/runcommand" = {
-      # Mapped dictionary for commands
-      command-list = {
-        "lock" = mkVariant { name = "Lock"; command = "xdg-screensaver lock"; };
-        "restart" = mkVariant { name = "Restart"; command = "systemctl reboot"; };
-        "logout" = mkVariant { name = "Log Out"; command = "gnome-session-quit --logout --no-prompt"; };
-        "poweroff" = mkVariant { name = "Power Off"; command = "systemctl poweroff"; };
-        "suspend" = mkVariant { name = "Suspend"; command = "systemctl suspend"; };
-        "1d21fa11-b507-4738-a2ab-3d41983cf751" = mkVariant { name = "smode"; command = "sudo systemctl isolate multi-user.target"; };
-        "d0b24046-a05f-4705-8c91-2bd9e248e357" = mkVariant { name = "gmode"; command = "sudo systemctl isolate graphical.target"; };
-      };
-    };
+    # RunCommand handled by activation script
 
     "org/gnome/shell/extensions/gsconnect/device/865f1fa442c84b45ae4f512266515aed/plugin/share" = {
       receive-directory = "/home/doromiert/Downloads";
@@ -242,15 +205,7 @@ in
     # --- Rounded Window Corners Reborn ---
     "org/gnome/shell/extensions/rounded-window-corners-reborn" = {
       border-width = 1;
-      # Nested dictionary variants for GVariant
-      global-rounded-corner-settings = mkVariant {
-        padding = mkVariant { left = mkUint32 1; right = 1; top = 1; bottom = 1; };
-        keepRoundedCorners = mkVariant { maximized = false; fullscreen = false; };
-        borderRadius = mkVariant (mkUint32 12);
-        smoothing = mkVariant 0.0;
-        borderColor = mkVariant (mkTuple [ 0.19215686619281769 0.19215686619281769 0.20784313976764679 1.0 ]);
-        enabled = mkVariant true;
-      };
+      # global-rounded-corner-settings handled by activation script
       settings-version = mkUint32 7;
     };
 
