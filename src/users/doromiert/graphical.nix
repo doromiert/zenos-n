@@ -4,6 +4,7 @@
     home-manager.users.doromiert = {
         imports = [
             ./shortcuts.nix
+            ./dconf.nix
             inputs.nixcord.homeModules.nixcord
         ];
 
