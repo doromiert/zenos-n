@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
 
-  <!-- Microsoft -->
   <mime-type type="application/x-xbox-rom">
     <comment>Xbox ROM</comment>
+    <sub-class-of type="application/x-cd-image"/>
+    <sub-class-of type="application/octet-stream"/>
     <icon name="xbox"/>
     <glob pattern="*.XB.iso" weight="100"/>
     <glob pattern="*.XB.xbe" weight="100"/>
@@ -12,15 +13,20 @@
 
   <mime-type type="application/x-xbox360-rom">
     <comment>Xbox 360 ROM</comment>
+    <sub-class-of type="application/x-cd-image"/>
+    <sub-class-of type="application/zip"/>
+    <sub-class-of type="application/octet-stream"/>
     <icon name="xbox-360"/>
     <glob pattern="*.X360.iso" weight="100"/>
     <glob pattern="*.X360.xex" weight="100"/>
     <glob pattern="*.X360.zip" weight="100"/>
   </mime-type>
 
-  <!-- Nintendo -->
   <mime-type type="application/x-nes-rom">
     <comment>NES ROM</comment>
+    <sub-class-of type="application/zip"/>
+    <sub-class-of type="application/x-7z-compressed"/>
+    <sub-class-of type="application/octet-stream"/>
     <icon name="nes"/>
     <glob pattern="*.NES.nes" weight="100"/>
     <glob pattern="*.NES.unf" weight="100"/>
@@ -30,6 +36,9 @@
 
   <mime-type type="application/x-snes-rom">
     <comment>SNES ROM</comment>
+    <sub-class-of type="application/zip"/>
+    <sub-class-of type="application/x-7z-compressed"/>
+    <sub-class-of type="application/octet-stream"/>
     <icon name="snes"/>
     <glob pattern="*.SNES.smc" weight="100"/>
     <glob pattern="*.SNES.sfc" weight="100"/>
@@ -41,6 +50,9 @@
 
   <mime-type type="application/x-n64-rom">
     <comment>Nintendo 64 ROM</comment>
+    <sub-class-of type="application/zip"/>
+    <sub-class-of type="application/x-7z-compressed"/>
+    <sub-class-of type="application/octet-stream"/>
     <icon name="n64"/>
     <glob pattern="*.N64.n64" weight="100"/>
     <glob pattern="*.N64.z64" weight="100"/>
@@ -51,6 +63,9 @@
 
   <mime-type type="application/x-nintendo-ds-rom">
     <comment>Nintendo DS ROM</comment>
+    <sub-class-of type="application/zip"/>
+    <sub-class-of type="application/x-7z-compressed"/>
+    <sub-class-of type="application/octet-stream"/>
     <icon name="ds"/>
     <glob pattern="*.DS.nds" weight="100"/>
     <glob pattern="*.DS.ids" weight="100"/>
@@ -60,6 +75,8 @@
 
   <mime-type type="application/x-nintendo-3ds-rom">
     <comment>Nintendo 3DS ROM</comment>
+    <sub-class-of type="application/zip"/>
+    <sub-class-of type="application/octet-stream"/>
     <icon name="3ds"/>
     <glob pattern="*.3DS.3ds" weight="100"/>
     <glob pattern="*.3DS.cia" weight="100"/>
@@ -69,6 +86,9 @@
 
   <mime-type type="application/x-gba-rom">
     <comment>Game Boy Advance ROM</comment>
+    <sub-class-of type="application/zip"/>
+    <sub-class-of type="application/x-7z-compressed"/>
+    <sub-class-of type="application/octet-stream"/>
     <icon name="gba"/>
     <glob pattern="*.GBA.gba" weight="100"/>
     <glob pattern="*.GBA.zip" weight="100"/>
@@ -77,6 +97,8 @@
 
   <mime-type type="application/x-gamecube-rom">
     <comment>GameCube ROM</comment>
+    <sub-class-of type="application/x-cd-image"/>
+    <sub-class-of type="application/octet-stream"/>
     <icon name="gamecube"/>
     <glob pattern="*.GC.iso" weight="100"/>
     <glob pattern="*.GC.gcm" weight="100"/>
@@ -85,6 +107,8 @@
 
   <mime-type type="application/x-wii-rom">
     <comment>Wii ROM</comment>
+    <sub-class-of type="application/x-cd-image"/>
+    <sub-class-of type="application/octet-stream"/>
     <icon name="wii"/>
     <glob pattern="*.WII.iso" weight="100"/>
     <glob pattern="*.WII.wbfs" weight="100"/>
@@ -94,6 +118,7 @@
 
   <mime-type type="application/x-wiiu-rom">
     <comment>Wii U ROM</comment>
+    <sub-class-of type="application/octet-stream"/>
     <icon name="wiiu"/>
     <glob pattern="*.WIIU.wud" weight="100"/>
     <glob pattern="*.WIIU.wux" weight="100"/>
@@ -102,15 +127,19 @@
 
   <mime-type type="application/x-switch-rom">
     <comment>Nintendo Switch ROM</comment>
+    <sub-class-of type="application/octet-stream"/>
     <icon name="switch"/>
     <glob pattern="*.NS.nsp" weight="100"/>
     <glob pattern="*.NS.xci" weight="100"/>
     <glob pattern="*.NS.nca" weight="100"/>
     <glob pattern="*.NS.nro" weight="100"/>
   </mime-type>
-  
+   
   <mime-type type="application/x-gameboy-rom">
     <comment>Game Boy ROM</comment>
+    <sub-class-of type="application/zip"/>
+    <sub-class-of type="application/x-7z-compressed"/>
+    <sub-class-of type="application/octet-stream"/>
     <icon name="gameboy"/>
     <glob pattern="*.GB.gb" weight="100"/>
     <glob pattern="*.GB.zip" weight="100"/>
@@ -119,15 +148,19 @@
 
   <mime-type type="application/x-gameboy-color-rom">
     <comment>Game Boy Color ROM</comment>
+    <sub-class-of type="application/zip"/>
+    <sub-class-of type="application/x-7z-compressed"/>
+    <sub-class-of type="application/octet-stream"/>
     <icon name="gameboy"/>
     <glob pattern="*.GBC.gbc" weight="100"/>
     <glob pattern="*.GBC.zip" weight="100"/>
     <glob pattern="*.GBC.7z" weight="100"/>
   </mime-type>
 
-  <!-- Sony -->
   <mime-type type="application/x-ps1-rom">
     <comment>PlayStation ROM</comment>
+    <sub-class-of type="application/x-cd-image"/>
+    <sub-class-of type="application/octet-stream"/>
     <icon name="ps1"/>
     <glob pattern="*.PS1.cue" weight="100"/>
     <glob pattern="*.PS1.bin" weight="100"/>
@@ -138,6 +171,9 @@
 
   <mime-type type="application/x-ps2-rom">
     <comment>PlayStation 2 ROM</comment>
+    <sub-class-of type="application/x-cd-image"/>
+    <sub-class-of type="application/gzip"/>
+    <sub-class-of type="application/octet-stream"/>
     <icon name="ps2"/>
     <glob pattern="*.PS2.iso" weight="100"/>
     <glob pattern="*.PS2.bin" weight="100"/>
@@ -148,15 +184,18 @@
 
   <mime-type type="application/x-ps3-rom">
     <comment>PlayStation 3 ROM</comment>
+    <sub-class-of type="application/x-cd-image"/>
+    <sub-class-of type="application/octet-stream"/>
     <icon name="ps3"/>
     <glob pattern="*.PS3.iso" weight="100"/>
     <glob pattern="*.PS3.pkg" weight="100"/>
     <glob pattern="*.PS3.bin" weight="100"/>
   </mime-type>
 
-  <!-- SEGA -->
   <mime-type type="application/x-dreamcast-rom">
     <comment>Dreamcast ROM</comment>
+    <sub-class-of type="application/x-cd-image"/>
+    <sub-class-of type="application/octet-stream"/>
     <icon name="dreamcast"/>
     <glob pattern="*.DC.gdi" weight="100"/>
     <glob pattern="*.DC.cdi" weight="100"/>
@@ -165,6 +204,9 @@
 
   <mime-type type="application/x-genesis-rom">
     <comment>Sega Genesis ROM</comment>
+    <sub-class-of type="application/zip"/>
+    <sub-class-of type="application/x-7z-compressed"/>
+    <sub-class-of type="application/octet-stream"/>
     <icon name="genesis"/>
     <glob pattern="*.GEN.md" weight="100"/>
     <glob pattern="*.GEN.bin" weight="100"/>
@@ -176,6 +218,8 @@
 
   <mime-type type="application/x-saturn-rom">
     <comment>Sega Saturn ROM</comment>
+    <sub-class-of type="application/x-cd-image"/>
+    <sub-class-of type="application/octet-stream"/>
     <icon name="saturn"/>
     <glob pattern="*.SAT.cue" weight="100"/>
     <glob pattern="*.SAT.bin" weight="100"/>
@@ -183,7 +227,6 @@
     <glob pattern="*.SAT.chd" weight="100"/>
   </mime-type>
 
-  <!-- nix -->
   <mime-type type="text/x-nix">
     <comment>Nix configuration file</comment>
     <sub-class-of type="text/plain"/>

@@ -7,7 +7,7 @@
       close = [ "<Super>q" ];
       toggle-maximized = [ "<Super>w" ];
       minimize = [ "<Super>Page_Down" ];
-      activate-window-menu = [ "<Super>space" ];
+      activate-window-menu = [ "<Alt>space" ];
 
       # Workspaces
       switch-to-workspace-left = [ "<Super><Control>Left" ];
@@ -109,7 +109,7 @@
       window-swap-left = [ ];
       window-swap-right = [ ];
       window-swap-up = [ ];
-      window-toggle-always-float = [ ];
+      window-toggle-always-float = [ "<Super><Shift>f" ];
       window-toggle-float = [ "<Super>f" ];
       workspace-active-tile-toggle = [ ];
     };

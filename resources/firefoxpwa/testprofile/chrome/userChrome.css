@@ -1,0 +1,37 @@
+@import "firefox-gnome-theme/userChrome.css";
+
+.toolbar-items{
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+#nav-bar{
+ display: none; 
+}
+
+#navigator-toolbox{
+  height: 46px;
+}
+
+toolbarbutton{
+  height: 34px;
+  width: 34px;
+}
+
+.titlebar-buttonbox-container{
+  height: 40px !important;
+}
+
+#PanelUI-menu-button{
+  padding-left: 5px !important;
+  padding-right: 5px !important;
+}
+
+#tabbrowser-tabs:not(:has(tab:not([hidden="true"]) ~ tab:not([hidden="true"]))) {
+    .tab-content::before {
+        display: none;
+    }
+    ~ #alltabs-button {
+        visibility: collapse;
+    }       
+}

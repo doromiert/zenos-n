@@ -18,6 +18,7 @@ let
         esbenp.prettier-vscode
         vscodevim.vim
         bierner.github-markdown-preview
+        yy0931.vscode-sqlite3-editor
 
         # [P4.1] Uncomment when moving into C/C++ OS Dev
         # ms-vscode.cpptools

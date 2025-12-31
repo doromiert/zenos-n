@@ -71,6 +71,7 @@ in
         gnome-tweaks
         gnome-extension-manager
         wl-clipboard # Useful for Wayland GNOME
+        dconf-editor
       ]
       ++ extensions;
 
