@@ -79,7 +79,22 @@ let
 
 in
 {
+  # Set Firefox as default browser system-wide (ENV + XDG)
+  environment.sessionVariables = {
+    BROWSER = "firefox";
+    DEFAULT_BROWSER = "firefox";
+  };
+
+  xdg.mime.defaultApplications = {
+    "text/html" = "firefox.desktop";
+    "x-scheme-handler/http" = "firefox.desktop";
+    "x-scheme-handler/https" = "firefox.desktop";
+    "x-scheme-handler/about" = "firefox.desktop";
+    "x-scheme-handler/unknown" = "firefox.desktop";
+  };
+
   environment.systemPackages = [
+    pkgs.firefox # Ensure base Firefox is installed
     pkgs.firefoxpwa
     pkgs.python3
     delwaPkg
