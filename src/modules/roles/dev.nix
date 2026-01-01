@@ -12,6 +12,7 @@ let
         jnoortheen.nix-ide
         mkhl.direnv
         piousdeer.adwaita-theme
+        ms-vsliveshare.vsliveshare
 
         # Practical Utilities [P13.9]
         eamodio.gitlens
