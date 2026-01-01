@@ -324,20 +324,23 @@ class PWABuilder:
         if addons:
             self.pm.install_extensions(profile_path, addons)
 
-        self.create_desktop_entry(name, site_id, site_path)
+        self.create_desktop_entry(name, site_id, site_path, icon)
         print(f"[SUCCESS] {name} deployed. Site ID: {site_id}")
 
-    def create_desktop_entry(self, name, site_id, site_path):
+    def create_desktop_entry(self, name, site_id, site_path, icon_source):
         safe_name = "".join(c for c in name if c.isalnum()).lower()
         exec_cmd = f"env -u DRI_PRIME firefoxpwa site launch {site_id}"
         
+        # Use provided icon argument if available, else fallback to the one in site_path
+        icon_path = icon_source if icon_source else f"{site_path}/icon.png"
+
         content = (
             "[Desktop Entry]\n"
             f"Name={name}\n"
             f"Exec={exec_cmd}\n"
             "Type=Application\n"
             "Terminal=false\n"
-            f"Icon={site_path}/icon.png\n"
+            f"Icon={icon_path}\n"
             "Categories=Network;WebBrowser;\n"
         )
         

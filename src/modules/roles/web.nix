@@ -43,7 +43,7 @@ let
     minimal-twitter = {
       id = "min-twitter@artem.plus";
       url = "https://addons.mozilla.org/firefox/downloads/latest/minimaltwitter/latest.xpi";
-      sha256 = "sha256-h6r9hA2U2froAHU8x5hExwHgtU9010Cc/nHrLPW0kFo=";
+      sha256 = "sha256-dvRw05OqgxkgtvqNedEDl+/LSEXK7EqAJNM8rp02H70=";
     };
   };
 
