@@ -46,6 +46,7 @@
         ./dconf.nix
         inputs.nixcord.homeModules.nixcord
       ];
+      home.file.".config/forge/windows.json".source = ./resources/windows.json;
 
       # Regular packages
       home.packages = with pkgs; [

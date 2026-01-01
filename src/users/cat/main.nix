@@ -2,15 +2,19 @@
 { config, pkgs, ... }:
 
 {
-  users.users.cnb = {
+  users.users.cat = {
     isNormalUser = true;
     description = "";
     extraGroups = [ ];
     shell = pkgs.zsh;
     initialPassword = "setmelater";
   };
-
-  home-manager.users.cnb = {
+  # btw id rather not use nix for configuring hyprland,
+  # i did the repalcement for you :3
+  # oh about that
+  # you can use fucking anything
+  # and just use nix as the glue that does cp file somewhere lol NEI GE
+  home-manager.users.cat = {
 
     # never touch this
     stateVersion = "25.11";

@@ -1,7 +1,10 @@
 {
+  # o
+  # alr so flakes work like this: you have inputs (think of it as nix-channel but declarative) and outputs (which will be your ready configs)
   description = "ZenOS N (NixOS-based ZenOS)";
 
   inputs = {
+    # for example here's my system packages link GODDAMMIT VIM
     nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
     chaotic.url = "github:chaotic-cx/nyx";
@@ -15,12 +18,16 @@
     nix-gaming = {
       url = "github:fufexan/nix-gaming";
     };
+    # tf is jovian
+    # nigga don't put if you didn't test it
     jovian = {
+
       url = "github:Jovian-Experiments/Jovian-NixOS";
     };
 
     vsc-extensions.url = "github:nix-community/nix-vscode-extensions";
     swisstag.url = "github:doromiert/swisstag";
+    # btw declarative discord, how cool
     nixcord.url = "github:kaylorben/nixcord";
 
     nix-minecraft.url = "github:Infinidoge/nix-minecraft";
@@ -29,6 +36,9 @@
 
   outputs =
     {
+      # anyways this is the outputs section
+      # here i basically have a definition all configs will inherit
+      # and the stuff in this {} section is the arguments
       self,
       nixpkgs,
       nixpkgs-unstable,
@@ -64,9 +74,21 @@
           ) content;
         in
         map (name: path + "/${name}") (builtins.attrNames nixFiles);
+      # ↑ clanker magic i dont understand
+      # but it does what i want so im not gonna touch it
 
       mkHost =
         {
+          # host settings (used a bit lower, this is specifically for my flake)
+          # because i wanted to make my life easier lol
+          # ill use it in my vm
+          # ill make a 1.0 release once it's ready
+          # follow me agin
+          # ill show you how ill do that in a sec
+          # just follow me
+          # o btw when lite edition
+          # (and whoever decides to use this flake in the future)
+          # :3
           hostName,
           mainUser ? "doromiert",
           extraModules ? [ ],
@@ -75,6 +97,7 @@
           users ? [ "doromiert" ],
           roles ? [ ],
           serverServices ? [ ],
+        # because of this part
         }:
         nixpkgs.lib.nixosSystem {
           inherit system;
@@ -130,6 +153,8 @@
             # 2. External Modules
             inputs.home-manager.nixosModules.home-manager
             inputs.nix-flatpak.nixosModules.nix-flatpak
+            # oh and here are external modules all hosts will inherit
+            # defined in the inputs
 
             # 3. Universal ZenOS Foundation (Dynamic Import)
           ]
@@ -169,6 +194,8 @@
           ++ [ ]
           ++ extraModules;
         };
+      # plus fucker
+      # clanker-made config maker helper lol
     in
     {
       # --- FLAKE OUTPUTS ---
@@ -179,6 +206,7 @@
         codename = "Cacao";
         maintainer = "doromiert";
       };
+      # ↑ this does fuck all
 
       # [2] Development Environment (direnv)
       # This provides the tools needed to work ON this repo (scripts, lsp, etc)
@@ -203,20 +231,33 @@
           echo "   > Python & FirefoxPWA loaded."
           echo "   > Nix LSP (nil) & Formatter loaded."
         '';
+        # nonono you clearly havent experienced flake-flavored devving
+        # you can use flakes to define a shell for one dir in particular instead of having to make a thousand dotfiles lmfao
+        # anyways let's move on i want to show you smth really cool
+        # nigga i don't have long beards enough to understand thi
+        # ↑ i decided to stop using this because it was spamming my cli lol
+        # yes
+        # runs a hook every time i input a command basically
       };
+
+      # now the meaty part ↓
+      # the hosts
 
       nixosConfigurations = {
         doromi-tul-2 = mkHost {
           hostName = "doromi-tul-2";
           mainUser = "doromiert";
           users = [
-            "doromiert"
+            "doromiert" # (this will import) src/users/doromiert/main.nix (and graphical.nix when a desktop is enabled btw)
             "hubi"
-          ];
-          desktop = "gnome";
+            # now how does this work?
+            # you define an mkHost, the users you want to use
+          ]; # now this, this is how you define hosts in my flakes
+          desktop = "gnome"; # this is a bit different from how it works by default because of
           excludeCoreModules = [ "syncthing" ];
           roles = [
-            "creative"
+            # thats cool
+            "creative" # this will import src/modules/roles/(strings in here).nix
             "gaming"
             "web"
             "dev"
@@ -232,6 +273,7 @@
           ];
         };
 
+        # and the best part is you can have multiple configs in one flake
         vm-desktop-test = mkHost {
           hostName = "vm-desktop-test";
           mainUser = "doromiert";
@@ -304,6 +346,30 @@
           extraModules = [
             inputs.nixos-hardware.nixosModules.common-cpu-amd
             inputs.nixos-hardware.nixosModules.common-gpu-amd
+          ];
+        };
+
+        kitty-laptop = mkHost {
+          hostName = "kitty-laptop"; # this has to match what's before "= mkHost" fyi
+          mainUser = "cat";
+          users = [
+            # now how would we define a config for you? simple
+            "cat"
+          ];
+          desktop = "hyprland"; # i think it'd be a better idea to name yourf1 specific hyprland config smth else tbh
+          roles = [
+            # "kittyland", lol
+            "creative"
+            "tablet"
+            "dev"
+            "virtualization"
+            "containers"
+            "web"
+          ];
+          extraModules = [
+            inputs.nixos-hardware.nixosModules.common-cpu-intel
+            inputs.nixos-hardware.nixosModules.common-pc-laptop
+            inputs.nixos-hardware.nixosModules.common-pc-laptop-ssd
           ];
         };
       };

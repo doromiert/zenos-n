@@ -12,7 +12,8 @@ mkdir -p resources
 touch flake.nix
 
 hosts=(
-    
+    # now we add your laptop here and run this script to make a hosts file for your specific device
+    "kitty-laptop"
     "doromi-tul-2"
     "doromipad"
     "doromi-server"
@@ -22,7 +23,7 @@ hosts=(
 users=(
     # anax kulup
     "doromiert"
-    "cnb"
+    "cat"
     # admins
     "meowster"
     "blade0"

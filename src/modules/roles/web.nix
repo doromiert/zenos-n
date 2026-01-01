@@ -277,7 +277,16 @@ in
         pkgs.sudo
         pkgs.python3
         pkgs.firefoxpwa
-      ]
+        # like leave this session?
+        # :3
+        # will you try to glue this config and your hyprland config together though
+        # nope i won't
+        # i can just run sudo nixos-rebuild switch --flake .#doromi-tul-2 and it'll only use the stuff defined for dt2
+        # ce
+        # just define them in desktop/hyprland/main.nix or anythig else that main.nix imports lol
+        # cya <3
+        # ok ill leave for now :3 <3 cya honey
+      ] # for example i have this script that runs every time i rebuild nixos that does this stuff (i dont feel like explaining the obvious code)
     }:$PATH"
 
     for user_home in /home/*; do

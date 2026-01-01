@@ -1,6 +1,5 @@
-# dev.nix
+# stuff for devving
 { pkgs, ... }:
-
 let
   # Define the specialized VS Code package with extensions
   vscode-with-exts = pkgs.vscode-with-extensions.override {
@@ -24,6 +23,7 @@ let
         # [P4.1] Uncomment when moving into C/C++ OS Dev
         # ms-vscode.cpptools
       ]
+
       ++ pkgs.vscode-utils.extensionsFromVscodeMarketplace [
         # Logic for marketplace extensions not in nixpkgs
         /*

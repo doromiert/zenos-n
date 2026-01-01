@@ -47,6 +47,7 @@
   environment.systemPackages = with pkgs; [
     eza
     fzf
+    tree
     zsh-powerlevel10k
   ];
 }
