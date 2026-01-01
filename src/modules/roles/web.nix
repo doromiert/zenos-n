@@ -48,9 +48,6 @@ let
   # [P9] Logic: Block all by default, then merge our specific list.
   # This matches the "force_installed" pattern from the reference config.
   globalExtensions = {
-    "*" = {
-      installation_mode = "blocked";
-    };
   }
   // (builtins.listToAttrs (
     map (ext: {

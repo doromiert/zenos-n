@@ -72,13 +72,7 @@ in
     displayManager.gdm.enable = true;
     desktopManager.gnome.enable = true;
     udev.packages = with pkgs; [ gnome-settings-daemon ];
-    pulseaudio.enable = false;
-    pipewire = {
-      enable = true;
-      alsa.enable = true;
-      alsa.support32Bit = true;
-      pulse.enable = true;
-    };
+
   };
 
   # 2. System-wide Packages

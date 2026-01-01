@@ -268,6 +268,7 @@
             "dev"
             "virtualization"
             "containers"
+            "pipewire"
           ];
           extraModules = [
             inputs.nixos-hardware.nixosModules.common-cpu-amd
