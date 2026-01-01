@@ -1,7 +1,6 @@
 {
   config,
   pkgs,
-  inputs,
   lib,
   ...
 }:
@@ -80,6 +79,21 @@ in
     ppsspp # PSP
     xemu # Xbox
     # yuzu-mainline       # [ ! ] Replaced by wrapper above
+  ];
+
+  # -- Flatpak Games & Tools --
+  services.flatpak.packages = [
+    # "app.xemu.xemu"                          # [DUPLICATE] pkgs.xemu is in systemPackages
+    "ca.parallel_launcher.ParallelLauncher" # Parallel N64 Launcher
+    "com.play0ad.zeroad" # 0 A.D.
+    "com.usebottles.bottles" # Bottles (Wine Prefix Manager)
+    # "io.github.ryubing.Ryujinx"              # [DUPLICATE] pkgs.ryubing is in systemPackages
+    "io.mgba.mGBA" # GBA Emulator
+    "net.davidotek.pupgui2" # ProtonUp-Qt
+    "net.kuribo64.melonDS" # DS Emulator
+    # "org.DolphinEmu.dolphin-emu"             # [DUPLICATE] pkgs.dolphin-emu is in systemPackages
+    # "org.ppsspp.PPSSPP"                      # [DUPLICATE] pkgs.ppsspp is in systemPackages
+    "io.github.glaumar.QRookie" # vr game downloader thing
   ];
 
   # -- ZeroPlay Library Scaffolder --

@@ -63,15 +63,36 @@ in
     };
   };
 
-  # 2. System-wide Packages (Extensions and Tools)
+  # 2. System-wide Packages (Extensions, Tools, and Migrated Apps)
   environment = {
     systemPackages =
       with pkgs;
       [
+        # -- Core Tools --
         gnome-tweaks
+        blackbox-terminal
         gnome-extension-manager
         wl-clipboard # Useful for Wayland GNOME
         dconf-editor
+
+        # -- Migrated from Flatpak (Native Performance) --
+        biblioteca # Doc Viewer
+        dialect # Translation
+        decoder # QR Reader
+        raider # File Shredder
+        wike # Wikipedia Reader
+        curtail # Image Compressor
+        czkawka # Duplicate Cleaner
+        # flatseal          # [MOVED] Back to Flatpak as requested
+        hieroglyphic # TeX Symbol Finder
+        warehouse # Flatpak Manager
+        switcheroo # Image Converter (was io.gitlab.adhami3310.Converter)
+        letterpress # ASCII Art
+        resources # System Monitor (net.nokyan.Resources)
+        icon-library # Icon Maker (nl.emphisia.icon)
+        pika-backup # Backups
+        helvum # Pipewire Patchbay
+        commit # Git Commit Helper
       ]
       ++ extensions;
 
@@ -91,6 +112,21 @@ in
       ]
     );
   };
+
+  # -- Flatpak Utilities & GNOME Circle --
+  services.flatpak.packages = [
+    "com.github.tchx84.Flatseal" # Permission Manager
+
+    # ... other packages ...
+  ];
+
+  # [ CLEANUP ]
+  # The override below is NO LONGER NEEDED because we removed GTK_THEME
+  # from the global config in styling.nix.
+
+  # services.flatpak.overrides = {
+  #   "com.github.tchx84.Flatseal".Context.unset-environment = [ "GTK_THEME" ];
+  # };
 
   # 3. Declarative GSettings (Dconf) for All Users
   programs.dconf = {
@@ -114,6 +150,8 @@ in
             favorite-apps = [
               "nautilus.desktop"
               "org.gnome.Nautilus.desktop"
+              "com.raggesilver.BlackBox.desktop"
+              "org.gnome.Epiphany.desktop"
             ];
           };
         };

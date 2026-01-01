@@ -131,6 +131,8 @@ in
     delwaPkg
     pkgs.keepassxc
     pkgs.atkinson-hyperlegible # Required for font policy
+    pkgs.ntfy-sh # Required for the receiver service
+    pkgs.libnotify # Required for the receiver service
   ];
 
   # Map resources to /etc for clean symlinking
@@ -142,6 +144,38 @@ in
       }
     else
       builtins.trace "WARNING: PWA Chrome resources not found at ${toString paths.pwaChrome}" { };
+
+  # -- Flatpak Web & Social Apps --
+  services.flatpak.packages = [
+    "app.drey.Blurble" # Wordle Clone (Web game)
+    "co.logonoff.awakeonlan" # Wake on LAN (Moved from main.nix)
+    "com.google.Chrome" # Google Chrome
+    "de.haeckerfelix.Fragments" # BitTorrent Client
+    "dev.geopjr.Tuba" # Mastodon Client
+    "io.github.giantpinkrobots.varia" # Download Manager
+    "org.nickvision.tubeconverter" # Parabolic (Video Downloader)
+  ];
+
+  # -- Ntfy Receiver Service --
+  # Replaces the 'com.ranfdev.Notify' Flatpak with a native system daemon
+  systemd.user.services.ntfy-receiver = {
+    enable = true;
+    description = "Ntfy.sh Notification Receiver";
+    after = [ "network-online.target" ];
+    wants = [ "network-online.target" ];
+    path = [
+      pkgs.libnotify
+      pkgs.ntfy-sh
+    ];
+    serviceConfig = {
+      # ## [ ! ] CRITICAL: Replace 'INSERT_TOPIC_HERE' with your actual topic
+      # Listens for messages and pipes them to notify-send
+      ExecStart = "${pkgs.ntfy-sh}/bin/ntfy sub --cmd 'notify-send \"Ntfy\" \"$m\"' nzserver_status";
+      Restart = "always";
+      RestartSec = 10;
+    };
+    wantedBy = [ "default.target" ];
+  };
 
   programs.firefox = {
     enable = true;

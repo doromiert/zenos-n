@@ -43,6 +43,11 @@ in
     pkgs.nixfmt-rfc-style
   ];
 
+  # -- Flatpak Dev Tools --
+  services.flatpak.packages = [
+    "me.iepure.devtoolbox" # Dev Toolbox
+  ];
+
   # Essential for mkhl.direnv extension to function properly
   services.envfs.enable = true;
   programs.direnv.enable = true;

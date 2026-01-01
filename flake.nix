@@ -24,6 +24,7 @@
     nixcord.url = "github:kaylorben/nixcord";
 
     nix-minecraft.url = "github:Infinidoge/nix-minecraft";
+    nix-flatpak.url = "github:gmodena/nix-flatpak";
   };
 
   outputs =
@@ -31,6 +32,7 @@
       self,
       nixpkgs,
       nixpkgs-unstable,
+      nix-flatpak,
       nixcord,
       nix-gaming,
       vsc-extensions,
@@ -127,6 +129,7 @@
 
             # 2. External Modules
             inputs.home-manager.nixosModules.home-manager
+            inputs.nix-flatpak.nixosModules.nix-flatpak
 
             # 3. Universal ZenOS Foundation (Dynamic Import)
           ]

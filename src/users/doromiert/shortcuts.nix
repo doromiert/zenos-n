@@ -47,7 +47,7 @@
 
     "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1" = {
       name = "Black Box";
-      command = "flatpak run com.raggesilver.BlackBox";
+      command = "blackbox";
       binding = "<Super>t";
     };
 
@@ -59,7 +59,7 @@
 
     "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom3" = {
       name = "System Resources";
-      command = "flatpak run net.nokyan.Resources";
+      command = "resources";
       binding = "<Control><Shift>Escape";
     };
 
