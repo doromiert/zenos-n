@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# ZBridge Persistent Receiver Deployer
+# zbr-installer - ZBridge Persistent Receiver Deployer
 # Usage: zbr-installer <PHONE_IP>
 
 PHONE_IP=$1
@@ -9,20 +9,22 @@ echo ":: Connecting to $PHONE_IP..."
 adb connect "$PHONE_IP"
 adb -s "$PHONE_IP" wait-for-device
 
-# --- 1. Create the Payload Script (Runs inside Termux) ---
-cat << 'EOF' > zreceiver_payload.sh
+# --- 1. Generate Configuration Payload ---
+cat << 'EOF' > zreceiver_setup.sh
 #!/data/data/com.termux/files/usr/bin/sh
+# Define Paths manually to ensure they work even if env is broken
+PREFIX="/data/data/com.termux/files/usr"
+SVDIR="$PREFIX/var/service"
+SERVICE_DIR="$SVDIR/zreceiver"
 
-# Setup Environment
-echo ":: Updating Packages..."
-yes | pkg upgrade
+echo ":: Installing Dependencies..."
+yes | pkg update
 yes | pkg install termux-services gstreamer gst-plugins-base gst-plugins-good gst-plugins-bad
 
-# Create Service Directory
-SERVICE_DIR="$PREFIX/var/service/zreceiver"
+echo ":: configuring Service Files..."
 mkdir -p "$SERVICE_DIR"
 
-# Write the Run Script
+# Write the Service Run Script
 cat << 'RUN' > "$SERVICE_DIR/run"
 #!/data/data/com.termux/files/usr/bin/sh
 termux-wake-lock
@@ -40,38 +42,41 @@ while true; do
 done
 RUN
 
-# Set Permissions & Enable
 chmod +x "$SERVICE_DIR/run"
-sv-enable zreceiver
 
-# Start Service
-echo ":: Starting Service..."
-sv up zreceiver
-sv status zreceiver
-
-echo ":: DEPLOYMENT COMPLETE ::"
-echo ":: PLEASE DISABLE BATTERY OPTIMIZATIONS FOR TERMUX MANUALLY ::"
+echo ":: Service Configured. Ready for Restart."
 EOF
 
-# --- 2. Push Payload to SD Card ---
-echo ":: Pushing payload to /sdcard/Download/..."
-adb -s "$PHONE_IP" push zreceiver_payload.sh /sdcard/Download/zreceiver_payload.sh
+# --- 2. Push & Execute Configuration ---
+echo ":: Pushing setup script..."
+adb -s "$PHONE_IP" push zreceiver_setup.sh /sdcard/Download/zreceiver_setup.sh
 
-# --- 3. Execute via Input Injection ---
-echo ":: Launching Termux..."
+echo ":: Launching Termux to apply config..."
 adb -s "$PHONE_IP" shell am start -n com.termux/.app.TermuxActivity
-
-echo ":: Waiting for App Load (2s)..."
-sleep 2
-
-echo ":: Injecting Command..."
-# We move the file to home first because executing from /sdcard is often blocked by noexec mount
-CMD="cp /sdcard/Download/zreceiver_payload.sh . && sh zreceiver_payload.sh"
-
-# Send text inputs (escaped spaces)
-adb -s "$PHONE_IP" shell input text "cp\ \%sdcard\%Download\%zreceiver_payload.sh\ .\ \&\&\ sh\ zreceiver_payload.sh"
+sleep 3
+adb -s "$PHONE_IP" shell input text "sh\ /sdcard/Download/zreceiver_setup.sh"
 sleep 0.5
 adb -s "$PHONE_IP" shell input keyevent 66 # ENTER
 
-echo ":: Done. Check phone screen for progress."
-rm zreceiver_payload.sh
+# Wait for the script to finish (give it 15s to install packages)
+echo ":: Waiting for installation to finish (15s)..."
+sleep 15
+
+# --- 3. THE FIX: Force Restart Termux ---
+echo ":: Force-Stopping Termux (Reloads Environment)..."
+adb -s "$PHONE_IP" shell am force-stop com.termux
+
+echo ":: Relaunching Termux..."
+adb -s "$PHONE_IP" shell am start -n com.termux/.app.TermuxActivity
+
+echo ":: Waiting for Service Daemon..."
+sleep 5
+
+# --- 4. Verify Status ---
+echo ":: Checking Service Status..."
+# We use input injection to check status so you see it on screen
+adb -s "$PHONE_IP" shell input text "sv\ status\ zreceiver"
+adb -s "$PHONE_IP" shell input keyevent 66 # ENTER
+
+echo ":: DONE. You should see 'run: zreceiver' on the phone screen."
+rm zreceiver_setup.sh
