@@ -74,12 +74,12 @@ in
 
   # -- Filesystems --
   fileSystems."/" = {
-    device = "/dev/disk/by-uuid/892a748c-3cc0-4106-b03d-b7cb21a8eeea";
+    device = "/dev/disk/by-uuid/705d67a3-e6ea-4f58-9e43-556161bf3125";
     fsType = "ext4";
   };
 
   fileSystems."/boot" = {
-    device = "/dev/disk/by-uuid/D332-20EE";
+    device = "/dev/disk/by-uuid/E3EB-E7FF";
     fsType = "vfat";
     options = [
       "fmask=0077"

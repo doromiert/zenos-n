@@ -1,0 +1,8 @@
+{
+    "recommendations": [
+        "jnoortheen.nix-ide",
+        "ms-python.python",
+        "mads-hartmann.bash-ide-vscode",
+        "mkhl.direnv"
+    ]
+}

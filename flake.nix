@@ -43,11 +43,12 @@
     }@inputs:
     let
       system = "x86_64-linux";
+
+      # [1] We define 'pkgs' here to use in the devShells output below
+      pkgs = nixpkgs.legacyPackages.${system};
       lib = nixpkgs.lib;
 
       # Generic directory importer with exclude support
-      # Scans a directory for .nix files, ignores subdirectories (like 'resources')
-      # and files specified in the excludes list (by filename without extension).
       importDir =
         path: excludes:
         let
@@ -65,9 +66,9 @@
       mkHost =
         {
           hostName,
-          mainUser ? "doromiert", # Added mainUser argument
+          mainUser ? "doromiert",
           extraModules ? [ ],
-          desktop ? null, # Logic now relies solely on this
+          desktop ? null,
           excludeCoreModules ? [ ],
           users ? [ "doromiert" ],
           roles ? [ ],
@@ -91,7 +92,6 @@
                 ...
               }:
               {
-                # Define the mainUser option and set it
                 options.mainUser = lib.mkOption {
                   type = lib.types.str;
                   default = mainUser;
@@ -121,7 +121,6 @@
                   system.stateVersion = "25.11";
                   home-manager.useGlobalPkgs = true;
                   home-manager.backupFileExtension = "backup";
-
                 };
               }
             )
@@ -130,13 +129,10 @@
             inputs.home-manager.nixosModules.home-manager
 
             # 3. Universal ZenOS Foundation (Dynamic Import)
-            # Automatically imports all modules in src/modules/core unless excluded
           ]
           ++ (importDir ./src/modules/core excludeCoreModules)
           ++ [
-
-            # 4. Desktop Environment (Programmatic Selection)
-            # Imports src/modules/desktop/${desktop}/main.nix if 'desktop' is set
+            # 4. Desktop Environment
           ]
           ++ (
             if desktop != null then
@@ -148,45 +144,62 @@
               [ ]
           )
           ++ [
-
-            # 5. Automatic Host Directory Import (Excluding resources)
+            # 5. Host Directory
           ]
           ++ (importDir (./src/hosts + "/${hostName}") [ ])
           ++ [
-
-            # 6. Automatic User Import based on array
+            # 6. User Import
           ]
           ++ (map (user: ./src/users + "/${user}/main.nix") users)
           ++ [
-
-            # 7. Conditional Graphical User Modules
-            # If a desktop is selected, we assume users need their graphical configs
+            # 7. Graphical User Modules
           ]
           ++ (if desktop != null then (map (user: ./src/users + "/${user}/graphical.nix") users) else [ ])
           ++ [
-
-            # 8. Automatic Role Import
+            # 8. Role Import
           ]
           ++ (map (role: ./src/modules/roles/${role}.nix) roles)
           ++ [
-
-            # 9. Automatic Server Service Import
+            # 9. Server Service Import
           ]
           ++ (map (service: ./src/server/${service}.nix) serverServices)
-          ++ [
-
-          ]
+          ++ [ ]
           ++ extraModules;
         };
     in
     {
+      # --- FLAKE OUTPUTS ---
 
-      # Flake metadata
       metadata = {
         name = "ZenOS N";
         version = "1.0";
         codename = "Cacao";
         maintainer = "doromiert";
+      };
+
+      # [2] Development Environment (direnv)
+      # This provides the tools needed to work ON this repo (scripts, lsp, etc)
+      devShells.${system}.default = pkgs.mkShell {
+        name = "zenos-dev";
+
+        nativeBuildInputs = [
+          # Tools for 'pwamaker.py' and web scripts
+          pkgs.python3
+          pkgs.firefoxpwa
+
+          # Nix Development Tools (LSP + Formatter)
+          pkgs.nil # Nix Language Server (Essential for VS Code)
+          pkgs.nixfmt-rfc-style # Standard formatter
+
+          # Useful Utilities
+          pkgs.git
+        ];
+
+        shellHook = ''
+          echo "Start SAM [ZenOS N DevShell]"
+          echo "   > Python & FirefoxPWA loaded."
+          echo "   > Nix LSP (nil) & Formatter loaded."
+        '';
       };
 
       nixosConfigurations = {
@@ -261,7 +274,6 @@
         doromi-server = mkHost {
           hostName = "doromi-server";
           mainUser = "doromiert";
-          # desktop omitted (defaults to null), so graphical modules are skipped
           users = [
             "aether"
             "blade0"

@@ -6,25 +6,25 @@
 }:
 
 let
-  # --- 1. SHARED RESOURCES ---
-  # These use relative paths from this .nix file's location.
-  # Nix will resolve these to /nix/store paths during the build.
-  resourcePath = ./. + "/../../../resources/firefoxpwa/chrome";
+  # --- 1. SETUP & RESOURCES ---
+  pwamakerScript = ../../scripts/pwamaker.py;
+  delwaScript = ../../scripts/delwa.py;
+
   templateProfile = ./. + "/../../../resources/firefoxpwa/testprofile";
-  pwamaker = ../../scripts/pwamaker.py;
 
-  paths = {
-    pwaChrome = resourcePath;
-    gnomeTheme = pkgs.fetchFromGitHub {
-      owner = "rafaelmardojai";
-      repo = "firefox-gnome-theme";
-      rev = "v143";
-      sha256 = "sha256-0E3TqvXAy81qeM/jZXWWOTZ14Hs1RT7o78UyZM+Jbr4=";
+  # --- 2. EXTENSION DEFINITIONS ---
+  fetchExt =
+    {
+      name,
+      url,
+      sha256,
+    }:
+    pkgs.fetchurl {
+      name = "${name}.xpi";
+      inherit url sha256;
     };
-  };
 
-  # --- 2. EXTENSION REGISTRY ---
-  extStore = {
+  rawExtensions = {
     ublock = {
       id = "uBlock0@raymondhill.net";
       url = "https://addons.mozilla.org/firefox/downloads/latest/ublock-origin/latest.xpi";
@@ -45,34 +45,36 @@ let
       url = "https://addons.mozilla.org/firefox/downloads/latest/minimaltwitter/latest.xpi";
       sha256 = "sha256-h6r9hA2U2froAHU8x5hExwHgtU9010Cc/nHrLPW0kFo=";
     };
-    keepassxc = {
-      id = "keepassxc-browser@keepassxc.org";
-      url = "https://addons.mozilla.org/firefox/downloads/latest/keepassxc-browser/latest.xpi";
-      sha256 = "sha256-vuUjrI2WjTauOuMXsSsbK76F4sb1ud2w+4IsLZCvYTk=";
-    };
   };
 
-  fetchExt =
-    name: ext:
-    pkgs.fetchurl {
-      name = "${name}.xpi";
-      inherit (ext) url;
-      inherit (ext) sha256;
-    };
+  extensions = lib.mapAttrs (
+    name: val:
+    val
+    // {
+      src = fetchExt {
+        name = name;
+        inherit (val) url sha256;
+      };
+    }
+  ) rawExtensions;
 
-  extensions = builtins.mapAttrs (name: value: value // { src = fetchExt name value; }) extStore;
-
-  # --- 3. PWA DEPLOYMENT LOGIC ---
+  # --- 3. PWA GENERATOR FUNCTION ---
   makePWA = user: name: url: icon: extraExts: ''
-    echo "[*] Deploying PWA: ${name} via pwamaker.py"
-    sudo -u ${user} -H ${pkgs.python3}/bin/python3 ${pwamaker} \
+    echo "------------------------------------------------"
+    echo "[*] Web.nix: Deploying ${name}..."
+
+    sudo -u ${user} -H ${pkgs.python3}/bin/python3 ${pwamakerScript} \
       --name "${name}" \
       --url "${url}" \
       --icon "${icon}" \
       --template "${templateProfile}" \
-      ${lib.concatMapStringsSep " " (e: "--addon '${e.id}:${e.src}'") (
-        extraExts ++ [ extensions.keepassxc ]
-      )}
+      ${lib.concatMapStringsSep " " (e: "--addon '${e.id}:${e.src}'") extraExts}
+  '';
+
+  # [New] Delwa script wrapper for global access
+  delwaPkg = pkgs.writeScriptBin "delwa" ''
+    #!${pkgs.runtimeShell}
+    exec ${pkgs.python3}/bin/python3 ${delwaScript} "$@"
   '';
 
 in
@@ -80,36 +82,10 @@ in
   environment.systemPackages = [
     pkgs.firefoxpwa
     pkgs.python3
-    pkgs.keepassxc
+    delwaPkg
   ];
 
-  environment.etc =
-    if builtins.pathExists paths.pwaChrome then
-      {
-        "firefox/pwa-custom-chrome".source = paths.pwaChrome;
-        "firefox/gnome-theme".source = paths.gnomeTheme;
-      }
-    else
-      builtins.trace "WARNING: PWA Chrome resources not found at ${toString paths.pwaChrome}" { };
-
-  programs.firefox = {
-    enable = true;
-    nativeMessagingHosts.packages = [
-      pkgs.firefoxpwa
-      pkgs.keepassxc
-    ];
-    policies = {
-      Preferences = {
-        "toolkit.legacyUserProfileCustomizations.stylesheets" = true;
-        "browser.tabs.drawInTitlebar" = true;
-        "svg.context-properties.content.enabled" = true;
-        "gnomeTheme.hideSingleTab" = true;
-      };
-    };
-  };
-
-  system.activationScripts.firefoxSetup.text = ''
-    # Path setup
+  system.activationScripts.webApps.text = ''
     export PATH="${
       lib.makeBinPath [
         pkgs.coreutils
@@ -124,44 +100,28 @@ in
       username=$(basename "$user_home")
       if [ "$username" == "lost+found" ] || [ "$username" == "root" ]; then continue; fi
 
-      # --- A. Global Browser Theming ---
-      for profile in "$user_home"/.mozilla/firefox/*/; do
-        [ -d "$profile" ] && [[ "$profile" != *"Pending"* ]] || continue
-        mkdir -p "$profile/chrome"
-        ln -sfn /etc/firefox/gnome-theme/userChrome.css "$profile/chrome/" || true
-        ln -sfn /etc/firefox/gnome-theme/userContent.css "$profile/chrome/" || true
-        ln -sfn /etc/firefox/gnome-theme/theme "$profile/chrome/" || true
-      done
+      echo ">>> Configuring PWAs for user: $username"
 
-      # --- B. PWA Installation via python script ---
       ${makePWA "$username" "YouTube" "https://www.youtube.com" "youtube" [
         extensions.ublock
         extensions.sponsorblock
       ]}
+      
       ${makePWA "$username" "Select for Figma" "https://www.figma.com" "select-for-figma" [
         extensions.ua-switcher
       ]}
+      
       ${makePWA "$username" "Gemini" "https://gemini.google.com" "internet-chat" [ ]}
+      
       ${makePWA "$username" "Twitter" "https://x.com" "twitter" [
         extensions.ublock
         extensions.minimal-twitter
       ]}
-      ${makePWA "$username" "GitHub" "https://github.com" "github" [ ]}
-      ${makePWA "$username" "Syncthing" "http://localhost:8384/" "syncthing" [ ]}
-
-      # --- C. Custom Chrome Styling ---
-      for p_dir in "$user_home"/.local/share/firefoxpwa/profiles/*/; do
-        [ -d "$p_dir" ] || continue
-        mkdir -p "$p_dir/chrome"
-        ln -sfn /etc/firefox/pwa-custom-chrome/userChrome.css "$p_dir/chrome/" || true
-        ln -sfn /etc/firefox/pwa-custom-chrome/userContent.css "$p_dir/chrome/" || true
-        [ -d /etc/firefox/pwa-custom-chrome/theme ] && ln -sfn /etc/firefox/pwa-custom-chrome/theme "$p_dir/chrome/" || true
-      done
       
-      # Fix permissions
-      if [ -d "$user_home/.local/share/firefoxpwa" ]; then
-        chown -R "$username":users "$user_home"/.local/share/firefoxpwa || true
-      fi
+      ${makePWA "$username" "GitHub" "https://github.com" "github" [ ]}
+      
+      ${makePWA "$username" "Syncthing" "http://localhost:8384/" "syncthing" [ ]}
+      
     done
   '';
 }
