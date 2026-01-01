@@ -1,6 +1,5 @@
 # src/modules/core/boot.nix
 {
-  config,
   pkgs,
   lib,
   ...

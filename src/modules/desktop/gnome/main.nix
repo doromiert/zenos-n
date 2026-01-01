@@ -1,5 +1,5 @@
 # contains gnome-specific configs
-{ config, pkgs, ... }:
+{ pkgs, ... }:
 
 let
   # Define extensions here for easier management
@@ -76,8 +76,9 @@ in
       ++ extensions;
 
     # Remove default GNOME bloat for all users
-    gnome.excludePackages =
-      (with pkgs; [
+    gnome.excludePackages = (
+      with pkgs;
+      [
         gnome-photos
         gnome-tour
         gedit
@@ -87,9 +88,8 @@ in
         epiphany
         gnome-contacts
         gnome-weather
-      ])
-      ++ (with pkgs.gnome; [
-      ]);
+      ]
+    );
   };
 
   # 3. Declarative GSettings (Dconf) for All Users
