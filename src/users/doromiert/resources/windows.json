@@ -132,6 +132,10 @@
             "wmClass": "Code",
             "wmId": 3581138977,
             "mode": "float"
+        },
+        {
+            "wmClass": "Sushi",
+            "mode": "float"
         }
     ]
 }
