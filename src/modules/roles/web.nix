@@ -22,67 +22,46 @@ let
   };
 
   # --- 2. EXTENSION DEFINITIONS ---
-  fetchExt =
-    {
-      name,
-      url,
-      sha256,
-    }:
-    pkgs.fetchurl {
-      name = "${name}.xpi";
-      inherit url sha256;
-    };
-
-  rawExtensions = {
+  extensions = {
     ublock = {
       id = "uBlock0@raymondhill.net";
       url = "https://addons.mozilla.org/firefox/downloads/latest/ublock-origin/latest.xpi";
-      sha256 = "sha256-XK9KvaSUAYhBIioSFWkZu92MrYKng8OMNrIt1kJwQxU=";
     };
     sponsorblock = {
       id = "sponsorBlocker@ajay.app";
       url = "https://addons.mozilla.org/firefox/downloads/latest/sponsorblock/latest.xpi";
-      sha256 = "sha256-WY9myetrurK9X4c3a2MqWGD0QtNpTiM2EPWzf4tuPxA=";
     };
     ua-switcher = {
-      id = "{7ad997b5-227a-4712-bf9e-01200f40243e}";
+      id = "{a6c4a591-f1b2-4f03-b3ff-767e5bedf4e7}";
       url = "https://addons.mozilla.org/firefox/downloads/latest/user-agent-string-switcher/latest.xpi";
-      sha256 = "sha256-nB/uKb2JpyH3r412qZeqytAn1PKxQc2wQ+6QJ7iWdZk=";
     };
-    minimal-twitter = {
-      id = "min-twitter@artem.plus";
-      url = "https://addons.mozilla.org/firefox/downloads/latest/minimaltwitter/latest.xpi";
-      sha256 = "sha256-dvRw05OqgxkgtvqNedEDl+/LSEXK7EqAJNM8rp02H70=";
-    };
+    # minimal-twitter = {
+    #   id = "{e7476172-097c-4b77-b56e-f56a894adca9}";
+    #   url = "https://addons.mozilla.org/firefox/downloads/latest/minimaltwitter/latest.xpi";
+    # };
     keepassxc = {
       id = "keepassxc-browser@keepassxc.org";
       url = "https://addons.mozilla.org/firefox/downloads/latest/keepassxc-browser/latest.xpi";
-      sha256 = "sha256-vuUjrI2WjTauOuMXsSsbK76F4sb1ud2w+4IsLZCvYTk=";
     };
   };
 
-  # Processed extensions for PWA usage (local file paths)
-  extensions = lib.mapAttrs (
-    name: val:
-    val
-    // {
-      src = fetchExt {
-        name = name;
-        inherit (val) url sha256;
-      };
-    }
-  ) rawExtensions;
-
-  # [P8.2] Task Execution: Transform extensions for Main Browser Policy
-  # Maps the rawExtensions to the format Firefox Policy expects (UUID as key)
-  globalExtensions = lib.mapAttrs' (name: ext: {
-    name = ext.id;
-    value = {
-      install_url = ext.url;
-      installation_mode = "force_installed";
-      default_area = "menupanel"; # Install to overflow menu (don't clutter toolbar)
+  # [P9] Logic: Block all by default, then merge our specific list.
+  # This matches the "force_installed" pattern from the reference config.
+  globalExtensions = {
+    "*" = {
+      installation_mode = "blocked";
     };
-  }) rawExtensions;
+  }
+  // (builtins.listToAttrs (
+    map (ext: {
+      name = ext.id; # Sets the Firefox ID as the key
+      value = {
+        install_url = ext.url;
+        installation_mode = "force_installed";
+        default_area = "menupanel";
+      };
+    }) (builtins.attrValues extensions)
+  ));
 
   # Helper to lock preferences
   lock = value: {
@@ -100,7 +79,10 @@ let
       --url "${url}" \
       --icon "${icon}" \
       --template "${templateProfile}" \
-      ${lib.concatMapStringsSep " " (e: "--addon '${e.id}:${e.src}'") extraExts}
+      ${lib.concatMapStringsSep " " (e: "--addon '${e.id}:${e.url}'") extraExts}
+      
+      echo "${lib.concatMapStringsSep " " (e: "--addon '${e.id}:${e.url}'") extraExts}"
+
   '';
 
   delwaPkg = pkgs.writeScriptBin "delwa" ''
@@ -110,7 +92,6 @@ let
 
 in
 {
-  # Set Firefox as default browser system-wide (ENV + XDG)
   environment.sessionVariables = {
     BROWSER = "firefox";
     DEFAULT_BROWSER = "firefox";
@@ -130,12 +111,11 @@ in
     pkgs.python3
     delwaPkg
     pkgs.keepassxc
-    pkgs.atkinson-hyperlegible # Required for font policy
-    pkgs.ntfy-sh # Required for the receiver service
-    pkgs.libnotify # Required for the receiver service
+    pkgs.atkinson-hyperlegible
+    pkgs.ntfy-sh
+    pkgs.libnotify
   ];
 
-  # Map resources to /etc for clean symlinking
   environment.etc =
     if builtins.pathExists paths.pwaChrome then
       {
@@ -145,19 +125,16 @@ in
     else
       builtins.trace "WARNING: PWA Chrome resources not found at ${toString paths.pwaChrome}" { };
 
-  # -- Flatpak Web & Social Apps --
   services.flatpak.packages = [
-    "app.drey.Blurble" # Wordle Clone (Web game)
-    "co.logonoff.awakeonlan" # Wake on LAN (Moved from main.nix)
-    "com.google.Chrome" # Google Chrome
-    "de.haeckerfelix.Fragments" # BitTorrent Client
-    "dev.geopjr.Tuba" # Mastodon Client
-    "io.github.giantpinkrobots.varia" # Download Manager
-    "org.nickvision.tubeconverter" # Parabolic (Video Downloader)
+    "app.drey.Blurble"
+    "co.logonoff.awakeonlan"
+    "com.google.Chrome"
+    "de.haeckerfelix.Fragments"
+    "dev.geopjr.Tuba"
+    "io.github.giantpinkrobots.varia"
+    "org.nickvision.tubeconverter"
   ];
 
-  # -- Ntfy Receiver Service --
-  # Replaces the 'com.ranfdev.Notify' Flatpak with a native system daemon
   systemd.user.services.ntfy-receiver = {
     enable = true;
     description = "Ntfy.sh Notification Receiver";
@@ -168,8 +145,6 @@ in
       pkgs.ntfy-sh
     ];
     serviceConfig = {
-      # ## [ ! ] CRITICAL: Replace 'INSERT_TOPIC_HERE' with your actual topic
-      # Listens for messages and pipes them to notify-send
       ExecStart = "${pkgs.ntfy-sh}/bin/ntfy sub --cmd 'notify-send \"Ntfy\" \"$m\"' nzserver_status";
       Restart = "always";
       RestartSec = 10;
@@ -184,17 +159,30 @@ in
       pkgs.keepassxc
     ];
     policies = {
-      # 1. Install Extensions in Main Browser
       ExtensionSettings = globalExtensions;
 
-      # 2. Basic Policy Enforcement
+      # Privacy & Tracking (from reference)
+      EnableTrackingProtection = {
+        Value = true;
+        Locked = true;
+        Cryptomining = true;
+        Fingerprinting = true;
+      };
+
+      # UI Cleanliness (from reference)
+      DisplayBookmarksToolbar = "never";
+      DisplayMenuBar = "default-off";
+      SearchBar = "unified";
+      OverrideFirstRunPage = "";
+      OverridePostUpdatePage = "";
+
       DisableTelemetry = true;
       DisableFirefoxStudies = true;
       DisablePocket = true;
+      DisableFirefoxAccounts = true;
+      DisableAccounts = true;
       DontCheckDefaultBrowser = true;
-
-      # 3. Security & Privacy
-      PasswordManagerEnabled = false; # Rely on KeePassXC
+      PasswordManagerEnabled = false;
       OfferToSaveLogins = false;
 
       DNSOverHTTPS = {
@@ -221,28 +209,40 @@ in
         WhatsNew = false;
       };
 
-      # 4. Hardware Acceleration
       HardwareAcceleration = true;
 
-      # 5. Preferences (Theming & Tweaks)
       Preferences = {
+        # --- [ ! ] CRITICAL: Enable Sideloading & Policy Installs ---
+        "extensions.enabledScopes" = lock 15;
+        "extensions.autoDisableScopes" = lock 0;
+        "xpinstall.signatures.required" = lock false;
+        "extensions.langpacks.signatures.required" = lock false;
+        "extensions.quarantinedDomains.enabled" = lock false;
+
+        # --- Strict Privacy (from reference) ---
+        "browser.contentblocking.category" = lock "strict";
+        "extensions.pocket.enabled" = lock false;
+        "extensions.screenshots.disabled" = lock true;
+        "browser.topsites.contile.enabled" = lock false;
+        "browser.formfill.enable" = lock false;
+        "browser.search.suggest.enabled" = lock false;
+
         # --- UX Tweaks ---
         "browser.ctrlTab.sortByRecentlyUsed" = lock true;
         "middlemouse.paste" = lock false;
         "general.autoScroll" = lock true;
-        "browser.toolbars.bookmarks.visibility" = lock "never";
 
         # --- Hardware Acceleration ---
         "layers.acceleration.force-enabled" = lock true;
         "gfx.webrender.all" = lock true;
 
-        # --- Typography (Atkinson Hyperlegible) ---
+        # --- Typography ---
         "font.name.sans-serif.x-western" = lock "Atkinson Hyperlegible";
         "font.name.serif.x-western" = lock "Atkinson Hyperlegible";
         "font.default.x-western" = lock "sans-serif";
         "font.size.variable.x-western" = lock 15;
 
-        # --- Anti-Sponsored Bullshit ---
+        # --- Anti-Sponsored ---
         "browser.newtabpage.activity-stream.showSponsored" = lock false;
         "browser.newtabpage.activity-stream.showSponsoredTopSites" = lock false;
         "browser.newtabpage.activity-stream.feeds.section.topstories" = lock false;
@@ -258,7 +258,7 @@ in
         "toolkit.legacyUserProfileCustomizations.stylesheets" = lock true;
         "svg.context-properties.content.enabled" = lock true;
 
-        # --- GNOME Theme Integration (CRITICAL FIXES) ---
+        # --- GNOME Theme Integration ---
         "browser.theme.dark-private-windows" = lock false;
         "widget.gtk.rounded-bottom-corners.enabled" = lock true;
         "gnomeTheme.hideSingleTab" = lock true;
@@ -277,16 +277,7 @@ in
         pkgs.sudo
         pkgs.python3
         pkgs.firefoxpwa
-        # like leave this session?
-        # :3
-        # will you try to glue this config and your hyprland config together though
-        # nope i won't
-        # i can just run sudo nixos-rebuild switch --flake .#doromi-tul-2 and it'll only use the stuff defined for dt2
-        # ce
-        # just define them in desktop/hyprland/main.nix or anythig else that main.nix imports lol
-        # cya <3
-        # ok ill leave for now :3 <3 cya honey
-      ] # for example i have this script that runs every time i rebuild nixos that does this stuff (i dont feel like explaining the obvious code)
+      ]
     }:$PATH"
 
     for user_home in /home/*; do
@@ -309,20 +300,26 @@ in
       ${makePWA "$username" "YouTube" "https://www.youtube.com" "youtube" [
         extensions.ublock
         extensions.sponsorblock
+        extensions.keepassxc
+        extensions.ua-switcher
       ]}
       
       ${makePWA "$username" "Select for Figma" "https://www.figma.com" "select-for-figma" [
         extensions.ua-switcher
+        extensions.keepassxc
       ]}
       
-      ${makePWA "$username" "Gemini" "https://gemini.google.com" "internet-chat" [ ]}
+      ${makePWA "$username" "Gemini" "https://gemini.google.com" "internet-chat" [
+        extensions.keepassxc
+      ]}
       
       ${makePWA "$username" "Twitter" "https://x.com" "twitter" [
         extensions.ublock
-        extensions.minimal-twitter
+        extensions.keepassxc
+        # extensions.minimal-twitter
       ]}
       
-      ${makePWA "$username" "GitHub" "https://github.com" "github" [ ]}
+      ${makePWA "$username" "GitHub" "https://github.com" "github" [ extensions.keepassxc ]}
       
       ${makePWA "$username" "Syncthing" "http://localhost:8384/" "syncthing" [ ]}
       

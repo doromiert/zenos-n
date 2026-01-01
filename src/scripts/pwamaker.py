@@ -3,6 +3,7 @@
 Firefox PWA Generator (Modular Refactor)
 Generates isolated Firefox profiles and desktop entries for Progressive Web Apps.
 Designed for integration with NixOS/Linux environments.
+Modified: Added modern User-Agent override and aggressive extension state cleaning.
 """
 
 import argparse
@@ -85,46 +86,78 @@ class ProfileManager:
             for f in files:
                 os.chmod(os.path.join(root, f), 0o644)
         
-        for trash in ["compatibility.ini", "search.json.mozlz4", "startupCache"]:
+        # Aggressive Cleaning: Remove everything that could link to the main profile or template extensions
+        trash_list = [
+            "compatibility.ini", 
+            "search.json.mozlz4", 
+            "startupCache",
+            "extensions.json",           # Prevents "memory" of template extensions
+            "extensions",                # Removes physical XPIs from template
+            "addonStartup.json.lz4",     # Prevents cached addon states
+            "extension-preferences.json",
+            "extension-settings.json"
+        ]
+        
+        for trash in trash_list:
             p = dest / trash
             if p.exists():
-                shutil.rmtree(p) if p.is_dir() else p.unlink()
+                if p.is_dir():
+                    shutil.rmtree(p)
+                else:
+                    p.unlink()
         
         return dest
 
-    def install_extensions(self, profile_path: Path, addons: list):
+    def configure_policies(self, profile_path: Path, addons: list):
         if not addons:
             return
 
-        ext_dir = profile_path / "extensions"
-        ext_dir.mkdir(exist_ok=True)
+        dist_dir = profile_path / "distribution"
+        dist_dir.mkdir(exist_ok=True)
+        
+        extension_settings = {
+            "*": {"installation_mode": "blocked"}
+        }
 
-        print(f"[*] Installing {len(addons)} extensions...")
+        print(f"[*] Configuring policies for {len(addons)} extensions...")
         for addon_def in addons:
             try:
                 if ":" not in addon_def:
+                    print(f"    [!] Invalid addon format: {addon_def}. Use ID:URL")
                     continue
-                    
-                ext_id, ext_path = addon_def.split(":", 1)
-                src = Path(ext_path)
                 
-                if not src.exists():
-                    print(f"    [!] Extension file missing: {src}")
-                    continue
-
-                dest = ext_dir / f"{ext_id}.xpi"
-                shutil.copy2(src, dest)
-                os.chmod(dest, 0o644)
+                ext_id, install_url = addon_def.split(":", 1)
+                
+                extension_settings[ext_id] = {
+                    "default_area": "menupanel",
+                    "install_url": install_url,
+                    "installation_mode": "force_installed"
+                }
             except Exception as e:
-                print(f"    [!] Failed to install {addon_def}: {e}")
+                print(f"    [!] Failed to process addon {addon_def}: {e}")
+
+        policies = {
+            "policies": {
+                "ExtensionSettings": extension_settings
+            }
+        }
+
+        with open(dist_dir / "policies.json", "w") as f:
+            json.dump(policies, f, indent=4)
 
     def configure_user_js(self, profile_path: Path, layout_str: str):
         user_js = profile_path / "user.js"
+        
+        # Standard Desktop UA to bypass security heuristics
+        standard_ua = "Mozilla/5.0 (X11; Linux x86_64; rv:146.0) Gecko/20100101 Firefox/146.0"
+        
         prefs = [
             'user_pref("toolkit.legacyUserProfileCustomizations.stylesheets", true);',
             'user_pref("extensions.autoDisableScopes", 0);',
-            'user_pref("browser.uidensity", 1);'
+            'user_pref("browser.uidensity", 1);',
+            f'user_pref("general.useragent.override", "{standard_ua}");'
         ]
+        
         if layout_str:
             layout_json = self._generate_layout_json(layout_str)
             prefs.append(f'user_pref("browser.uiCustomization.state", "{layout_json}");')
@@ -181,10 +214,6 @@ class PWABuilder:
             return url
 
     def find_existing_app(self, name):
-        """
-        Scans .local/share/applications for a .desktop file with Name={name}.
-        Returns (site_id, desktop_path) or (None, None).
-        """
         if not self.ctx.desktop_dir.exists():
             return None, None
             
@@ -203,7 +232,6 @@ class PWABuilder:
         return None, None
 
     def get_profile_id_for_site(self, site_id):
-        """Retrieve profile ID from global config using site ID."""
         if not self.ctx.global_config.exists():
             return None
         try:
@@ -223,14 +251,19 @@ class PWABuilder:
                 pass
 
         registry["profiles"][profile_id] = {
-            "ulid": profile_id, "name": name, "sites": [site_id]
+            "ulid": profile_id,
+            "name": name,
+            "sites": [site_id]
         }
+        
         registry["sites"][site_id] = {
-            "ulid": site_id, "profile": profile_id,
+            "ulid": site_id,
+            "profile": profile_id,
             "config": {"document_url": url, "manifest_url": url},
             "manifest": manifest
         }
 
+        self.ctx.fpwa_root.mkdir(parents=True, exist_ok=True)
         with open(self.ctx.global_config, "w") as f:
             json.dump(registry, f, separators=(',', ':'))
 
@@ -240,7 +273,6 @@ class PWABuilder:
         final_url = self.resolve_url(url)
         site_path = self.ctx.sites_dir / site_id
         
-        # 1. Update Manifest
         if site_path.exists():
             manifest_path = site_path / "manifest.json"
             if manifest_path.exists():
@@ -252,19 +284,18 @@ class PWABuilder:
                     json.dump(data, f, indent=2)
                     f.truncate()
         
-        # 2. Update Icon
         if icon and os.path.exists(icon):
             shutil.copy(icon, site_path / "icon.png")
             
-        # 3. Update Extensions (Non-destructive to profile data)
         profile_id = self.get_profile_id_for_site(site_id)
         if profile_id:
             profile_path = self.ctx.profiles_dir / profile_id
-            if profile_path.exists() and addons:
-                self.pm.install_extensions(profile_path, addons)
+            if profile_path.exists():
+                # Re-apply user.js and policies
+                self.pm.configure_user_js(profile_path, "") 
+                if addons:
+                    self.pm.configure_policies(profile_path, addons)
         
-        # 4. Refresh Registry (to ensure URL match)
-        # We need the manifest data we just wrote/calculated
         domain = urlparse(final_url).netloc
         scheme = urlparse(final_url).scheme
         manifest = {
@@ -282,13 +313,11 @@ class PWABuilder:
     def create(self, name, url, icon, layout, addons):
         print(f"\n=== Deploying PWA: {name} ===")
         
-        # Redundancy Check
         existing_id, existing_path = self.find_existing_app(name)
         if existing_id:
             self.update_existing(existing_id, existing_path, name, url, icon, addons)
             return
 
-        # --- New Creation Flow ---
         final_url = self.resolve_url(url)
         site_id = self.ctx.generate_ulid()
         profile_id = self.ctx.generate_ulid()
@@ -322,16 +351,14 @@ class PWABuilder:
         profile_path = self.pm.prepare_profile(profile_id)
         self.pm.configure_user_js(profile_path, layout)
         if addons:
-            self.pm.install_extensions(profile_path, addons)
+            self.pm.configure_policies(profile_path, addons)
 
         self.create_desktop_entry(name, site_id, site_path, icon)
         print(f"[SUCCESS] {name} deployed. Site ID: {site_id}")
 
     def create_desktop_entry(self, name, site_id, site_path, icon_source):
         safe_name = "".join(c for c in name if c.isalnum()).lower()
-        exec_cmd = f"env -u DRI_PRIME firefoxpwa site launch {site_id}"
-        
-        # Use provided icon argument if available, else fallback to the one in site_path
+        exec_cmd = f"firefoxpwa site launch {site_id}"
         icon_path = icon_source if icon_source else f"{site_path}/icon.png"
 
         content = (
@@ -342,6 +369,7 @@ class PWABuilder:
             "Terminal=false\n"
             f"Icon={icon_path}\n"
             "Categories=Network;WebBrowser;\n"
+            f"X-FirefoxPWA-Site={site_id}\n"
         )
         
         out_path = self.ctx.desktop_dir / f"{safe_name}-fpwa.desktop"
@@ -351,13 +379,13 @@ class PWABuilder:
             f.write(content)
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Modular Firefox PWA Generator")
+    parser = argparse.ArgumentParser(description="Modular Firefox PWA Generator (Profile Fix)")
     parser.add_argument("--name", required=True, help="Display name of the PWA")
     parser.add_argument("--url", required=True, help="Target URL")
     parser.add_argument("--icon", help="Path to icon file")
     parser.add_argument("--layout", default="arrows,refresh", help="Comma-separated navbar items")
     parser.add_argument("--template", help="Explicit path to template profile")
-    parser.add_argument("--addon", action="append", dest="addons", help="Extension in format 'ID:/path/to/file.xpi'")
+    parser.add_argument("--addon", action="append", dest="addons", help="Extension in format 'ID:URL'")
     
     args = parser.parse_args()
     

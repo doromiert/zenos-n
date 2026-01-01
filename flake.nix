@@ -32,6 +32,10 @@
 
     nix-minecraft.url = "github:Infinidoge/nix-minecraft";
     nix-flatpak.url = "github:gmodena/nix-flatpak";
+    nur = {
+      url = "github:nix-community/NUR";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -153,6 +157,7 @@
             # 2. External Modules
             inputs.home-manager.nixosModules.home-manager
             inputs.nix-flatpak.nixosModules.nix-flatpak
+            inputs.nur.modules.nixos.default
             # oh and here are external modules all hosts will inherit
             # defined in the inputs
 

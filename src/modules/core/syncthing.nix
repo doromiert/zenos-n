@@ -41,7 +41,7 @@
       # ralu
       "ralue_pixel_7" = {
         id = "4MMSZK2-4HE35WA-EFVWNA5-W26GBMO-LQHJPW7-BIG6ZZA-EH44LIR-K3ZMGAT";
-      };
+      }; # the monolith
       # j
       "j_big_rig" = {
         id = "HWGMO4E-GRF3G32-HL64E63-VQBF6T6-GY4YODD-WPI5PVJ-6DJ2HK6-7USXXAH";
