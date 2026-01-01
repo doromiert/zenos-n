@@ -35,6 +35,12 @@
         "gitlens.codeLens.enabled" = true;
         "vim.useSystemClipboard" = true;
         "vim.hlsearch" = true;
+
+        # git
+        "git.confirmSync" = false; # Disables popup on Push/Sync
+        "git.enableSmartCommit" = true; # Auto-stages changes if none are staged (The "Add" step)
+        "git.suggestSmartCommit" = false; # Disables the "Do you want to stage..." prompt
+        "git.autofetch" = true; # Optional: Keeps graph updated without asking
       };
 
       # Generate the JSON file in the Nix store
