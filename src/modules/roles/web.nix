@@ -11,6 +11,16 @@ let
 
   templateProfile = ./. + "/../../../resources/firefoxpwa/testprofile";
 
+  paths = {
+    pwaChrome = ./. + "/../../../resources/firefoxpwa/chrome";
+    gnomeTheme = pkgs.fetchFromGitHub {
+      owner = "rafaelmardojai";
+      repo = "firefox-gnome-theme";
+      rev = "v143";
+      sha256 = "sha256-0E3TqvXAy81qeM/jZXWWOTZ14Hs1RT7o78UyZM+Jbr4=";
+    };
+  };
+
   # --- 2. EXTENSION DEFINITIONS ---
   fetchExt =
     {
@@ -44,8 +54,14 @@ let
       url = "https://addons.mozilla.org/firefox/downloads/latest/minimaltwitter/latest.xpi";
       sha256 = "sha256-dvRw05OqgxkgtvqNedEDl+/LSEXK7EqAJNM8rp02H70=";
     };
+    keepassxc = {
+      id = "keepassxc-browser@keepassxc.org";
+      url = "https://addons.mozilla.org/firefox/downloads/latest/keepassxc-browser/latest.xpi";
+      sha256 = "sha256-vuUjrI2WjTauOuMXsSsbK76F4sb1ud2w+4IsLZCvYTk=";
+    };
   };
 
+  # Processed extensions for PWA usage (local file paths)
   extensions = lib.mapAttrs (
     name: val:
     val
@@ -56,6 +72,23 @@ let
       };
     }
   ) rawExtensions;
+
+  # [P8.2] Task Execution: Transform extensions for Main Browser Policy
+  # Maps the rawExtensions to the format Firefox Policy expects (UUID as key)
+  globalExtensions = lib.mapAttrs' (name: ext: {
+    name = ext.id;
+    value = {
+      install_url = ext.url;
+      installation_mode = "force_installed";
+      default_area = "menupanel"; # Install to overflow menu (don't clutter toolbar)
+    };
+  }) rawExtensions;
+
+  # Helper to lock preferences
+  lock = value: {
+    Value = value;
+    Status = "locked";
+  };
 
   # --- 3. PWA GENERATOR FUNCTION ---
   makePWA = user: name: url: icon: extraExts: ''
@@ -70,7 +103,6 @@ let
       ${lib.concatMapStringsSep " " (e: "--addon '${e.id}:${e.src}'") extraExts}
   '';
 
-  # [New] Delwa script wrapper for global access
   delwaPkg = pkgs.writeScriptBin "delwa" ''
     #!${pkgs.runtimeShell}
     exec ${pkgs.python3}/bin/python3 ${delwaScript} "$@"
@@ -93,11 +125,116 @@ in
   };
 
   environment.systemPackages = [
-    pkgs.firefox # Ensure base Firefox is installed
+    pkgs.firefox
     pkgs.firefoxpwa
     pkgs.python3
     delwaPkg
+    pkgs.keepassxc
+    pkgs.atkinson-hyperlegible # Required for font policy
   ];
+
+  # Map resources to /etc for clean symlinking
+  environment.etc =
+    if builtins.pathExists paths.pwaChrome then
+      {
+        "firefox/pwa-custom-chrome".source = paths.pwaChrome;
+        "firefox/gnome-theme".source = paths.gnomeTheme;
+      }
+    else
+      builtins.trace "WARNING: PWA Chrome resources not found at ${toString paths.pwaChrome}" { };
+
+  programs.firefox = {
+    enable = true;
+    nativeMessagingHosts.packages = [
+      pkgs.firefoxpwa
+      pkgs.keepassxc
+    ];
+    policies = {
+      # 1. Install Extensions in Main Browser
+      ExtensionSettings = globalExtensions;
+
+      # 2. Basic Policy Enforcement
+      DisableTelemetry = true;
+      DisableFirefoxStudies = true;
+      DisablePocket = true;
+      DontCheckDefaultBrowser = true;
+
+      # 3. Security & Privacy
+      PasswordManagerEnabled = false; # Rely on KeePassXC
+      OfferToSaveLogins = false;
+
+      DNSOverHTTPS = {
+        Enabled = true;
+        ProviderURL = "https://mozilla.cloudflare-dns.com/dns-query";
+        Locked = true;
+      };
+
+      SearchEngines = {
+        Default = "DuckDuckGo";
+        PreventInstalls = true;
+      };
+
+      EncryptedMediaExtensions = {
+        Enabled = true;
+        Locked = true;
+      };
+
+      UserMessaging = {
+        ExtensionRecommendations = false;
+        FeatureRecommendations = false;
+        MoreFromMozilla = false;
+        SkipOnboarding = true;
+        WhatsNew = false;
+      };
+
+      # 4. Hardware Acceleration
+      HardwareAcceleration = true;
+
+      # 5. Preferences (Theming & Tweaks)
+      Preferences = {
+        # --- UX Tweaks ---
+        "browser.ctrlTab.sortByRecentlyUsed" = lock true;
+        "middlemouse.paste" = lock false;
+        "general.autoScroll" = lock true;
+        "browser.toolbars.bookmarks.visibility" = lock "never";
+
+        # --- Hardware Acceleration ---
+        "layers.acceleration.force-enabled" = lock true;
+        "gfx.webrender.all" = lock true;
+
+        # --- Typography (Atkinson Hyperlegible) ---
+        "font.name.sans-serif.x-western" = lock "Atkinson Hyperlegible";
+        "font.name.serif.x-western" = lock "Atkinson Hyperlegible";
+        "font.default.x-western" = lock "sans-serif";
+        "font.size.variable.x-western" = lock 15;
+
+        # --- Anti-Sponsored Bullshit ---
+        "browser.newtabpage.activity-stream.showSponsored" = lock false;
+        "browser.newtabpage.activity-stream.showSponsoredTopSites" = lock false;
+        "browser.newtabpage.activity-stream.feeds.section.topstories" = lock false;
+        "browser.newtabpage.activity-stream.feeds.opsouth" = lock false;
+        "browser.newtabpage.activity-stream.section.highlights.includePocket" = lock false;
+
+        # --- AI Integration ---
+        "browser.ml.enable" = lock true;
+        "browser.ml.chat.enabled" = lock true;
+        "browser.ml.chat.sidebar" = lock true;
+
+        # --- CSS / Theme Support ---
+        "toolkit.legacyUserProfileCustomizations.stylesheets" = lock true;
+        "svg.context-properties.content.enabled" = lock true;
+
+        # --- GNOME Theme Integration (CRITICAL FIXES) ---
+        "browser.theme.dark-private-windows" = lock false;
+        "widget.gtk.rounded-bottom-corners.enabled" = lock true;
+        "gnomeTheme.hideSingleTab" = lock true;
+        "gnomeTheme.normalWidthTabs" = lock false;
+        "gnomeTheme.bookmarksToolbarUnderTabs" = lock true;
+        "browser.uidensity" = lock 1;
+        "browser.tabs.drawInTitlebar" = lock true;
+      };
+    };
+  };
 
   system.activationScripts.webApps.text = ''
     export PATH="${
@@ -114,6 +251,16 @@ in
       username=$(basename "$user_home")
       if [ "$username" == "lost+found" ] || [ "$username" == "root" ]; then continue; fi
 
+      # --- A. Global Browser Theming ---
+      for profile in "$user_home"/.mozilla/firefox/*/; do
+        [ -d "$profile" ] && [[ "$profile" != *"Pending"* ]] || continue
+        mkdir -p "$profile/chrome"
+        ln -sfn /etc/firefox/gnome-theme/userChrome.css "$profile/chrome/" || true
+        ln -sfn /etc/firefox/gnome-theme/userContent.css "$profile/chrome/" || true
+        ln -sfn /etc/firefox/gnome-theme/theme "$profile/chrome/" || true
+      done
+
+      # --- B. PWA Installation ---
       echo ">>> Configuring PWAs for user: $username"
 
       ${makePWA "$username" "YouTube" "https://www.youtube.com" "youtube" [
