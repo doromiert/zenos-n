@@ -4,7 +4,9 @@
   # system.nixos.variant_id = "N";
   system.nixos.variantName = "NixOS-based version";
   # system.nixos.codeName = "Cacao";
-  system.nixos.label = "zenOS";
+  system.nixos.label = "ZenOS";
+  system.nixos.distroName = "ZenOS";
+  system.nixos.distroId = "zenos"; # lowercase, no spaces
 
   environment.etc."os-release".text = ''
     NAME="ZenOS N"
