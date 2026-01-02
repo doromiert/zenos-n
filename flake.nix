@@ -269,6 +269,7 @@
             "virtualization"
             "containers"
             "pipewire"
+            "zbridge"
           ];
           extraModules = [
             inputs.nixos-hardware.nixosModules.common-cpu-amd
