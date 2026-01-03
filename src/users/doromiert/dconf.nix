@@ -99,7 +99,7 @@ in
 
     # --- Burn My Windows ---
     "org/gnome/shell/extensions/burn-my-windows" = {
-      active-profile = "/home/doromiert/.config/burn-my-windows/profiles/bmw.conf";
+      active-profile = "${config.home.homeDirectory}/.config/burn-my-windows/profiles/bmw.conf";
       last-extension-version = 47;
       last-prefs-version = 47;
       prefs-open-count = 2;
@@ -239,7 +239,7 @@ in
     # RunCommand handled by activation script
 
     "org/gnome/shell/extensions/gsconnect/device/865f1fa442c84b45ae4f512266515aed/plugin/share" = {
-      receive-directory = "/home/doromiert/Downloads";
+      receive-directory = "${config.home.homeDirectory}/Downloads";
     };
 
     "org/gnome/shell/extensions/gsconnect/preferences" = {

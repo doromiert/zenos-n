@@ -1,15 +1,15 @@
 # doromipad-specific syncthing settings
 {
   services.syncthing = {
-    dataDir = "/home/doromiert/.local/share/syncthing";
-    configDir = "/home/doromiert/.config/syncthing";
+    dataDir = "${config.users.users.doromiert.home}/.local/share/syncthing";
+    configDir = "${config.users.users.doromiert.home}/.config/syncthing";
 
     folders = {
 
       # 1. Books
       "books" = {
         id = "6dovv-1tpo9";
-        path = "/home/doromiert/Documents/books";
+        path = "${config.users.users.doromiert.home}/Documents/books";
         devices = [
           "doromi-tul-2"
           "doromi-server"
@@ -29,7 +29,7 @@
       # 2. Obsidian (Rondomix)
       "obsidian-rondomix" = {
         id = "75ycc-ar6pj";
-        path = "/home/doromiert/Documents/rondomix";
+        path = "${config.users.users.doromiert.home}/Documents/rondomix";
         devices = [
           "doromi-tul-2"
           "doromi-server"
@@ -48,7 +48,7 @@
       # 3. Obsidian (-0)
       "obsidian-negative-zero" = {
         id = "Negative Zero";
-        path = "/home/doromiert/Documents/obsidian/-0";
+        path = "${config.users.users.doromiert.home}/Documents/obsidian/-0";
         devices = [
           "doromi-tul-2"
           "doromi-server"
@@ -67,7 +67,7 @@
       # 4. Obsidian (School)
       "obsidian-school" = {
         id = "o2qk0-vgpjz";
-        path = "/home/doromiert/Documents/obsidian/school";
+        path = "${config.users.users.doromiert.home}/Documents/obsidian/school";
         devices = [
           "doromi-tul-2"
           "doromi-server"
@@ -86,7 +86,7 @@
       # 5. Obsidian (Ixni)
       "obsidian-ixni" = {
         id = "dlebo-khhal";
-        path = "/home/doromiert/Documents/obsidian/ixni";
+        path = "${config.users.users.doromiert.home}/Documents/obsidian/ixni";
         devices = [
           "doromi-tul-2"
           "doromi-server"
@@ -105,7 +105,7 @@
       # 6. Passwords (KeePass)
       "passwords" = {
         id = "passwords";
-        path = "/home/doromiert/Passwords";
+        path = "${config.users.users.doromiert.home}/Passwords";
         devices = [
           "doromi-tul-2"
           "doromi-server"
@@ -125,7 +125,7 @@
       # 7. Music (Receive Only from Main PC)
       "Music" = {
         id = "Music";
-        path = "/home/doromiert/Music";
+        path = "${config.users.users.doromiert.home}/Music";
         devices = [
           "doromi-tul-2"
           "doromi-server"
@@ -139,7 +139,7 @@
       # 8. rnote
       "rnote" = {
         id = "rnote";
-        path = "/home/doromiert/Documents/rnote";
+        path = "${config.users.users.doromiert.home}/Documents/rnote";
         devices = [
           "doromi-tul-2"
           "doromi-server"

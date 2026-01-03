@@ -1,8 +1,8 @@
 # kitchen sink for the user
-{ pkgs, ... }:
+{ config, pkgs, ... }:
 
 {
-  users.users.shareduser = {
+  users.users.cnb = {
     isNormalUser = true;
     description = "";
     extraGroups = [ ];
@@ -10,7 +10,7 @@
     initialPassword = "setmelater";
   };
 
-  home-manager.users.shareduser = {
+  home-manager.users.cnb = {
 
     # never touch this
     stateVersion = "25.11";

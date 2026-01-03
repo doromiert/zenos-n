@@ -43,6 +43,7 @@ in
           ]
         }:$PATH"
 
+        # [ FIX ] Use /boot instead of /Boot to avoid race conditions with NZFS symlinks
         if [ ! -f /boot/EFI/refind/refind_x64.efi ]; then
             echo "rEFInd not found. Performing unattended installation..."
             ${pkgs.refind}/bin/refind-install --yes

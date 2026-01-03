@@ -1,47 +1,30 @@
-# doromi-tul-2-specific hardware, boot and kernel config
-# Optimized for: Monitors on dGPU + iGPU Host + RX 6900 XT VM Passthrough
-# Dynamic Resource Management: No static hugepages, KSM enabled for server VM
+# doromi-tul-2: Hardware Synthesis & Kernel Optimization
+# Optimized for: Ryzen 9 7900 (iGPU Host) + RX 6900 XT (VM Passthrough)
 {
   config,
   lib,
   pkgs,
   modulesPath,
+  rootUUID,   # Injected via flake.nix specialArgs
+  bootUUID,   # Injected via flake.nix specialArgs
   ...
 }:
 
-let
-  # PCI ID for RX 6900 XT (Navi 21)
-  # Verification: `lspci -nn | grep -i navi`
-  gpuIds = [
-    "1002:73bf" # Graphics
-    "1002:ab28" # Audio
+{
+  imports = [
+    (modulesPath + "/installer/scan/not-detected.nix")
   ];
 
-  # List of users allowed to use Virtualization and the dGPU
-  trustedUsers = [ "doromiert" ];
-in
-{
-  system.activationScripts = {
-    deviceRefindSettings = {
-      supportsDryActivation = true;
-      text = ''
-        echo "Deploying device-specific rEFInd resources..."
+  # --- NZFS Synthesis Activation ---
+  # Enabling NZFS v2: Volatile RAM root with persistent Silicon anchor.
+  # Drive paths are now dynamically pulled from the Flake's physical discovery.
 
-        # Check if the store path exists (it always should if Nix builds successfully)
-        # -L: Dereference symlinks (copy actual file content)
-        # -f: Force overwrite of existing files
-        # -r: Recursive
-        # --no-preserve=mode: Ensures files on target are writable (fixes Read-Only Store issues)
-        cp -Lrf --no-preserve=mode "${./resources/refind-device.conf}" /boot/EFI/refind/refind-device.conf
-      '';
-    };
-  };
-  imports = [ (modulesPath + "/installer/scan/not-detected.nix") ];
+  # Forces NZFS logic to override the persistent defaults in flake.nix
 
-  # -- Kernel --
+
+  # --- Kernel & Silicon Optimization ---
   boot.kernelPackages = pkgs.linuxPackages_zen;
 
-  # -- Boot & Initrd --
   boot.initrd.availableKernelModules = [
     "nvme"
     "xhci_pci"
@@ -50,6 +33,8 @@ in
     "usb_storage"
     "sd_mod"
   ];
+
+  # Ensure amdgpu is loaded early for the host iGPU
   boot.initrd.kernelModules = [
     "amdgpu"
     "vfio_pci"
@@ -57,77 +42,36 @@ in
     "vfio_iommu_type1"
   ];
 
-  boot.kernelModules = [
-    "kvm-amd"
-    "msr"
-  ];
+  boot.kernelModules = [ "kvm-amd" "msr" ];
 
-  # -- Kernel Parameters --
+  # GPU Passthrough & IOMMU Logic
   boot.kernelParams = [
     "amd_iommu=on"
     "iommu=pt"
-    # Performance/Latency
     "preempt=full"
     "threadirqs"
     "amd_pstate=active"
   ];
 
-  # -- Filesystems --
-  fileSystems."/" = {
-    device = "/dev/disk/by-uuid/705d67a3-e6ea-4f58-9e43-556161bf3125";
-    fsType = "ext4";
-  };
+  # --- Power & Thermal Management ---
+  powerManagement.cpuFreqGovernor = lib.mkDefault "performance";
+  hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
 
-  fileSystems."/boot" = {
-    device = "/dev/disk/by-uuid/E3EB-E7FF";
-    fsType = "vfat";
-    options = [
-      "fmask=0077"
-      "dmask=0077"
-    ];
-  };
-
-  # -- Swap & Memory Management --
-
-  # 1. Physical Swapfile (Safety Net)
-  # Replaced partition-based swap with a flexible file-based approach.
-  # Note: If your root is Btrfs, NixOS handles the No_COW attribute automatically.
-  swapDevices = [
-    {
-      device = "/var/lib/swapfile";
-      size = 16 * 1024; # 16GB
-      priority = 0; # Only used if zram fills up
-    }
-  ];
-
-  # 2. zram (Dynamic In-Memory Swap)
-  # Uses ZSTD compression to effectively increase available RAM.
+  # --- Memory Synthesis (ZRAM) ---
   zramSwap = {
     enable = true;
     memoryPercent = 50;
-    priority = 100; # Higher priority than disk-based swap
+    priority = 100;
     algorithm = "zstd";
   };
 
-  # 3. Kernel Tuning for Swap/zram
-  # High swappiness (180) tells the kernel to prefer zram over dropping cache.
+  # Sysctl optimizations for high-speed SSD and gaming
   boot.kernel.sysctl = {
-    "vm.swappiness" = 180;
-    "vm.watermark_boost_factor" = 0;
-    "vm.watermark_scale_factor" = 125;
-    "vm.page-cluster" = 0; # Optimized for zram (disables readahead on swap)
+    "vm.swappiness" = 10;
+    "vm.max_map_count" = 2147483642;
   };
 
-  # -- Hardware Specifics --
-  networking.useDHCP = lib.mkDefault true;
-  nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
-  hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
-
-  # -- Memory Management (KSM) --
-  # Merges identical memory pages. Excellent for shared VM memory.
-  hardware.ksm.enable = true;
-
-  # -- Graphics (Mesa/Vulkan) --
+  # --- Graphics & Display ---
   hardware.graphics = {
     enable = true;
     enable32Bit = true;
@@ -138,12 +82,8 @@ in
     ];
   };
 
-  # -- Multi-User Hardware Access --
-  systemd.tmpfiles.rules = [
-    "f /dev/shm/looking-glass 0660 ${builtins.head trustedUsers} libvirtd -"
-  ];
-
-  users.users = lib.genAttrs trustedUsers (name: {
+  # --- Host-Specific User Groups ---
+  users.users.${config.mainUser} = {
     extraGroups = [
       "libvirtd"
       "kvm"
@@ -151,9 +91,9 @@ in
       "video"
       "input"
     ];
-  });
+  };
 
-  # -- Environment Tools --
+  # --- Hardware Tooling ---
   environment.systemPackages = with pkgs; [
     virt-manager
     pciutils
@@ -163,9 +103,12 @@ in
     nvme-cli
   ];
 
-  # -- Multi-User Environment Variables --
+  # --- Multi-Monitor & Wayland Logic ---
   environment.variables = {
-    "DRI_PRIME" = "0";
     "WLR_DRM_NO_ATOMIC" = "1";
+    "AMD_VULKAN_ICD" = "RADV";
   };
+
+  networking.useDHCP = lib.mkDefault true;
+  nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
 }

@@ -1,15 +1,22 @@
 # doromi-tul-2-specific syncthing settings
+{ config, pkgs, lib, ... }:
+
 {
   services.syncthing = {
-    dataDir = "/home/doromiert/.local/share/syncthing";
-    configDir = "/home/doromiert/.config/syncthing";
+    enable = true;
+    user = config.mainUser; # Dynamically use the mainUser defined in flake.nix
+    group = "users";
+    
+    # Using config.users.users.${config.mainUser}.home is safe here as long as config is in scope
+    dataDir = "${config.users.users.${config.mainUser}.home}/.local/share/syncthing";
+    configDir = "${config.users.users.${config.mainUser}.home}/.config/syncthing";
 
     settings.folders = {
 
       # 1. Books
       "books" = {
         id = "6dovv-1tpo9";
-        path = "/home/doromiert/Documents/books";
+        path = "${config.users.users.${config.mainUser}.home}/Documents/books";
         devices = [
           "doromi-tul-2"
           "doromi-server"
@@ -29,7 +36,7 @@
       # 2. Obsidian (Rondomix)
       "obsidian-rondomix" = {
         id = "75ycc-ar6pj";
-        path = "/home/doromiert/Documents/rondomix";
+        path = "${config.users.users.${config.mainUser}.home}/Documents/rondomix";
         devices = [
           "doromi-tul-2"
           "doromi-server"
@@ -48,7 +55,7 @@
       # 3. Obsidian (-0)
       "obsidian-negative-zero" = {
         id = "Negative Zero";
-        path = "/home/doromiert/Documents/obsidian/-0";
+        path = "${config.users.users.${config.mainUser}.home}/Documents/obsidian/-0";
         devices = [
           "doromi-tul-2"
           "doromi-server"
@@ -67,7 +74,7 @@
       # 4. Obsidian (School)
       "obsidian-school" = {
         id = "o2qk0-vgpjz";
-        path = "/home/doromiert/Documents/obsidian/school";
+        path = "${config.users.users.${config.mainUser}.home}/Documents/obsidian/school";
         devices = [
           "doromi-tul-2"
           "doromi-server"
@@ -86,7 +93,7 @@
       # 5. Obsidian (Ixni)
       "obsidian-ixni" = {
         id = "dlebo-khhal";
-        path = "/home/doromiert/Documents/obsidian/ixni";
+        path = "${config.users.users.${config.mainUser}.home}/Documents/obsidian/ixni";
         devices = [
           "doromi-tul-2"
           "doromi-server"
@@ -105,7 +112,7 @@
       # 6. Passwords (KeePass)
       "passwords" = {
         id = "passwords";
-        path = "/home/doromiert/Passwords";
+        path = "${config.users.users.${config.mainUser}.home}/Passwords";
         devices = [
           "doromi-tul-2"
           "doromi-server"
@@ -125,7 +132,7 @@
       # 7. Music (Receive Only from Main PC)
       "Music" = {
         id = "Music";
-        path = "/home/doromiert/Music";
+        path = "${config.users.users.${config.mainUser}.home}/Music";
         devices = [
           "doromi-tul-2"
           "doromi-server"
@@ -139,7 +146,7 @@
       # 8. rnote
       "rnote" = {
         id = "rnote";
-        path = "/home/doromiert/Documents/rnote";
+        path = "${config.users.users.${config.mainUser}.home}/Documents/rnote";
         devices = [
           "doromi-tul-2"
           "doromi-server"
