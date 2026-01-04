@@ -20,53 +20,54 @@ let
   ];
 
   # ============================================================================
-  # [ HELPER PACKAGES ]
-  # Custom derivations for assets to keep the store clean.
+  # [ FIREFOX THEMING RESOURCES ]
+  # ============================================================================
+
+  gnomeThemeRepo = pkgs.fetchFromGitHub {
+    owner = "rafaelmardojai";
+    repo = "firefox-gnome-theme";
+    rev = "v143";
+    sha256 = "sha256-0E3TqvXAy81qeM/jZXWWOTZ14Hs1RT7o78UyZM+Jbr4=";
+  };
+
+  customChromeCss = pkgs.writeText "userChrome.css" ''
+    @import "gnome-theme/userChrome.css";
+  '';
+
+  # ============================================================================
+  # [ ASSETS & HELPERS ]
   # ============================================================================
 
   wallpaperPkg = pkgs.runCommand "zenos-wallpapers" { } ''
     dest=$out/share/backgrounds/zenos
     mkdir -p $dest
     mkdir -p $out/share/gnome-background-properties
-
-    # Copy all wallpapers (Ensure path exists in your repo)
     cp -r ${../../../../resources/wallpapers}/* $dest/ || echo "Warning: Wallpapers not found"
 
-    # Generate XML for GNOME Settings
     echo '<?xml version="1.0"?>' > $out/share/gnome-background-properties/zenos.xml
     echo '<!DOCTYPE wallpapers SYSTEM "gnome-wp-list.dtd">' >> $out/share/gnome-background-properties/zenos.xml
     echo '<wallpapers>' >> $out/share/gnome-background-properties/zenos.xml
-
     for img in "$dest"/*.{png,jpg,jpeg}; do
         [ -e "$img" ] || continue
         filename=$(basename "$img")
         name="''${filename%.*}"
-        
-        printf "  <wallpaper>\n" >> $out/share/gnome-background-properties/zenos.xml
-        printf "    <name>ZenOS: %s</name>\n" "$name" >> $out/share/gnome-background-properties/zenos.xml
-        printf "    <filename>%s</filename>\n" "$img" >> $out/share/gnome-background-properties/zenos.xml
-        printf "    <options>zoom</options>\n" >> $out/share/gnome-background-properties/zenos.xml
-        printf "  </wallpaper>\n" >> $out/share/gnome-background-properties/zenos.xml
+        printf "  <wallpaper>\n    <name>ZenOS: %s</name>\n    <filename>%s</filename>\n    <options>zoom</options>\n  </wallpaper>\n" "$name" "$img" >> $out/share/gnome-background-properties/zenos.xml
     done
-
     echo '</wallpapers>' >> $out/share/gnome-background-properties/zenos.xml
   '';
 
   cursorPkg = pkgs.runCommand "zenos-cursor" { } ''
     mkdir -p $out/share/icons
-    # Ensure path exists in your repo
     cp -r ${../../../../resources/GoogleDot-Black} $out/share/icons/GoogleDot-Black || mkdir -p $out/share/icons/GoogleDot-Black
   '';
 
   iconPkg = pkgs.runCommand "zenos-icons" { } ''
     mkdir -p $out/share/icons
-    # Ensure path exists in your repo
     cp -r ${../../../../resources/Adwaita-hacks} $out/share/icons/Adwaita-hacks || mkdir -p $out/share/icons/Adwaita-hacks
   '';
 
   mimePkg = pkgs.runCommand "zenos-mimetypes" { } ''
     mkdir -p $out/share/mime/packages
-    # Ensure path exists in your repo
     cp -r ${../../../../resources/mimetypes}/* $out/ || true
   '';
 
@@ -121,25 +122,36 @@ let
 in
 {
   # ============================================================================
-  # [ SYSTEM-WIDE CONFIGURATION ]
+  # [ SYSTEM CONFIGURATION ]
   # ============================================================================
 
   # 1. Fonts
   fonts = {
     packages = with pkgs; [
-      atkinson-hyperlegible
-      atkinson-hyperlegible-mono
+      atkinson-hyperlegible-next # Sans (UI)
+      atkinson-hyperlegible # Mono (Code)
       noto-fonts
       noto-fonts-color-emoji
+      # [FIX] Replaced deprecated nerdfonts.override with 25.11 namespace
+      nerd-fonts.symbols-only
     ];
-    fontconfig.defaultFonts = {
-      monospace = [ "Atkinson Hyperlegible Mono" ];
-      sansSerif = [ "Atkinson Hyperlegible" ];
-      serif = [ "Noto Serif" ];
+
+    fontconfig = {
+      defaultFonts = {
+        monospace = [
+          "Atkinson Hyperlegible Mono"
+          "Symbols Nerd Font Mono"
+        ];
+        sansSerif = [
+          "Atkinson Hyperlegible Next"
+          "Symbols Nerd Font"
+        ];
+        serif = [ "Noto Serif" ];
+      };
     };
   };
 
-  # 2. Qt and GTK Styling (System Variables)
+  # 2. Qt and GTK Styling
   qt = {
     enable = true;
     platformTheme = "gnome";
@@ -149,11 +161,6 @@ in
   environment.sessionVariables = {
     XCURSOR_THEME = "GoogleDot-Black";
     XCURSOR_SIZE = "24";
-
-    # [ REMOVED ] GTK_THEME = "adw-gtk3-dark";
-    # This was causing layout breakage in Native LibAdwaita apps (RNote, etc.)
-    # Legacy apps will now correctly rely on the Home Manager settings.ini file instead.
-
     QT_STYLE_OVERRIDE = "adwaita-dark";
     ZENOS_WALLPAPER = "${wallpaperPkg}/share/backgrounds/zenos/default.png";
   };
@@ -174,53 +181,65 @@ in
     ]
     ++ emulatorAssocs;
 
-  # 4. Boot Animation
   boot.plymouth.enable = true;
 
   # ============================================================================
-  # [ FLATPAK CONFIGURATION ]
-  # Using gmodena/nix-flatpak declarative options.
+  # [ FIREFOX RESOURCES & PWA FIX ]
+  # ============================================================================
+
+  environment.etc = lib.mkIf config.programs.firefox.enable {
+    "firefox/gnome-theme".source = gnomeThemeRepo;
+    "firefox/custom/userChrome.css".source = customChromeCss;
+  };
+
+  # [CRITICAL] Profile Rescue Script
+  system.activationScripts.firefoxProfileRescue = lib.mkIf config.programs.firefox.enable {
+    text = ''
+      for user_home in /home/*; do
+        p_ini="$user_home/.mozilla/firefox/profiles.ini"
+        if [ -f "$p_ini" ] && [ ! -L "$p_ini" ]; then
+          echo "!!! [ZenOS] Found mutable profiles.ini in $user_home. Backing up to allow Home Manager takeover..."
+          mv "$p_ini" "$p_ini.bak.$(date +%s)"
+        fi
+      done
+    '';
+  };
+
+  # PWA Theming Script
+  system.activationScripts.firefoxPwaTheming = lib.mkIf config.programs.firefox.enable {
+    text = ''
+      echo ">>> [Zenos] Starting Firefox PWA Theme Injection..."
+      for pwa_root in /home/*/.local/share/firefoxpwa/profiles/*/; do
+        [ -d "$pwa_root" ] || continue
+        mkdir -p "$pwa_root/chrome"
+        ln -sfn /etc/firefox/custom/userChrome.css "$pwa_root/chrome/" || true
+        ln -sfn /etc/firefox/gnome-theme/userContent.css "$pwa_root/chrome/" || true
+        ln -sfn /etc/firefox/gnome-theme/theme "$pwa_root/chrome/" || true
+      done
+    '';
+  };
+
+  # ============================================================================
+  # [ FLATPAK OVERRIDES ]
   # ============================================================================
 
   services.flatpak.enable = true;
-
-  # We merge the GLOBAL settings with the TARGETED APP settings
   services.flatpak.overrides = {
-
-    # 1. Global Safe Defaults (Applies to everyone, including LibAdwaita)
     global = {
-      Context = {
-        filesystems = [
-          "xdg-config/gtk-3.0:ro"
-          "xdg-config/gtk-4.0:ro"
-          "xdg-data/icons:ro"
-          "xdg-data/themes:ro"
-          "~/.icons:ro"
-          # [ CRITICAL FIX ]
-          # Mount /nix/store read-only.
-          # Home Manager config files are symlinks into the store.
-          # Without this, Flatpaks see the symlink but cannot read the target,
-          # causing them to fail reading 'settings.ini' (Dark Mode preference).
-          "/nix/store:ro"
-        ];
-
-        # Prevent Host Environment Leakage (Fixes BlackBox crash)
-        unset-environment = [
-          "NIX_LD"
-          "NIX_LD_LIBRARY_PATH"
-          "LD_LIBRARY_PATH"
-        ];
-      };
-
+      Context.filesystems = [
+        "xdg-config/gtk-3.0:ro"
+        "xdg-config/gtk-4.0:ro"
+        "xdg-data/icons:ro"
+        "xdg-data/themes:ro"
+        "~/.icons:ro"
+        "/nix/store:ro"
+      ];
       Environment = {
-        # Note: GTK_THEME is REMOVED from here to fix padding issues!
         XCURSOR_THEME = "GoogleDot-Black";
         XCURSOR_SIZE = "24";
       };
     };
-
   }
-  # 2. Dynamically Generate Overrides for Legacy GTK3 Apps
   // (lib.genAttrs legacyGtk3Apps (app: {
     Environment = {
       GTK_THEME = "adw-gtk3-dark";
@@ -228,8 +247,7 @@ in
   }));
 
   # ============================================================================
-  # [ HOME MANAGER SHARED MODULE ]
-  # Applies to ALL users managed by Home Manager
+  # [ HOME MANAGER ]
   # ============================================================================
   home-manager.sharedModules = [
     (
@@ -241,54 +259,36 @@ in
       }:
       {
 
-        # [ STABILITY FIX ]
-        # Force overwrite GTK settings.ini to prevent "backup clobbered" errors.
-        # This handles cases where GNOME or Apps regenerate these files, causing HM to fail.
         xdg.configFile."gtk-3.0/settings.ini".force = true;
         xdg.configFile."gtk-4.0/settings.ini".force = true;
 
-        # 1. GTK Module
         gtk = {
           enable = true;
-
-          # [ CRITICAL CHANGE ]
-          # Do NOT set global theme.name here.
-          # Setting it globally forces it into ~/.config/gtk-4.0/settings.ini,
-          # which breaks LibAdwaita apps because they don't support custom themes.
-          # theme = { ... }; <--- REMOVED
-
           iconTheme = {
             name = "Adwaita-hacks";
             package = iconPkg;
           };
-
           cursorTheme = {
             name = "GoogleDot-Black";
             size = 24;
             package = cursorPkg;
           };
 
+          # [UPDATED] Use native package (Assuming it exists in 25.11)
           font = {
-            name = "Atkinson Hyperlegible 11";
-            package = pkgs.atkinson-hyperlegible;
+            name = "Atkinson Hyperlegible Next 11";
+            package = pkgs.atkinson-hyperlegible-next;
           };
 
-          # [ GTK3 SPECIFIC ]
-          # Apply adw-gtk3 ONLY to GTK3 apps. They need it to match the system style.
           gtk3.extraConfig = {
             gtk-theme-name = "adw-gtk3-dark";
             gtk-application-prefer-dark-theme = 1;
           };
-
-          # [ GTK4 / LIBADWAITA ]
-          # Do NOT set gtk-theme-name. LibAdwaita uses its internal engine.
-          # We only set the dark theme preference signal.
           gtk4.extraConfig = {
             gtk-application-prefer-dark-theme = 1;
           };
         };
 
-        # 2. Pointer Cursor
         home.pointerCursor = {
           package = cursorPkg;
           name = "GoogleDot-Black";
@@ -297,14 +297,15 @@ in
           x11.enable = true;
         };
 
-        # 3. DConf Settings
         dconf.settings = {
           "org/gnome/desktop/interface" = {
             color-scheme = "prefer-dark";
+            accent-color = "purple";
+            gtk-theme = "adw-gtk3-dark";
             icon-theme = "Adwaita-hacks";
             cursor-theme = "GoogleDot-Black";
-            font-name = lib.mkForce "Atkinson Hyperlegible 11";
-            document-font-name = "Atkinson Hyperlegible 11";
+            font-name = lib.mkForce "Atkinson Hyperlegible Next 11";
+            document-font-name = "Atkinson Hyperlegible Next 11";
             monospace-font-name = "Atkinson Hyperlegible Mono 11";
           };
           "org/gnome/desktop/background" = {
@@ -315,10 +316,44 @@ in
           };
         };
 
-        # 4. [ THE BRIDGE ] Symlink Themes for Flatpak Access
         home.file.".local/share/themes/adw-gtk3-dark".source =
           "${pkgs.adw-gtk3}/share/themes/adw-gtk3-dark";
         home.file.".local/share/icons/Adwaita-hacks".source = "${iconPkg}/share/icons/Adwaita-hacks";
+
+        xdg.configFile."gtk-3.0/gtk.css".text = ''
+          @define-color accent_color #9141AC;
+          @define-color accent_bg_color #9141AC;
+          @define-color accent_fg_color #ffffff;
+        '';
+        xdg.configFile."gtk-4.0/gtk.css".text = ''
+          @define-color accent_color #9141AC;
+          @define-color accent_bg_color #9141AC;
+          @define-color accent_fg_color #ffffff;
+        '';
+
+        programs.firefox = {
+          enable = true;
+          profiles.default = {
+            id = 0;
+            name = "default";
+            isDefault = true;
+            settings = {
+              "toolkit.legacyUserProfileCustomizations.stylesheets" = true;
+              "svg.context-properties.content.enabled" = true;
+              "gnomeTheme.hideSingleTab" = true;
+              "browser.tabs.drawInTitlebar" = true;
+              "widget.gtk.rounded-bottom-corners.enabled" = true;
+              "layers.acceleration.force-enabled" = true;
+              "gfx.webrender.all" = true;
+            };
+          };
+        };
+
+        home.file = {
+          ".mozilla/firefox/default/chrome/userChrome.css".source = customChromeCss;
+          ".mozilla/firefox/default/chrome/userContent.css".source = "${gnomeThemeRepo}/userContent.css";
+          ".mozilla/firefox/default/chrome/theme".source = "${gnomeThemeRepo}/theme";
+        };
       }
     )
   ];

@@ -11,41 +11,6 @@
       pkgs,
       ...
     }:
-    let
-      # [P5.4] & [P6.6] VS Code Settings Definition
-      vscodeSettings = {
-        # UI/UX Cleanliness
-        "editor.fontFamily" = "'Atkinson Hyperlegible Mono', monospace";
-        "editor.fontSize" = 14;
-        "window.menuBarVisibility" = "toggle";
-        "window.titleBarStyle" = "custom";
-        "workbench.colorTheme" = "Adwaita Dark";
-
-        # Structural Settings
-        "editor.formatOnSave" = true;
-        "editor.tabSize" = 4;
-        "editor.insertSpaces" = true;
-        "editor.detectIndentation" = false;
-
-        # Nix Integration
-        "nix.enableLanguageServer" = true;
-        "nix.serverPath" = "nixd";
-
-        # Extensions Config
-        "gitlens.codeLens.enabled" = true;
-        "vim.useSystemClipboard" = true;
-        "vim.hlsearch" = true;
-
-        # git
-        "git.confirmSync" = false; # Disables popup on Push/Sync
-        "git.enableSmartCommit" = true; # Auto-stages changes if none are staged (The "Add" step)
-        "git.suggestSmartCommit" = false; # Disables the "Do you want to stage..." prompt
-        "git.autofetch" = true; # Optional: Keeps graph updated without asking
-      };
-
-      # Generate the JSON file in the Nix store
-      settingsFile = pkgs.writeText "vscode-settings.json" (builtins.toJSON vscodeSettings);
-    in
     {
       imports = [
         ./shortcuts.nix
@@ -61,14 +26,17 @@
         nixfmt-rfc-style
       ];
 
-      # [ ! ] ACTIVATION SCRIPT
-      # Copies settings.json from store to config dir and makes it writable (chmod u+w)
-      # This replaces xdg.configFile to allow runtime edits by VS Code.
-      home.activation.configureVscode = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-        $DRY_RUN_CMD mkdir -p $HOME/.config/Code/User
-        $DRY_RUN_CMD cp -f "${settingsFile}" "$HOME/.config/Code/User/settings.json"
-        $DRY_RUN_CMD chmod u+w "$HOME/.config/Code/User/settings.json"
-      '';
+      # [USER SPECIFIC] VS Code Overrides
+      # This extends the base configuration defined in dev.nix
+      programs.vscode = {
+        # The Vim Addon (User Preference)
+        extensions = [ pkgs.vscode-extensions.vscodevim.vim ];
+
+        userSettings = {
+          "vim.useSystemClipboard" = true;
+          "vim.hlsearch" = true;
+        };
+      };
 
       programs.nixcord = {
         enable = true;

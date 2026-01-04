@@ -1,45 +1,8 @@
 # stuff for devving
-{ pkgs, ... }:
-let
-  # Define the specialized VS Code package with extensions
-  vscode-with-exts = pkgs.vscode-with-extensions.override {
-    vscodeExtensions =
-      with pkgs.vscode-extensions;
-      [
-        # Essential for NixOS/CachyOS workflow
-        bbenoist.nix
-        jnoortheen.nix-ide
-        mkhl.direnv
-        piousdeer.adwaita-theme
-        ms-vsliveshare.vsliveshare
+{ pkgs, lib, ... }:
 
-        # Practical Utilities [P13.9]
-        eamodio.gitlens
-        esbenp.prettier-vscode
-        vscodevim.vim
-        bierner.github-markdown-preview
-        yy0931.vscode-sqlite3-editor
-
-        # [P4.1] Uncomment when moving into C/C++ OS Dev
-        # ms-vscode.cpptools
-      ]
-
-      ++ pkgs.vscode-utils.extensionsFromVscodeMarketplace [
-        # Logic for marketplace extensions not in nixpkgs
-        /*
-          {
-              name = "example";
-              publisher = "publisher";
-              version = "1.0.0";
-              sha256 = "0000000000000000000000000000000000000000000000000000";
-          }
-        */
-      ];
-  };
-in
 {
   environment.systemPackages = [
-    vscode-with-exts
     pkgs.nixd
     pkgs.nixfmt-rfc-style
   ];
@@ -52,4 +15,66 @@ in
   # Essential for mkhl.direnv extension to function properly
   services.envfs.enable = true;
   programs.direnv.enable = true;
+
+  # [P6.2] VS Code Architecture: Switched to Home Manager Shared Module
+  # This allows graphical.nix to extend the configuration (e.g. adding Vim) cleanly.
+  home-manager.sharedModules = [
+    {
+      programs.vscode = {
+        enable = true;
+        package = pkgs.vscode;
+
+        # [P13.9] Practical Utilities & Core Workflow
+        extensions =
+          with pkgs.vscode-extensions;
+          [
+            # Essential for NixOS/CachyOS workflow
+            bbenoist.nix
+            jnoortheen.nix-ide
+            mkhl.direnv
+            piousdeer.adwaita-theme
+            ms-vsliveshare.vsliveshare
+
+            # Utilities
+            eamodio.gitlens
+            esbenp.prettier-vscode
+            bierner.github-markdown-preview
+            yy0931.vscode-sqlite3-editor
+
+            # [P4.1] C/C++ (Uncomment when needed)
+            # ms-vscode.cpptools
+          ]
+          ++ pkgs.vscode-utils.extensionsFromVscodeMarketplace [
+            # Marketplace logic preserved here
+          ];
+
+        # [P5.4] Structural & UI Settings (Moved from graphical.nix)
+        userSettings = {
+          # UI/UX Cleanliness
+          "editor.fontFamily" = "'Atkinson Hyperlegible Mono', monospace";
+          "editor.fontSize" = 14;
+          "window.menuBarVisibility" = "toggle";
+          "window.titleBarStyle" = "custom";
+          "workbench.colorTheme" = "Adwaita Dark";
+
+          # Structural Settings
+          "editor.formatOnSave" = true;
+          "editor.tabSize" = 4;
+          "editor.insertSpaces" = true;
+          "editor.detectIndentation" = false;
+
+          # Nix Integration
+          "nix.enableLanguageServer" = true;
+          "nix.serverPath" = "nixd";
+
+          # Git
+          "gitlens.codeLens.enabled" = true;
+          "git.confirmSync" = false;
+          "git.enableSmartCommit" = true;
+          "git.suggestSmartCommit" = false;
+          "git.autofetch" = true;
+        };
+      };
+    }
+  ];
 }

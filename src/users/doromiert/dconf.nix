@@ -34,13 +34,13 @@ in
       ExecStart = "${pkgs.writeShellScript "apply-dconf-complex" ''
         # Blur My Shell - Pipelines
         ${pkgs.dconf}/bin/dconf write /org/gnome/shell/extensions/blur-my-shell/pipelines ${lib.strings.escapeShellArg (builtins.readFile ./resources/bms_settings.txt)}
-        
+
         # Rounded Window Corners Reborn - Global Settings
         ${pkgs.dconf}/bin/dconf write /org/gnome/shell/extensions/rounded-window-corners-reborn/global-rounded-corner-settings ${lib.strings.escapeShellArg (builtins.readFile ./resources/rwcr_settings.txt)}
-        
+
         # GSConnect - Run Command List
         ${pkgs.dconf}/bin/dconf write /org/gnome/shell/extensions/gsconnect/device/865f1fa442c84b45ae4f512266515aed/plugin/runcommand/command-list ${lib.strings.escapeShellArg (builtins.readFile ./resources/gsc_commands.txt)}
-        
+
         # GSConnect - Notifications
         ${pkgs.dconf}/bin/dconf write /org/gnome/shell/extensions/gsconnect/device/865f1fa442c84b45ae4f512266515aed/plugin/notification/applications ${lib.strings.escapeShellArg (builtins.readFile ./resources/gsc_notifications.txt)}
       ''}";
@@ -53,6 +53,21 @@ in
     # --- Alphabetical App Grid ---
     "org/gnome/shell/extensions/alphabetical-app-grid" = {
       folder-order-position = "end";
+    };
+
+    # --- BlackBox Terminal ---
+    "com/raggesilver/BlackBox" = {
+      floating-controls = true;
+      font = "Adwaita Mono 11";
+      show-headerbar = false;
+      terminal-padding = mkTuple [
+        (mkUint32 5)
+        (mkUint32 5)
+        (mkUint32 5)
+        (mkUint32 5)
+      ];
+      window-height = mkUint32 744;
+      window-width = mkUint32 828;
     };
 
     # --- Blur My Shell ---

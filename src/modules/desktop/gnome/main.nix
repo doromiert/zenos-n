@@ -1,5 +1,5 @@
 # contains gnome-specific configs
-{ pkgs, lib, ... }:
+{ pkgs, ... }:
 
 let
   # Define custom Forge extension from local precompiled resources
@@ -61,10 +61,19 @@ in
     ./styling.nix
   ];
 
+  # [FIX] Portal Configuration
+  # This fixes the VS Code freeze and PWA crashes on file picker.
+  # We strictly prioritize the GNOME portal.
   xdg.portal = {
     enable = true;
-    extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
-    config.common.default = [ "gtk" ];
+    extraPortals = [
+      pkgs.xdg-desktop-portal-gnome
+      pkgs.xdg-desktop-portal-gtk
+    ];
+    config.common.default = [
+      "gnome"
+      "gtk"
+    ];
   };
 
   # 1. Core Desktop Services

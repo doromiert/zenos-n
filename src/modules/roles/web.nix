@@ -11,16 +11,6 @@ let
 
   templateProfile = ./. + "/../../../resources/firefoxpwa/testprofile";
 
-  paths = {
-    pwaChrome = ./. + "/../../../resources/firefoxpwa/chrome";
-    gnomeTheme = pkgs.fetchFromGitHub {
-      owner = "rafaelmardojai";
-      repo = "firefox-gnome-theme";
-      rev = "v143";
-      sha256 = "sha256-0E3TqvXAy81qeM/jZXWWOTZ14Hs1RT7o78UyZM+Jbr4=";
-    };
-  };
-
   # --- 2. EXTENSION DEFINITIONS ---
   extensions = {
     ublock = {
@@ -41,16 +31,18 @@ let
     };
   };
 
-  globalExtensions = (builtins.listToAttrs (
-    map (ext: {
-      name = ext.id;
-      value = {
-        install_url = ext.url;
-        installation_mode = "force_installed";
-        default_area = "menupanel";
-      };
-    }) (builtins.attrValues extensions)
-  ));
+  globalExtensions = (
+    builtins.listToAttrs (
+      map (ext: {
+        name = ext.id;
+        value = {
+          install_url = ext.url;
+          installation_mode = "force_installed";
+          default_area = "menupanel";
+        };
+      }) (builtins.attrValues extensions)
+    )
+  );
 
   lock = value: {
     Value = value;
@@ -60,7 +52,6 @@ let
   # --- 3. PWA GENERATOR FUNCTION ---
   makePWA = user: name: url: icon: extraExts: ''
     echo "[*] Web.nix: Deploying ${name}..."
-
     ${pkgs.util-linux}/bin/runuser -u ${user} -- ${pkgs.python3}/bin/python3 ${pwamakerScript} \
       --name "${name}" \
       --url "${url}" \
@@ -90,24 +81,14 @@ in
   };
 
   environment.systemPackages = [
-    pkgs.firefox
+    # pkgs.firefox handled by programs.firefox below
     pkgs.firefoxpwa
     pkgs.python3
     delwaPkg
     pkgs.keepassxc
-    pkgs.atkinson-hyperlegible
     pkgs.ntfy-sh
     pkgs.libnotify
   ];
-
-  environment.etc =
-    if builtins.pathExists paths.pwaChrome then
-      {
-        "firefox/pwa-custom-chrome".source = paths.pwaChrome;
-        "firefox/gnome-theme".source = paths.gnomeTheme;
-      }
-    else
-      builtins.trace "WARNING: PWA Chrome resources not found" { };
 
   services.flatpak.packages = [
     "app.drey.Blurble"
@@ -121,10 +102,13 @@ in
 
   programs.firefox = {
     enable = true;
+    package = pkgs.firefox;
     nativeMessagingHosts.packages = [
       pkgs.firefoxpwa
       pkgs.keepassxc
     ];
+
+    # [FIX] Policies updated with new Font Names
     policies = {
       ExtensionSettings = globalExtensions;
       EnableTrackingProtection = {
@@ -159,8 +143,11 @@ in
         "browser.ctrlTab.sortByRecentlyUsed" = lock true;
         "layers.acceleration.force-enabled" = lock true;
         "gfx.webrender.all" = lock true;
-        "font.name.sans-serif.x-western" = lock "Atkinson Hyperlegible";
+
+        # [UPDATED] Font Preferences to match 'Atkinson Hyperlegible Next'
+        "font.name.sans-serif.x-western" = lock "Atkinson Hyperlegible Next";
         "font.default.x-western" = lock "sans-serif";
+
         "toolkit.legacyUserProfileCustomizations.stylesheets" = lock true;
         "svg.context-properties.content.enabled" = lock true;
         "widget.gtk.rounded-bottom-corners.enabled" = lock true;
@@ -177,37 +164,21 @@ in
         pkgs.sudo
         pkgs.python3
         pkgs.firefoxpwa
-        pkgs.shadow # for 'id'
+        pkgs.shadow
       ]
     }:$PATH"
 
-    # [P9] Protocol: Check if we are in a synthesis/repair environment
-    # If ZENOS_SYNTHESIS is set, we skip PWA deployment to ensure the build finishes.
     if [ -n "$ZENOS_SYNTHESIS" ]; then
-      echo "!!! ZENOS SYNTHESIS ACTIVE: Skipping PWA deployment to avoid PAM/Chroot conflicts."
       exit 0
     fi
 
     for user_home in /home/*; do
       [ -d "$user_home" ] || continue
       username=$(basename "$user_home")
-      
-      # Strict filtering: Skip lost+found, root, and the live ISO user 'nixos'
-      # We also check if the user actually exists in /etc/passwd
       if [[ "$username" =~ ^(lost\+found|nixos|root)$ ]] || ! id "$username" >/dev/null 2>&1; then 
         continue 
       fi
 
-      # --- A. Global Browser Theming ---
-      for profile in "$user_home"/.mozilla/firefox/*/; do
-        [ -d "$profile" ] && [[ "$profile" != *"Pending"* ]] || continue
-        mkdir -p "$profile/chrome"
-        ln -sfn /etc/firefox/gnome-theme/userChrome.css "$profile/chrome/" || true
-        ln -sfn /etc/firefox/gnome-theme/userContent.css "$profile/chrome/" || true
-        ln -sfn /etc/firefox/gnome-theme/theme "$profile/chrome/" || true
-      done
-
-      # --- B. PWA Installation ---
       echo ">>> Configuring PWAs for user: $username"
       ${makePWA "$username" "YouTube" "https://www.youtube.com" "youtube" [
         extensions.ublock
