@@ -51,7 +51,7 @@
         # [P5.4] Structural & UI Settings (Moved from graphical.nix)
         userSettings = {
           # UI/UX Cleanliness
-          "editor.fontFamily" = "'Atkinson Hyperlegible Mono', monospace";
+          "editor.fontFamily" = "'AtkynsonMono NF', monospace";
           "editor.fontSize" = 14;
           "window.menuBarVisibility" = "toggle";
           "window.titleBarStyle" = "custom";

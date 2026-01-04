@@ -129,18 +129,15 @@ in
   fonts = {
     packages = with pkgs; [
       atkinson-hyperlegible-next # Sans (UI)
-      atkinson-hyperlegible # Mono (Code)
       noto-fonts
       noto-fonts-color-emoji
-      # [FIX] Replaced deprecated nerdfonts.override with 25.11 namespace
-      nerd-fonts.symbols-only
+      nerd-fonts.atkynson-mono
     ];
 
     fontconfig = {
       defaultFonts = {
         monospace = [
-          "Atkinson Hyperlegible Mono"
-          "Symbols Nerd Font Mono"
+          "AtkynsonMono NF"
         ];
         sansSerif = [
           "Atkinson Hyperlegible Next"
@@ -306,7 +303,7 @@ in
             cursor-theme = "GoogleDot-Black";
             font-name = lib.mkForce "Atkinson Hyperlegible Next 11";
             document-font-name = "Atkinson Hyperlegible Next 11";
-            monospace-font-name = "Atkinson Hyperlegible Mono 11";
+            monospace-font-name = "AtkynsonMono NF 11";
           };
           "org/gnome/desktop/background" = {
             picture-uri = "file://${wallpaperPkg}/share/backgrounds/zenos/default.png";
@@ -352,7 +349,7 @@ in
         home.file = {
           ".mozilla/firefox/default/chrome/userChrome.css".source = customChromeCss;
           ".mozilla/firefox/default/chrome/userContent.css".source = "${gnomeThemeRepo}/userContent.css";
-          ".mozilla/firefox/default/chrome/theme".source = "${gnomeThemeRepo}/theme";
+          ".mozilla/firefox/default/chrome/gnome-theme".source = "${gnomeThemeRepo}/theme";
         };
       }
     )

@@ -122,8 +122,8 @@
         nixosConfigurations = {
             doromi-tul-2 = mkHost {
                 hostName = "doromi-tul-2";
-                rootUUID = "a1b4d525-36cc-454c-a969-01556d6f5e7e";
-                bootUUID = "AB02-899C";
+                rootUUID = "38555c40-dafa-4bc3-b317-d1496a5af02d";
+                bootUUID = "B9B8-1D82";
                 locale = {
                     timeZone = "Europe/Warsaw";
                     language = "en_US.UTF-8";

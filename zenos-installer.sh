@@ -352,6 +352,8 @@ sudo -E nixos-enter --root /mnt <<'EOF'
     /nix/var/nix/profiles/system/bin/switch-to-configuration boot
 EOF
 
+sudo cp . /mnt/zenos-config -r
+
 # --- Phase 7: Verification Protocol ---
 echo -e "\n${BLUE}## [ -0 ] POST-INSTALL VERIFICATION ##${NC}"
 
