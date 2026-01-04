@@ -123,6 +123,12 @@ in
       DisableTelemetry = true;
       DisableFirefoxStudies = true;
       DisablePocket = true;
+      DisableFirefoxAccounts = true;
+      DisableAccounts = true;
+      DontCheckDefaultBrowser = true;
+      PasswordManagerEnabled = false;
+      OfferToSaveLogins = false;
+
       DNSOverHTTPS = {
         Enabled = true;
         ProviderURL = "https://mozilla.cloudflare-dns.com/dns-query";
@@ -132,26 +138,72 @@ in
         Default = "DuckDuckGo";
         PreventInstalls = true;
       };
+
+      EncryptedMediaExtensions = {
+        Enabled = true;
+        Locked = true;
+      };
+
+      UserMessaging = {
+        ExtensionRecommendations = false;
+        FeatureRecommendations = false;
+        MoreFromMozilla = false;
+        SkipOnboarding = true;
+        WhatsNew = false;
+      };
+
       HardwareAcceleration = true;
 
       Preferences = {
         "extensions.enabledScopes" = lock 15;
         "extensions.autoDisableScopes" = lock 0;
         "xpinstall.signatures.required" = lock false;
-        "browser.contentblocking.category" = lock "strict";
+        "extensions.langpacks.signatures.required" = lock false;
+        "extensions.quarantinedDomains.enabled" = lock false;
+
+        # --- Strict Privacy (from reference) ---
+        "browser.contentblocking.category" = lock "standard";
         "extensions.pocket.enabled" = lock false;
+        "browser.topsites.contile.enabled" = lock false;
+        "browser.formfill.enable" = lock false;
+        "browser.search.suggest.enabled" = lock false;
+
+        # --- UX Tweaks ---
         "browser.ctrlTab.sortByRecentlyUsed" = lock true;
+        "middlemouse.paste" = lock false;
+        "general.autoScroll" = lock true;
+
+        # --- Hardware Acceleration ---
         "layers.acceleration.force-enabled" = lock true;
         "gfx.webrender.all" = lock true;
 
         # [UPDATED] Font Preferences to match 'Atkinson Hyperlegible Next'
         "font.name.sans-serif.x-western" = lock "Atkinson Hyperlegible Next";
         "font.default.x-western" = lock "sans-serif";
+        "font.size.variable.x-western" = lock 15;
 
+        # --- Anti-Sponsored ---
+        "browser.newtabpage.activity-stream.showSponsored" = lock false;
+        "browser.newtabpage.activity-stream.showSponsoredTopSites" = lock false;
+        "browser.newtabpage.activity-stream.feeds.section.topstories" = lock false;
+        "browser.newtabpage.activity-stream.feeds.opsouth" = lock false;
+        "browser.newtabpage.activity-stream.section.highlights.includePocket" = lock false;
+
+        # --- AI Integration ---
+        "browser.ml.enable" = lock true;
+        "browser.ml.chat.enabled" = lock true;
+        "browser.ml.chat.sidebar" = lock true;
+
+        # --- CSS / Theme Support ---
         "toolkit.legacyUserProfileCustomizations.stylesheets" = lock true;
         "svg.context-properties.content.enabled" = lock true;
+
+        # --- GNOME Theme Integration ---
         "widget.gtk.rounded-bottom-corners.enabled" = lock true;
         "gnomeTheme.hideSingleTab" = lock true;
+        "gnomeTheme.normalWidthTabs" = lock false;
+        "gnomeTheme.bookmarksToolbarUnderTabs" = lock true;
+        "browser.uidensity" = lock 1;
         "browser.tabs.drawInTitlebar" = lock true;
       };
     };

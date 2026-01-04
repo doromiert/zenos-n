@@ -19,7 +19,7 @@ let
     # "com.github.rafostar.Clapper"
   ];
 
-  # ============================================================================
+  # ===========================================================================
   # [ FIREFOX THEMING RESOURCES ]
   # ============================================================================
 
@@ -184,13 +184,13 @@ in
   # [ FIREFOX RESOURCES & PWA FIX ]
   # ============================================================================
 
-  environment.etc = lib.mkIf config.programs.firefox.enable {
+  environment.etc = {
     "firefox/gnome-theme".source = gnomeThemeRepo;
     "firefox/custom/userChrome.css".source = customChromeCss;
   };
 
   # [CRITICAL] Profile Rescue Script
-  system.activationScripts.firefoxProfileRescue = lib.mkIf config.programs.firefox.enable {
+  system.activationScripts.firefoxProfileRescue = {
     text = ''
       for user_home in /home/*; do
         p_ini="$user_home/.mozilla/firefox/profiles.ini"
@@ -203,7 +203,7 @@ in
   };
 
   # PWA Theming Script
-  system.activationScripts.firefoxPwaTheming = lib.mkIf config.programs.firefox.enable {
+  system.activationScripts.firefoxPwaTheming = {
     text = ''
       echo ">>> [Zenos] Starting Firefox PWA Theme Injection..."
       for pwa_root in /home/*/.local/share/firefoxpwa/profiles/*/; do
