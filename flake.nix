@@ -25,6 +25,7 @@
       url = "github:nix-community/NUR";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    illogical-impulse.url = "github:soymou/illogical-flake";
   };
 
   outputs =
@@ -134,6 +135,7 @@
             inputs.home-manager.nixosModules.home-manager
             inputs.nix-flatpak.nixosModules.nix-flatpak
             inputs.nur.modules.nixos.default
+            inputs.illogical-impulse.nixosModules.default
           ]
           ++ (importDir ./src/modules/core excludeCoreModules)
           ++ (
