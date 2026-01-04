@@ -61,13 +61,12 @@ let
   makePWA = user: name: url: icon: extraExts: ''
     echo "[*] Web.nix: Deploying ${name}..."
 
-    # Use 'su' instead of 'sudo' to avoid PAM/Account Management errors in chroot
-    su -s /bin/sh -c "${pkgs.python3}/bin/python3 ${pwamakerScript} \
-      --name \"${name}\" \
-      --url \"${url}\" \
-      --icon \"${icon}\" \
-      --template \"${templateProfile}\" \
-      ${lib.concatMapStringsSep " " (e: "--addon '${e.id}:${e.url}'") extraExts}" ${user}
+    ${pkgs.util-linux}/bin/runuser -u ${user} -- ${pkgs.python3}/bin/python3 ${pwamakerScript} \
+      --name "${name}" \
+      --url "${url}" \
+      --icon "${icon}" \
+      --template "${templateProfile}" \
+      ${lib.concatMapStringsSep " " (e: "--addon '${e.id}:${e.url}'") extraExts}
   '';
 
   delwaPkg = pkgs.writeScriptBin "delwa" ''

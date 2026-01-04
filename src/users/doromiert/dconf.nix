@@ -11,39 +11,45 @@ let
 in
 {
   # Provision the Burn My Windows profile
+  home.file.".config/burn-my-windows/profiles/bmw.conf".source = ./resources/bmw.conf;
 
-  # [P13.A.4] Activation scripts for complex GVariant structures
-  # This bypasses Home Manager's strict typing for complex dictionaries
-  home.activation = {
-    provisionBmwProfile = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-      BMW_DIR="${config.home.homeDirectory}/.config/burn-my-windows/profiles"
-      BMW_CONF="${./resources/bmw.conf}"
+  # [Systemd Service]
+  # We use a systemd user service instead of home.activation.
+  # This ensures these commands run ONLY after the graphical session (and DBus) is ready.
+  systemd.user.services.dconf-complex-apply = {
+    Unit = {
+      Description = "Apply complex dconf settings from raw files";
+      After = [ "graphical-session.target" ];
+      PartOf = [ "graphical-session.target" ];
+    };
 
-      # Ensure directory exists
-      run mkdir -p "$BMW_DIR"
+    Install = {
+      WantedBy = [ "graphical-session.target" ];
+    };
 
-      # Force copy (overwrite existing symlink if present) and set writable
-      run cp -fL "$BMW_CONF" "$BMW_DIR/bmw.conf"
-      run chmod 644 "$BMW_DIR/bmw.conf"
-    '';
-    applyBmsPipelines = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-      run ${pkgs.dconf}/bin/dconf write /org/gnome/shell/extensions/blur-my-shell/pipelines "$(cat ${./resources/bms_settings.txt})"
-    '';
-
-    applyRwcrSettings = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-      run ${pkgs.dconf}/bin/dconf write /org/gnome/shell/extensions/rounded-window-corners-reborn/global-rounded-corner-settings "$(cat ${./resources/rwcr_settings.txt})"
-    '';
-
-    applyGscCommands = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-      run ${pkgs.dconf}/bin/dconf write /org/gnome/shell/extensions/gsconnect/device/865f1fa442c84b45ae4f512266515aed/plugin/runcommand/command-list "$(cat ${./resources/gsc_commands.txt})"
-    '';
-
-    applyGscNotifications = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-      run ${pkgs.dconf}/bin/dconf write /org/gnome/shell/extensions/gsconnect/device/865f1fa442c84b45ae4f512266515aed/plugin/notification/applications "$(cat ${./resources/gsc_notifications.txt})"
-    '';
+    Service = {
+      Type = "oneshot";
+      # We construct a script that runs dconf write for each complex key.
+      # We use escapeShellArg to safely inject the raw file content.
+      ExecStart = "${pkgs.writeShellScript "apply-dconf-complex" ''
+        # Blur My Shell - Pipelines
+        ${pkgs.dconf}/bin/dconf write /org/gnome/shell/extensions/blur-my-shell/pipelines ${lib.strings.escapeShellArg (builtins.readFile ./resources/bms_settings.txt)}
+        
+        # Rounded Window Corners Reborn - Global Settings
+        ${pkgs.dconf}/bin/dconf write /org/gnome/shell/extensions/rounded-window-corners-reborn/global-rounded-corner-settings ${lib.strings.escapeShellArg (builtins.readFile ./resources/rwcr_settings.txt)}
+        
+        # GSConnect - Run Command List
+        ${pkgs.dconf}/bin/dconf write /org/gnome/shell/extensions/gsconnect/device/865f1fa442c84b45ae4f512266515aed/plugin/runcommand/command-list ${lib.strings.escapeShellArg (builtins.readFile ./resources/gsc_commands.txt)}
+        
+        # GSConnect - Notifications
+        ${pkgs.dconf}/bin/dconf write /org/gnome/shell/extensions/gsconnect/device/865f1fa442c84b45ae4f512266515aed/plugin/notification/applications ${lib.strings.escapeShellArg (builtins.readFile ./resources/gsc_notifications.txt)}
+      ''}";
+    };
   };
 
+  # Use the native dconf module for standard/simple GNOME settings
   dconf.settings = {
+
     # --- Alphabetical App Grid ---
     "org/gnome/shell/extensions/alphabetical-app-grid" = {
       folder-order-position = "end";
@@ -52,7 +58,7 @@ in
     # --- Blur My Shell ---
     "org/gnome/shell/extensions/blur-my-shell" = {
       settings-version = 2;
-      # pipelines handled by activation script
+      # pipelines handled by systemd service above
     };
 
     "org/gnome/shell/extensions/blur-my-shell/appfolder" = {
@@ -234,9 +240,8 @@ in
       send-content = true;
     };
 
-    # Notifications handled by activation script
-
-    # RunCommand handled by activation script
+    # gsconnect...plugin/runcommand/command-list handled by systemd service
+    # gsconnect...plugin/notification/applications handled by systemd service
 
     "org/gnome/shell/extensions/gsconnect/device/865f1fa442c84b45ae4f512266515aed/plugin/share" = {
       receive-directory = "${config.home.homeDirectory}/Downloads";
@@ -293,7 +298,7 @@ in
     # --- Rounded Window Corners Reborn ---
     "org/gnome/shell/extensions/rounded-window-corners-reborn" = {
       border-width = 1;
-      # global-rounded-corner-settings handled by activation script
+      # global-rounded-corner-settings handled by systemd service
       settings-version = mkUint32 7;
     };
 
