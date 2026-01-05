@@ -27,8 +27,8 @@
 
     swisstag.url = "github:doromiert/swisstag";
     nixpwamaker = {
-      url = "path:/home/doromiert/Projects/nixpwamaker";
-      # url = "github:doromiert/nixpwamaker"; # <-- Comment this out for now
+      # url = "path:/home/doromiert/Projects/nixpwamaker";
+      url = "github:doromiert/nixpwamaker"; # <-- Comment this out for now
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
