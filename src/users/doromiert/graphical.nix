@@ -7,7 +7,6 @@
 
   home-manager.users.doromiert =
     {
-      lib,
       pkgs,
       ...
     }:

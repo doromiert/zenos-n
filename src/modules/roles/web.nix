@@ -1,12 +1,11 @@
 {
   pkgs,
-  lib,
   ...
 }:
 
 let
   # --- 1. EXTENSION DEFINITIONS ---
-  # These are the extensions that will be forced globally for all users and profiles
+  # These are the extensions that will be forced for every Home Manager user's main profile.
   extensions = {
     ublock = {
       id = "uBlock0@raymondhill.net";
@@ -26,26 +25,14 @@ let
     };
   };
 
-  globalExtensions = (
-    builtins.listToAttrs (
-      map (ext: {
-        name = ext.id;
-        value = {
-          install_url = ext.url;
-          installation_mode = "force_installed";
-          default_area = "menupanel";
-        };
-      }) (builtins.attrValues extensions)
-    )
-  );
-
-  # Helper to lock preferences
+  # Helper to lock preferences in the NixOS global policy
   lock = value: {
     Value = value;
     Status = "locked";
   };
 in
 {
+  # --- NIXOS LEVEL CONFIG ---
   programs.firefox = {
     enable = true;
     nativeMessagingHosts.packages = [
@@ -53,7 +40,9 @@ in
       pkgs.keepassxc
     ];
 
-    # --- 2. GLOBAL POLICIES ---
+    # --- GLOBAL POLICIES (System-Wide) ---
+    # These apply to ALL Firefox instances (Main + PWAs).
+    # We only keep non-conflicting settings here.
     policies = {
       DisableTelemetry = true;
       DisableFirefoxStudies = true;
@@ -69,10 +58,9 @@ in
       SearchBar = "unified";
       SearchEnginesDefault = "DuckDuckGo";
 
-      # Force extensions for everyone
-      ExtensionSettings = globalExtensions;
+      # [!] ExtensionSettings are MOVED to the Home Manager module below.
+      # This allows PWAs to define their own isolated extension sets.
 
-      # Comprehensive Privacy & Tracking Protection
       EnableTrackingProtection = {
         Value = true;
         Locked = true;
@@ -80,7 +68,6 @@ in
         Fingerprinting = true;
       };
 
-      # DNS over HTTPS
       DNSOverHTTPS = {
         Enabled = true;
         ProviderURL = "https://mozilla.cloudflare-dns.com/dns-query";
@@ -95,7 +82,6 @@ in
         WhatsNew = false;
       };
 
-      # --- 3. DETAILED PREFERENCES ---
       Preferences = {
         # Core Privacy
         "browser.contentblocking.category" = lock "standard";
@@ -145,6 +131,24 @@ in
     };
   };
 
-  # The activation scripts and local path variables for pwamaker.py
-  # have been removed as they are now handled by the nixpwamaker module.
+  # --- HOME MANAGER SHARED MODULE ---
+  # This injects the extensions into every Home Manager user's main profile.
+  # This is "safe" because it doesn't force these extensions globally via /etc/,
+  # ensuring your PWAs can finally have their own unique extension lists.
+  home-manager.sharedModules = [
+    {
+      programs.firefox.policies.ExtensionSettings = builtins.listToAttrs (
+        map (ext: {
+          name = ext.id;
+          value = {
+            install_url = ext.url;
+            installation_mode = "force_installed";
+            default_area = "menupanel";
+          };
+        }) (builtins.attrValues extensions)
+      );
+    }
+  ];
+
+  # [!] Obsolete variables and activation scripts for pwamaker.py have been removed.
 }

@@ -1,26 +1,35 @@
-{ pkgs, inputs, ... }:
+{
+  pkgs,
+  inputs,
+  lib,
+  ...
+}:
 
 let
+  # Helper to define extensions using the new structured format
+  mkExt = id: url: { inherit id url; };
+
   exts = {
-    ublock = "uBlock0@raymondhill.net:https://addons.mozilla.org/firefox/downloads/latest/ublock-origin/latest.xpi";
-    sponsorblock = "sponsorBlocker@ajay.app:https://addons.mozilla.org/firefox/downloads/latest/sponsorblock/latest.xpi";
-    keepass = "keepassxc-browser@keepassxc.org:https://addons.mozilla.org/firefox/downloads/latest/keepassxc-browser/latest.xpi";
-    uaswitcher = "{a6c4a591-f1b2-4f03-b3ff-767e5bedf4e7}:https://addons.mozilla.org/firefox/downloads/latest/user-agent-string-switcher/latest.xpi";
+    ublock = mkExt "uBlock0@raymondhill.net" "https://addons.mozilla.org/firefox/downloads/latest/ublock-origin/latest.xpi";
+    sponsorblock = mkExt "sponsorBlocker@ajay.app" "https://addons.mozilla.org/firefox/downloads/latest/sponsorblock/latest.xpi";
+    keepass = mkExt "keepassxc-browser@keepassxc.org" "https://addons.mozilla.org/firefox/downloads/latest/keepassxc-browser/latest.xpi";
+    uaswitcher = mkExt "{a6c4a591-f1b2-4f03-b3ff-767e5bedf4e7}" "https://addons.mozilla.org/firefox/downloads/latest/user-agent-string-switcher/latest.xpi";
   };
 
   baseProfile = ../../../resources/firefoxpwa/templateprofile;
-
-  standardLayout = "home,refresh,spring,extensions";
 in
 {
-  programs.nixpwamaker = {
+  programs.pwamaker = {
     enable = true;
+    firefoxGnomeTheme = inputs.firefox-gnome-theme;
 
     apps = {
-      "YouTube" = {
+      youtube = {
+        id = "youtube-pwa";
+        name = "YouTube";
         url = "https://www.youtube.com";
         icon = "youtube";
-        templateProfile = baseProfile;
+        # templateProfile = baseProfile;
         extensions = [
           exts.ublock
           exts.sponsorblock
@@ -38,22 +47,18 @@ in
           "google"
           "stream"
         ];
-        layout = standardLayout;
-        extraPolicies = {
-          DisableTelemetry = true;
-          DisablePocket = true;
-        };
       };
 
-      "Select for Figma" = {
+      figma = {
+        id = "figma";
+        name = "Select for Figma";
         url = "https://www.figma.com";
         icon = "select-for-figma";
-        templateProfile = baseProfile;
+        # templateProfile = baseProfile;
         extensions = [
           exts.uaswitcher
           exts.keepass
         ];
-        mimeTypes = [ "x-scheme-handler/figma" ];
         categories = [
           "Graphics"
           "Development"
@@ -64,38 +69,60 @@ in
           "ux"
           "vector"
         ];
-        layout = standardLayout;
+        # Split layout around the tabs (which are now implicit in the center)
+        layoutStart = [
+          "home"
+          "reload"
+        ];
+        layoutEnd = [
+          "addons"
+        ];
       };
 
-      "Twitter" = {
+      twitter = {
+        id = "twitter";
+        name = "Twitter";
         url = "https://x.com";
         icon = "twitter";
-        templateProfile = baseProfile;
+        # templateProfile = baseProfile;
         extensions = [
           exts.ublock
           exts.keepass
         ];
         categories = [
           "Network"
-          "Social"
+          "Chat"
         ];
         keywords = [
           "social"
           "media"
           "x"
         ];
-        # Back and Forward arrows before refresh icon
-        layout = "home,back,forward,refresh,spring,extensions";
+        # Split layout around the tabs
+        layoutStart = [
+          "home"
+          "back"
+          "forward"
+          "reload"
+        ];
+        layoutEnd = [
+          "addons"
+        ];
       };
 
-      "Gemini" = {
+      gemini = {
+        id = "gemini";
+        name = "Gemini";
         url = "https://gemini.google.com";
         icon = "internet-chat";
-        templateProfile = baseProfile;
+        # templateProfile = baseProfile;
+        extensions = [
+          exts.keepass
+        ];
         categories = [
           "Network"
           "Office"
-          "ArtificialIntelligence"
+          "X-ArtificialIntelligence"
         ];
         keywords = [
           "ai"
@@ -103,13 +130,14 @@ in
           "llm"
           "google"
         ];
-        layout = standardLayout;
       };
 
-      "Syncthing" = {
+      syncthing = {
+        id = "syncthing";
+        name = "Syncthing";
         url = "http://localhost:8384";
         icon = "syncthing";
-        templateProfile = baseProfile;
+        # templateProfile = baseProfile;
         categories = [
           "System"
           "FileTransfer"
@@ -119,7 +147,6 @@ in
           "backup"
           "p2p"
         ];
-        layout = standardLayout;
       };
     };
   };

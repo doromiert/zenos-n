@@ -76,7 +76,7 @@
           # Nix / Direnv
           da = "direnv allow";
           dr = "direnv reload";
-          
+
           # Networking
           myip = "curl ifconfig.me";
         };
@@ -116,6 +116,7 @@
             name = "doromiert";
             email = "doromiert@gmail.com";
           };
+          pull.rebase = false;
           init.defaultBranch = "main";
         };
       };

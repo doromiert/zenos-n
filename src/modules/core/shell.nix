@@ -1,8 +1,6 @@
 # contains stuff like ssh and default shell
 {
   pkgs,
-  config,
-  lib,
   ...
 }:
 let

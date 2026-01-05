@@ -26,10 +26,18 @@
     illogical-impulse.url = "github:soymou/illogical-flake";
 
     swisstag.url = "github:doromiert/swisstag";
+
+    # External PWA Maker Module
     nixpwamaker = {
       url = "path:/home/doromiert/Projects/nixpwamaker";
-      # url = "github:doromiert/nixpwamaker"; # <-- Comment this out for now
+      # url = "github:doromiert/nixpwamaker";
       inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    # Added theme input for pwamaker (still needed to pass to the module)
+    firefox-gnome-theme = {
+      url = "github:rafaelmardojai/firefox-gnome-theme";
+      flake = false;
     };
   };
 
@@ -97,7 +105,11 @@
           };
           modules = [
             (
-              { pkgs, lib, ... }:
+              {
+                lib,
+                inputs,
+                ...
+              }:
               {
                 options.mainUser = lib.mkOption {
                   type = lib.types.str;
@@ -133,8 +145,11 @@
                   system.stateVersion = "25.11";
                   home-manager.useGlobalPkgs = true;
                   home-manager.backupFileExtension = "backup";
+                  # PASS INPUTS TO HOME MANAGER MODULES
+                  home-manager.extraSpecialArgs = { inherit inputs; };
                   home-manager.sharedModules = [
-                    inputs.nixpwamaker.homeManagerModules.default
+                    # Use the module from the flake input
+                    inputs.nixpwamaker.homeManagerModules.pwamaker
                   ];
                 };
               }
