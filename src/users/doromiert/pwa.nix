@@ -1,0 +1,122 @@
+{ ... }:
+
+let
+  exts = {
+    ublock = "uBlock0@raymondhill.net:https://addons.mozilla.org/firefox/downloads/latest/ublock-origin/latest.xpi";
+    sponsorblock = "sponsorBlocker@ajay.app:https://addons.mozilla.org/firefox/downloads/latest/sponsorblock/latest.xpi";
+    keepass = "keepassxc-browser@keepassxc.org:https://addons.mozilla.org/firefox/downloads/latest/keepassxc-browser/latest.xpi";
+    uaswitcher = "{a6c4a591-f1b2-4f03-b3ff-767e5bedf4e7}:https://addons.mozilla.org/firefox/downloads/latest/user-agent-string-switcher/latest.xpi";
+  };
+
+  baseProfile = ../../../resources/firefoxpwa/templateprofile;
+in
+{
+  # [REMOVED] imports = [ ... ];  <-- This line is gone.
+  # We now load it via sharedModules in flake.nix
+
+  programs.nixpwamaker = {
+    enable = true;
+
+    apps = {
+      "YouTube" = {
+        url = "https://www.youtube.com";
+        icon = "youtube";
+        templateProfile = baseProfile;
+        extensions = [
+          exts.ublock
+          exts.sponsorblock
+          exts.keepass
+          exts.uaswitcher
+        ];
+        categories = [
+          "Network"
+          "Video"
+          "AudioVideo"
+        ];
+        keywords = [
+          "video"
+          "music"
+          "google"
+          "stream"
+        ];
+        extraPolicies = {
+          DisableTelemetry = true;
+          DisablePocket = true;
+        };
+      };
+
+      "Select for Figma" = {
+        url = "https://www.figma.com";
+        icon = "select-for-figma";
+        templateProfile = baseProfile;
+        extensions = [
+          exts.uaswitcher
+          exts.keepass
+        ];
+        mimeTypes = [ "x-scheme-handler/figma" ];
+        categories = [
+          "Graphics"
+          "Development"
+        ];
+        keywords = [
+          "design"
+          "ui"
+          "ux"
+          "vector"
+        ];
+      };
+
+      "Twitter" = {
+        url = "https://x.com";
+        icon = "twitter";
+        templateProfile = baseProfile;
+        extensions = [
+          exts.ublock
+          exts.keepass
+        ];
+        categories = [
+          "Network"
+          "Social"
+        ];
+        keywords = [
+          "social"
+          "media"
+          "x"
+        ];
+      };
+
+      "Gemini" = {
+        url = "https://gemini.google.com";
+        icon = "internet-chat";
+        templateProfile = baseProfile;
+        layout = "spacer";
+        categories = [
+          "Network"
+          "Office"
+          "ArtificialIntelligence"
+        ];
+        keywords = [
+          "ai"
+          "chat"
+          "llm"
+          "google"
+        ];
+      };
+
+      "Syncthing" = {
+        url = "http://localhost:8384";
+        icon = "syncthing";
+        templateProfile = baseProfile;
+        categories = [
+          "System"
+          "FileTransfer"
+        ];
+        keywords = [
+          "sync"
+          "backup"
+          "p2p"
+        ];
+      };
+    };
+  };
+}

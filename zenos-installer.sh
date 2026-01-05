@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Negative Zero - ZeroInstaller [v5.22.0]
+# Negative Zero - ZeroInstaller [v5.22.1]
 # Features: Flat NZFS 2.3 (System-Root) + UUID Guard
 # Filesystem: Btrfs (Zstd + Commit=120)
 # Optimization: Core-Relative Parallelism + Pre-Populated NZFS + .hidden
@@ -28,7 +28,7 @@ log() {
     fi
 }
 
-echo -e "${BLUE}## [ -0 ] ZENOS ZEROINSTALLER v5.22.0 (System-Root Edition)${NC}"
+echo -e "${BLUE}## [ -0 ] ZENOS ZEROINSTALLER v5.22.1 (System-Root Edition)${NC}"
 
 # --- Phase 0.1: Live Environment Cleanup ---
 echo -e "\n${YELLOW}## [ ? ] LIVE ENV PREP ##${NC}"
@@ -274,6 +274,18 @@ if [[ "$SPEED_CHOICE" =~ ^[Yy]$ || -z "$SPEED_CHOICE" ]]; then
          sed -i '/config = lib.mkIf cfg.enable {/a \    documentation.enable = false;\n    documentation.nixos.enable = false;\n    documentation.man.enable = false;' "$NZFS_FILE"
     fi
 fi
+
+# --- [ NEW ] GitHub Token Injection ---
+echo -e "\n${YELLOW}## [ ? ] GITHUB RATE LIMIT BYPASS ##${NC}"
+echo "Enter your GitHub Personal Access Token to avoid HTTP 429 errors."
+echo "Leave empty to skip."
+read -s -p "GitHub Token (Hidden): " GH_TOKEN
+echo ""
+if [ -n "$GH_TOKEN" ]; then
+    export NIX_CONFIG="access-tokens = github.com=$GH_TOKEN"
+    log "GitHub Token injected into build environment."
+fi
+# ----------------------------------------
 
 BINARY_CACHES="https://cache.nixos.org https://nyx.chaotic.cx https://nix-gaming.cachix.org https://nix-community.cachix.org"
 TRUSTED_KEYS="cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= chaotic-nyx.cx:htPHGL5kRgd89+O9TV+n0n+jD3v5Z20D5e7z7aM3Q0Q= nix-gaming.cachix.org-1:nbjlureqMbRAxR1gJ/f3hxemL9svXaZF/Ees8vCUUs4= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="

@@ -224,33 +224,5 @@ in
       exit 0
     fi
 
-    for user_home in /home/*; do
-      [ -d "$user_home" ] || continue
-      username=$(basename "$user_home")
-      if [[ "$username" =~ ^(lost\+found|nixos|root)$ ]] || ! id "$username" >/dev/null 2>&1; then 
-        continue 
-      fi
-
-      echo ">>> Configuring PWAs for user: $username"
-      ${makePWA "$username" "YouTube" "https://www.youtube.com" "youtube" [
-        extensions.ublock
-        extensions.sponsorblock
-        extensions.keepassxc
-        extensions.ua-switcher
-      ]}
-      ${makePWA "$username" "Select for Figma" "https://www.figma.com" "select-for-figma" [
-        extensions.ua-switcher
-        extensions.keepassxc
-      ]}
-      ${makePWA "$username" "Gemini" "https://gemini.google.com" "internet-chat" [
-        extensions.keepassxc
-      ]}
-      ${makePWA "$username" "Twitter" "https://x.com" "twitter" [
-        extensions.ublock
-        extensions.keepassxc
-      ]}
-      ${makePWA "$username" "GitHub" "https://github.com" "github" [ extensions.keepassxc ]}
-      ${makePWA "$username" "Syncthing" "http://localhost:8384/" "syncthing" [ ]}
-    done
   '';
 }

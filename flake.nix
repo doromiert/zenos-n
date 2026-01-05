@@ -16,9 +16,7 @@
     jovian.url = "github:Jovian-Experiments/Jovian-NixOS";
 
     vsc-extensions.url = "github:nix-community/nix-vscode-extensions";
-    swisstag.url = "github:doromiert/swisstag";
     nixcord.url = "github:kaylorben/nixcord";
-
     nix-minecraft.url = "github:Infinidoge/nix-minecraft";
     nix-flatpak.url = "github:gmodena/nix-flatpak";
     nur = {
@@ -26,6 +24,13 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     illogical-impulse.url = "github:soymou/illogical-flake";
+
+    swisstag.url = "github:doromiert/swisstag";
+    nixpwamaker = {
+      url = "path:/home/doromiert/Projects/nixpwamaker";
+      # url = "github:doromiert/nixpwamaker"; # <-- Comment this out for now
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -33,6 +38,7 @@
       self,
       nixpkgs,
       nixpkgs-unstable,
+      nixpwamaker,
       ...
     }@inputs:
     let
@@ -127,6 +133,9 @@
                   system.stateVersion = "25.11";
                   home-manager.useGlobalPkgs = true;
                   home-manager.backupFileExtension = "backup";
+                  home-manager.sharedModules = [
+                    inputs.nixpwamaker.homeManagerModules.default
+                  ];
                 };
               }
             )
@@ -135,7 +144,7 @@
             inputs.home-manager.nixosModules.home-manager
             inputs.nix-flatpak.nixosModules.nix-flatpak
             inputs.nur.modules.nixos.default
-            inputs.illogical-impulse.nixosModules.default
+
           ]
           ++ (importDir ./src/modules/core excludeCoreModules)
           ++ (
@@ -159,8 +168,8 @@
       nixosConfigurations = {
         doromi-tul-2 = mkHost {
           hostName = "doromi-tul-2";
-          rootUUID = "38555c40-dafa-4bc3-b317-d1496a5af02d";
-          bootUUID = "B9B8-1D82";
+          rootUUID = "8e1e39fe-becf-40f7-bf3e-447ecdfef32d";
+          bootUUID = "E4BC-AD87";
           locale = {
             timeZone = "Europe/Warsaw";
             language = "en_US.UTF-8";
