@@ -5,13 +5,8 @@
 }:
 
 let
-  # --- 1. SETUP & RESOURCES ---
-  pwamakerScript = ../../scripts/pwamaker.py;
-  delwaScript = ../../scripts/delwa.py;
-
-  templateProfile = ./. + "/../../../resources/firefoxpwa/testprofile";
-
-  # --- 2. EXTENSION DEFINITIONS ---
+  # --- 1. EXTENSION DEFINITIONS ---
+  # These are the extensions that will be forced globally for all users and profiles
   extensions = {
     ublock = {
       id = "uBlock0@raymondhill.net";
@@ -44,103 +39,51 @@ let
     )
   );
 
+  # Helper to lock preferences
   lock = value: {
     Value = value;
     Status = "locked";
   };
-
-  # --- 3. PWA GENERATOR FUNCTION ---
-  makePWA = user: name: url: icon: extraExts: ''
-    echo "[*] Web.nix: Deploying ${name}..."
-    ${pkgs.util-linux}/bin/runuser -u ${user} -- ${pkgs.python3}/bin/python3 ${pwamakerScript} \
-      --name "${name}" \
-      --url "${url}" \
-      --icon "${icon}" \
-      --template "${templateProfile}" \
-      ${lib.concatMapStringsSep " " (e: "--addon '${e.id}:${e.url}'") extraExts}
-  '';
-
-  delwaPkg = pkgs.writeScriptBin "delwa" ''
-    #!${pkgs.runtimeShell}
-    exec ${pkgs.python3}/bin/python3 ${delwaScript} "$@"
-  '';
-
 in
 {
-  environment.sessionVariables = {
-    BROWSER = "firefox";
-    DEFAULT_BROWSER = "firefox";
-  };
-
-  xdg.mime.defaultApplications = {
-    "text/html" = "firefox.desktop";
-    "x-scheme-handler/http" = "firefox.desktop";
-    "x-scheme-handler/https" = "firefox.desktop";
-    "x-scheme-handler/about" = "firefox.desktop";
-    "x-scheme-handler/unknown" = "firefox.desktop";
-  };
-
-  environment.systemPackages = [
-    # pkgs.firefox handled by programs.firefox below
-    pkgs.firefoxpwa
-    pkgs.python3
-    delwaPkg
-    pkgs.keepassxc
-    pkgs.ntfy-sh
-    pkgs.libnotify
-  ];
-
-  services.flatpak.packages = [
-    "app.drey.Blurble"
-    "co.logonoff.awakeonlan"
-    "com.google.Chrome"
-    "de.haeckerfelix.Fragments"
-    "dev.geopjr.Tuba"
-    "io.github.giantpinkrobots.varia"
-    "org.nickvision.tubeconverter"
-  ];
-
   programs.firefox = {
     enable = true;
-    package = pkgs.firefox;
     nativeMessagingHosts.packages = [
       pkgs.firefoxpwa
       pkgs.keepassxc
     ];
 
-    # [FIX] Policies updated with new Font Names
+    # --- 2. GLOBAL POLICIES ---
     policies = {
+      DisableTelemetry = true;
+      DisableFirefoxStudies = true;
+      DisableAppUpdate = true;
+      DisableFirefoxAccounts = true;
+      DisableAccounts = true;
+      DisablePocket = true;
+      OfferToSaveLogins = false;
+      PasswordManagerEnabled = false;
+      DisplayBookmarksToolbar = "never";
+      DisplayMenuBar = "default-off";
+      DontCheckDefaultBrowser = true;
+      SearchBar = "unified";
+      SearchEnginesDefault = "DuckDuckGo";
+
+      # Force extensions for everyone
       ExtensionSettings = globalExtensions;
+
+      # Comprehensive Privacy & Tracking Protection
       EnableTrackingProtection = {
         Value = true;
         Locked = true;
         Cryptomining = true;
         Fingerprinting = true;
       };
-      DisplayBookmarksToolbar = "never";
-      DisplayMenuBar = "default-off";
-      SearchBar = "unified";
-      DisableTelemetry = true;
-      DisableFirefoxStudies = true;
-      DisablePocket = true;
-      DisableFirefoxAccounts = true;
-      DisableAccounts = true;
-      DontCheckDefaultBrowser = true;
-      PasswordManagerEnabled = false;
-      OfferToSaveLogins = false;
 
+      # DNS over HTTPS
       DNSOverHTTPS = {
         Enabled = true;
         ProviderURL = "https://mozilla.cloudflare-dns.com/dns-query";
-        Locked = true;
-      };
-      SearchEngines = {
-        Default = "DuckDuckGo";
-        PreventInstalls = true;
-      };
-
-      EncryptedMediaExtensions = {
-        Enabled = true;
         Locked = true;
       };
 
@@ -152,53 +95,46 @@ in
         WhatsNew = false;
       };
 
-      HardwareAcceleration = true;
-
+      # --- 3. DETAILED PREFERENCES ---
       Preferences = {
-        "extensions.enabledScopes" = lock 15;
-        "extensions.autoDisableScopes" = lock 0;
-        "xpinstall.signatures.required" = lock false;
-        "extensions.langpacks.signatures.required" = lock false;
-        "extensions.quarantinedDomains.enabled" = lock false;
-
-        # --- Strict Privacy (from reference) ---
+        # Core Privacy
         "browser.contentblocking.category" = lock "standard";
-        "extensions.pocket.enabled" = lock false;
-        "browser.topsites.contile.enabled" = lock false;
         "browser.formfill.enable" = lock false;
         "browser.search.suggest.enabled" = lock false;
-
-        # --- UX Tweaks ---
-        "browser.ctrlTab.sortByRecentlyUsed" = lock true;
         "middlemouse.paste" = lock false;
         "general.autoScroll" = lock true;
 
-        # --- Hardware Acceleration ---
-        "layers.acceleration.force-enabled" = lock true;
-        "gfx.webrender.all" = lock true;
+        # Extension Scopes
+        "extensions.autoDisableScopes" = lock 0;
+        "extensions.enabledScopes" = lock 15;
+        "xpinstall.signatures.required" = lock false;
+        "extensions.langpacks.signatures.required" = lock false;
 
-        # [UPDATED] Font Preferences to match 'Atkinson Hyperlegible Next'
+        # Rendering & Performance
+        "gfx.webrender.all" = lock true;
+        "layers.acceleration.force-enabled" = lock true;
+
+        # Font & Typography
         "font.name.sans-serif.x-western" = lock "Atkinson Hyperlegible Next";
         "font.default.x-western" = lock "sans-serif";
         "font.size.variable.x-western" = lock 15;
 
-        # --- Anti-Sponsored ---
+        # Anti-Sponsored Features
         "browser.newtabpage.activity-stream.showSponsored" = lock false;
         "browser.newtabpage.activity-stream.showSponsoredTopSites" = lock false;
         "browser.newtabpage.activity-stream.feeds.section.topstories" = lock false;
         "browser.newtabpage.activity-stream.feeds.opsouth" = lock false;
         "browser.newtabpage.activity-stream.section.highlights.includePocket" = lock false;
+        "browser.topsites.contile.enabled" = lock false;
 
-        # --- AI Integration ---
+        # AI Integration
         "browser.ml.enable" = lock true;
         "browser.ml.chat.enabled" = lock true;
         "browser.ml.chat.sidebar" = lock true;
 
-        # --- CSS / Theme Support ---
+        # GNOME Theme & UI Integration
         "toolkit.legacyUserProfileCustomizations.stylesheets" = lock true;
         "svg.context-properties.content.enabled" = lock true;
-
-        # --- GNOME Theme Integration ---
         "widget.gtk.rounded-bottom-corners.enabled" = lock true;
         "gnomeTheme.hideSingleTab" = lock true;
         "gnomeTheme.normalWidthTabs" = lock false;
@@ -209,20 +145,6 @@ in
     };
   };
 
-  system.activationScripts.webApps.text = ''
-    export PATH="${
-      lib.makeBinPath [
-        pkgs.coreutils
-        pkgs.sudo
-        pkgs.python3
-        pkgs.firefoxpwa
-        pkgs.shadow
-      ]
-    }:$PATH"
-
-    if [ -n "$ZENOS_SYNTHESIS" ]; then
-      exit 0
-    fi
-
-  '';
+  # The activation scripts and local path variables for pwamaker.py
+  # have been removed as they are now handled by the nixpwamaker module.
 }

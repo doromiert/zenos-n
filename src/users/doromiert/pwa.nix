@@ -1,4 +1,4 @@
-{ ... }:
+{ pkgs, inputs, ... }:
 
 let
   exts = {
@@ -9,11 +9,10 @@ let
   };
 
   baseProfile = ../../../resources/firefoxpwa/templateprofile;
+
+  standardLayout = "home,refresh,spring,extensions";
 in
 {
-  # [REMOVED] imports = [ ... ];  <-- This line is gone.
-  # We now load it via sharedModules in flake.nix
-
   programs.nixpwamaker = {
     enable = true;
 
@@ -39,6 +38,7 @@ in
           "google"
           "stream"
         ];
+        layout = standardLayout;
         extraPolicies = {
           DisableTelemetry = true;
           DisablePocket = true;
@@ -64,6 +64,7 @@ in
           "ux"
           "vector"
         ];
+        layout = standardLayout;
       };
 
       "Twitter" = {
@@ -83,13 +84,14 @@ in
           "media"
           "x"
         ];
+        # Back and Forward arrows before refresh icon
+        layout = "home,back,forward,refresh,spring,extensions";
       };
 
       "Gemini" = {
         url = "https://gemini.google.com";
         icon = "internet-chat";
         templateProfile = baseProfile;
-        layout = "spacer";
         categories = [
           "Network"
           "Office"
@@ -101,6 +103,7 @@ in
           "llm"
           "google"
         ];
+        layout = standardLayout;
       };
 
       "Syncthing" = {
@@ -116,6 +119,7 @@ in
           "backup"
           "p2p"
         ];
+        layout = standardLayout;
       };
     };
   };
