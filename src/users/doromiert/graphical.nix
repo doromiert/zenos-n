@@ -39,12 +39,24 @@
           "vim.useSystemClipboard" = true;
           "vim.hlsearch" = true;
           "editor.selectionClipboard" = false;
-          # [ADDED] Visual Navigation Plugins
-          # 'easymotion' highlights all possible targets for a motion (like 'fs') with a key to jump to.
-          # Usage: <Leader><Leader> + f + <char>
+          # [ADDED] Visual Navigation & Feedback Plugins
           "vim.easymotion" = true;
-          # 'sneak' allows jumping to any location specified by two characters (like 'st')
           "vim.sneak" = true;
+          "vim.surround" = true; # Essential for cs"' etc.
+          "vim.commentary" = true; # gcc to comment
+          "vim.indentObject" = true; # vii to select indentation block
+
+          # [RECOMMENDED] Advanced Movements & Visuals
+          "vim.camelCaseMotion.enable" = true; # Move inside CamelCase words
+          "vim.smartRelativeLine" = true; # Absolute in Insert, Relative in Normal
+          "vim.statusBarColorControl" = true; # Change bar color based on mode
+          "vim.statusBarColors.normal" = "#005f5f";
+          "vim.statusBarColors.insert" = "#5f0000";
+          "vim.statusBarColors.visual" = "#5f005f";
+
+          # Highlight yanked text (Neovim style)
+          "vim.highlightedyank.enable" = true;
+          "vim.highlightedyank.duration" = 200;
 
           # JSON Configs
           "editor.formatOnSave" = true;
