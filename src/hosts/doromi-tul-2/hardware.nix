@@ -5,8 +5,6 @@
   lib,
   pkgs,
   modulesPath,
-  rootUUID,   # Injected via flake.nix specialArgs
-  bootUUID,   # Injected via flake.nix specialArgs
   ...
 }:
 
@@ -15,12 +13,7 @@
     (modulesPath + "/installer/scan/not-detected.nix")
   ];
 
-  # --- NZFS Synthesis Activation ---
-  # Enabling NZFS v2: Volatile RAM root with persistent Silicon anchor.
-  # Drive paths are now dynamically pulled from the Flake's physical discovery.
-
   # Forces NZFS logic to override the persistent defaults in flake.nix
-
 
   # --- Kernel & Silicon Optimization ---
   boot.kernelPackages = pkgs.linuxPackages_zen;
@@ -42,7 +35,10 @@
     "vfio_iommu_type1"
   ];
 
-  boot.kernelModules = [ "kvm-amd" "msr" ];
+  boot.kernelModules = [
+    "kvm-amd"
+    "msr"
+  ];
 
   # GPU Passthrough & IOMMU Logic
   boot.kernelParams = [

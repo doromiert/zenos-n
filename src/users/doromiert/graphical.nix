@@ -33,10 +33,197 @@
         # The Vim Addon (User Preference)
         extensions = [ pkgs.vscode-extensions.vscodevim.vim ];
 
+        # Merged from settings.json
         userSettings = {
+          # Existing Nix overrides
           "vim.useSystemClipboard" = true;
           "vim.hlsearch" = true;
           "editor.selectionClipboard" = false;
+
+          # JSON Configs
+          "editor.formatOnSave" = true;
+          "editor.suggest.insertMode" = "replace";
+          "editor.linkedEditing" = true;
+          "javascript.updateImportsOnFileMove.enabled" = "always";
+          "window.zoomLevel" = 0.25;
+          "launch" = { };
+          "[json]" = { };
+          "workbench.statusBar.visible" = true;
+          "editor.minimap.enabled" = false;
+          "breadcrumbs.enabled" = false;
+          # "workbench.iconTheme" = "material-icon-theme";
+          "update.showReleaseNotes" = false;
+          "workbench.activityBar.visible" = false;
+          "zenMode.hideLineNumbers" = false;
+          "zenMode.hideTabs" = false;
+          "editor.lineNumbers" = "relative";
+
+          "vim.leader" = "<Space>";
+
+          # Vim Keybindings (Kept in settings as they are plugin-specific settings)
+          "vim.normalModeKeyBindingsNonRecursive" = [
+            # NAVIGATION
+            # switch b/w buffers
+            {
+              before = [ "<S-h>" ];
+              commands = [ ":bprevious" ];
+            }
+            {
+              before = [ "<S-l>" ];
+              commands = [ ":bnext" ];
+            }
+
+            # splits
+            {
+              before = [
+                "leader"
+                "v"
+              ];
+              commands = [ ":vsplit" ];
+            }
+            {
+              before = [
+                "leader"
+                "s"
+              ];
+              commands = [ ":split" ];
+            }
+
+            # panes
+            {
+              before = [
+                "leader"
+                "h"
+              ];
+              commands = [ "workbench.action.focusLeftGroup" ];
+            }
+            {
+              before = [
+                "leader"
+                "j"
+              ];
+              commands = [ "workbench.action.focusBelowGroup" ];
+            }
+            {
+              before = [
+                "leader"
+                "k"
+              ];
+              commands = [ "workbench.action.focusAboveGroup" ];
+            }
+            {
+              before = [
+                "leader"
+                "l"
+              ];
+              commands = [ "workbench.action.focusRightGroup" ];
+            }
+            # NICE TO HAVE
+            {
+              before = [
+                "leader"
+                "w"
+              ];
+              commands = [ ":w!" ];
+            }
+            {
+              before = [
+                "leader"
+                "q"
+              ];
+              commands = [ ":q!" ];
+            }
+            {
+              before = [
+                "leader"
+                "x"
+              ];
+              commands = [ ":x!" ];
+            }
+            {
+              before = [
+                "["
+                "d"
+              ];
+              commands = [ "editor.action.marker.prev" ];
+            }
+            {
+              before = [
+                "]"
+                "d"
+              ];
+              commands = [ "editor.action.marker.next" ];
+            }
+            {
+              before = [
+                "<leader>"
+                "c"
+                "a"
+              ];
+              commands = [ "editor.action.quickFix" ];
+            }
+            {
+              before = [
+                "leader"
+                "f"
+              ];
+              commands = [ "workbench.action.quickOpen" ];
+            }
+            {
+              before = [
+                "leader"
+                "p"
+              ];
+              commands = [ "editor.action.formatDocument" ];
+            }
+            {
+              before = [
+                "g"
+                "h"
+              ];
+              commands = [ "editor.action.showDefinitionPreviewHover" ];
+            }
+          ];
+
+          "vim.visualModeKeyBindings" = [
+            # Stay in visual mode while indenting
+            {
+              before = [ "<" ];
+              commands = [ "editor.action.outdentLines" ];
+            }
+            {
+              before = [ ">" ];
+              commands = [ "editor.action.indentLines" ];
+            }
+            # Move selected lines while staying in visual mode
+            {
+              before = [ "J" ];
+              commands = [ "editor.action.moveLinesDownAction" ];
+            }
+            {
+              before = [ "K" ];
+              commands = [ "editor.action.moveLinesUpAction" ];
+            }
+            # toggle comment selection
+            {
+              before = [
+                "leader"
+                "c"
+              ];
+              commands = [ "editor.action.commentLine" ];
+            }
+          ];
+
+          "[typescriptreact]" = {
+            "editor.defaultFormatter" = "esbenp.prettier-vscode";
+          };
+          "go.toolsManagement.autoUpdate" = true;
+          "[typescript]" = {
+            "editor.defaultFormatter" = "esbenp.prettier-vscode";
+          };
+          "[jsonc]" = {
+            "editor.defaultFormatter" = "esbenp.prettier-vscode";
+          };
         };
       };
 
