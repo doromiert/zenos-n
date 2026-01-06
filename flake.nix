@@ -29,8 +29,8 @@
 
     # External PWA Maker Module
     nixpwamaker = {
-      url = "path:/home/doromiert/Projects/nixpwamaker";
-      # url = "github:doromiert/nixpwamaker";
+      # url = "path:/home/doromiert/Projects/nixpwamaker";
+      url = "github:doromiert/nixpwamaker";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
