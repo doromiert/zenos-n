@@ -5,7 +5,7 @@ set -e
         # ==========================================
         
         SESSION_NAME="zenos-rebuild"
-        FLAKE_DIR="${flakeDir}"
+        FLAKE_DIR="~/Projects/zenos-n"
         FLAGS="--show-trace"
 
         # 1. Validation: Ensure the flake actually exists at the target path

@@ -1,7 +1,5 @@
 {
-  pkgs,
   inputs,
-  lib,
   ...
 }:
 
@@ -16,7 +14,6 @@ let
     uaswitcher = mkExt "{a6c4a591-f1b2-4f03-b3ff-767e5bedf4e7}" "https://addons.mozilla.org/firefox/downloads/latest/user-agent-string-switcher/latest.xpi";
   };
 
-  baseProfile = ../../../resources/firefoxpwa/templateprofile;
 in
 {
   programs.pwamaker = {
@@ -25,11 +22,17 @@ in
 
     apps = {
       youtube = {
-        id = "youtube-pwa";
+        id = "youtube";
         name = "YouTube";
         url = "https://www.youtube.com";
         icon = "youtube";
-        # templateProfile = baseProfile;
+
+        # Custom Search Engine
+        search = {
+          name = "YouTube";
+          url = "https://www.youtube.com/results?search_query={searchTerms}";
+        };
+
         extensions = [
           exts.ublock
           exts.sponsorblock
@@ -49,12 +52,46 @@ in
         ];
       };
 
+      github = {
+        id = "github";
+        name = "GitHub";
+        url = "https://github.com";
+        icon = "github";
+
+        # Custom Search Engine
+        search = {
+          name = "GitHub";
+          url = "https://github.com/search?q={searchTerms}";
+        };
+
+        extensions = [
+          exts.ublock
+          exts.keepass
+        ];
+        categories = [
+          "Network"
+          "Development"
+        ];
+        keywords = [
+          "git"
+          "github"
+          "gh"
+          "code"
+        ];
+      };
+
       figma = {
         id = "figma";
         name = "Select for Figma";
         url = "https://www.figma.com";
         icon = "select-for-figma";
-        # templateProfile = baseProfile;
+
+        # Custom Search Engine (Community)
+        search = {
+          name = "Figma Community";
+          url = "https://www.figma.com/community/search?query={searchTerms}&resource_type=mixed&editor_type=all&price=all&sort_by=relevancy&creators=all";
+        };
+
         extensions = [
           exts.uaswitcher
           exts.keepass
@@ -84,7 +121,13 @@ in
         name = "Twitter";
         url = "https://x.com";
         icon = "twitter";
-        # templateProfile = baseProfile;
+
+        # Custom Search Engine
+        search = {
+          name = "Twitter";
+          url = "https://x.com/search?q={searchTerms}&src=typed_query";
+        };
+
         extensions = [
           exts.ublock
           exts.keepass
