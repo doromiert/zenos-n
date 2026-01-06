@@ -1,4 +1,4 @@
-{ config, ... }:
+{ config, pkgs, ... }:
 
 {
 
@@ -22,4 +22,7 @@
     SearchInAllDatabases=true
   '';
 
+  home.packages = with pkgs; [
+    keepassxc
+  ];
 }

@@ -29,8 +29,14 @@ let
     sha256 = "sha256-0E3TqvXAy81qeM/jZXWWOTZ14Hs1RT7o78UyZM+Jbr4=";
   };
 
+  # [FIX] Import from the subdirectory so relative paths in the theme work
   customChromeCss = pkgs.writeText "userChrome.css" ''
     @import "gnome-theme/userChrome.css";
+  '';
+
+  # [FIX] Added wrapper for userContent.css to maintain relative path integrity
+  customContentCss = pkgs.writeText "userContent.css" ''
+    @import "gnome-theme/userContent.css";
   '';
 
   # ============================================================================
@@ -209,8 +215,9 @@ in
         [ -d "$pwa_root" ] || continue
         mkdir -p "$pwa_root/chrome"
         ln -sfn /etc/firefox/custom/userChrome.css "$pwa_root/chrome/" || true
-        ln -sfn /etc/firefox/gnome-theme/userContent.css "$pwa_root/chrome/" || true
-        ln -sfn /etc/firefox/gnome-theme/theme "$pwa_root/chrome/" || true
+        # Update PWA injection to match new path structure if needed
+        # But generally PWAs might need the whole folder linked too
+        ln -sfn /etc/firefox/gnome-theme "$pwa_root/chrome/" || true
       done
     '';
   };
@@ -347,8 +354,10 @@ in
 
         home.file = {
           ".mozilla/firefox/default/chrome/userChrome.css".source = customChromeCss;
-          ".mozilla/firefox/default/chrome/userContent.css".source = "${gnomeThemeRepo}/userContent.css";
-          ".mozilla/firefox/default/chrome/gnome-theme".source = "${gnomeThemeRepo}/theme";
+          ".mozilla/firefox/default/chrome/userContent.css".source = customContentCss;
+          # [FIX] Source must be the WHOLE repo so userChrome.css exists in the subdir,
+          # and so relative imports in userContent.css (like @import "theme/...") work correctly.
+          ".mozilla/firefox/default/chrome/gnome-theme".source = gnomeThemeRepo;
         };
       }
     )

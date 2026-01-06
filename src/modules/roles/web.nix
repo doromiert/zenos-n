@@ -5,7 +5,6 @@
 
 let
   # --- 1. EXTENSION DEFINITIONS ---
-  # These are the extensions that will be forced for every Home Manager user's main profile.
   extensions = {
     ublock = {
       id = "uBlock0@raymondhill.net";
@@ -25,130 +24,130 @@ let
     };
   };
 
-  # Helper to lock preferences in the NixOS global policy
+  # Helper to lock preferences
   lock = value: {
     Value = value;
     Status = "locked";
   };
 in
 {
-  # --- NIXOS LEVEL CONFIG ---
-  programs.firefox = {
-    enable = true;
-    nativeMessagingHosts.packages = [
-      pkgs.firefoxpwa
-      pkgs.keepassxc
-    ];
+  # --- SYSTEM CLEANUP ---
+  # We REMOVED the system-level programs.firefox block.
+  # This prevents NixOS from installing a "clean" Firefox that shadows
+  # the Home Manager "wrapped" Firefox (which has the policies).
+  #
+  # Since nixpwamaker uses pkgs.firefox directly (unwrapped), it doesn't need
+  # Firefox installed in the system profile to work.
 
-    # --- GLOBAL POLICIES (System-Wide) ---
-    # These apply to ALL Firefox instances (Main + PWAs).
-    # We only keep non-conflicting settings here.
-    policies = {
-      DisableTelemetry = true;
-      DisableFirefoxStudies = true;
-      DisableAppUpdate = true;
-      DisableFirefoxAccounts = true;
-      DisableAccounts = true;
-      DisablePocket = true;
-      OfferToSaveLogins = false;
-      PasswordManagerEnabled = false;
-      DisplayBookmarksToolbar = "never";
-      DisplayMenuBar = "default-off";
-      DontCheckDefaultBrowser = true;
-      SearchBar = "unified";
-      SearchEnginesDefault = "DuckDuckGo";
-
-      # [!] ExtensionSettings are MOVED to the Home Manager module below.
-      # This allows PWAs to define their own isolated extension sets.
-
-      EnableTrackingProtection = {
-        Value = true;
-        Locked = true;
-        Cryptomining = true;
-        Fingerprinting = true;
-      };
-
-      DNSOverHTTPS = {
-        Enabled = true;
-        ProviderURL = "https://mozilla.cloudflare-dns.com/dns-query";
-        Locked = true;
-      };
-
-      UserMessaging = {
-        ExtensionRecommendations = false;
-        FeatureRecommendations = false;
-        MoreFromMozilla = false;
-        SkipOnboarding = true;
-        WhatsNew = false;
-      };
-
-      Preferences = {
-        # Core Privacy
-        "browser.contentblocking.category" = lock "standard";
-        "browser.formfill.enable" = lock false;
-        "browser.search.suggest.enabled" = lock false;
-        "middlemouse.paste" = lock false;
-        "general.autoScroll" = lock true;
-
-        # Extension Scopes
-        "extensions.autoDisableScopes" = lock 0;
-        "extensions.enabledScopes" = lock 15;
-        "xpinstall.signatures.required" = lock false;
-        "extensions.langpacks.signatures.required" = lock false;
-
-        # Rendering & Performance
-        "gfx.webrender.all" = lock true;
-        "layers.acceleration.force-enabled" = lock true;
-
-        # Font & Typography
-        "font.name.sans-serif.x-western" = lock "Atkinson Hyperlegible Next";
-        "font.default.x-western" = lock "sans-serif";
-        "font.size.variable.x-western" = lock 15;
-
-        # Anti-Sponsored Features
-        "browser.newtabpage.activity-stream.showSponsored" = lock false;
-        "browser.newtabpage.activity-stream.showSponsoredTopSites" = lock false;
-        "browser.newtabpage.activity-stream.feeds.section.topstories" = lock false;
-        "browser.newtabpage.activity-stream.feeds.opsouth" = lock false;
-        "browser.newtabpage.activity-stream.section.highlights.includePocket" = lock false;
-        "browser.topsites.contile.enabled" = lock false;
-
-        # AI Integration
-        "browser.ml.enable" = lock true;
-        "browser.ml.chat.enabled" = lock true;
-        "browser.ml.chat.sidebar" = lock true;
-
-        # GNOME Theme & UI Integration
-        "toolkit.legacyUserProfileCustomizations.stylesheets" = lock true;
-        "svg.context-properties.content.enabled" = lock true;
-        "widget.gtk.rounded-bottom-corners.enabled" = lock true;
-        "gnomeTheme.hideSingleTab" = lock true;
-        "gnomeTheme.normalWidthTabs" = lock false;
-        "gnomeTheme.bookmarksToolbarUnderTabs" = lock true;
-        "browser.uidensity" = lock 1;
-        "browser.tabs.drawInTitlebar" = lock true;
-      };
-    };
-  };
-
-  # --- HOME MANAGER SHARED MODULE ---
-  # This injects the extensions into every Home Manager user's main profile.
-  # This is "safe" because it doesn't force these extensions globally via /etc/,
-  # ensuring your PWAs can finally have their own unique extension lists.
+  # --- HOME MANAGER LEVEL (User Specific) ---
+  # This configures the "Main" browser instance for all HM users.
   home-manager.sharedModules = [
     {
-      programs.firefox.policies.ExtensionSettings = builtins.listToAttrs (
-        map (ext: {
-          name = ext.id;
-          value = {
-            install_url = ext.url;
-            installation_mode = "force_installed";
-            default_area = "menupanel";
+      # Add necessary packages for PWA management command line usage
+      home.packages = [ pkgs.firefoxpwa ];
+
+      programs.firefox = {
+        enable = true;
+
+        # [CRITICAL] This package definition ensures HM builds a wrapped binary
+        # that includes the policies defined below.
+        package = pkgs.firefox;
+
+        # Define Native Messaging Hosts here so they work with the user wrapper
+        nativeMessagingHosts = [
+          pkgs.firefoxpwa
+          pkgs.keepassxc
+        ];
+
+        policies = {
+          # --- EXTENSIONS ---
+          ExtensionSettings = builtins.listToAttrs (
+            map (ext: {
+              name = ext.id;
+              value = {
+                install_url = ext.url;
+                installation_mode = "force_installed";
+                default_area = "menupanel";
+              };
+            }) (builtins.attrValues extensions)
+          );
+
+          # --- SEARCH ENGINES ---
+          SearchEngines = {
+            Default = "DuckDuckGo";
+            PreventInstalls = false;
           };
-        }) (builtins.attrValues extensions)
-      );
+
+          # --- PRIVACY & SETTINGS ---
+          DisableTelemetry = true;
+          DisableFirefoxStudies = true;
+          DisableAppUpdate = true;
+          DisableFirefoxAccounts = true;
+          DisableAccounts = true;
+          DisablePocket = true;
+          OfferToSaveLogins = false;
+          PasswordManagerEnabled = false;
+          DisplayBookmarksToolbar = "never";
+          DisplayMenuBar = "default-off";
+          DontCheckDefaultBrowser = true;
+          SearchBar = "unified";
+
+          EnableTrackingProtection = {
+            Value = true;
+            Locked = true;
+            Cryptomining = true;
+            Fingerprinting = true;
+          };
+
+          DNSOverHTTPS = {
+            Enabled = true;
+            ProviderURL = "https://mozilla.cloudflare-dns.com/dns-query";
+            Locked = true;
+          };
+
+          UserMessaging = {
+            ExtensionRecommendations = false;
+            FeatureRecommendations = false;
+            MoreFromMozilla = false;
+            SkipOnboarding = true;
+            WhatsNew = false;
+          };
+
+          Preferences = {
+            "browser.contentblocking.category" = lock "standard";
+            "browser.formfill.enable" = lock false;
+            "browser.search.suggest.enabled" = lock false;
+            "middlemouse.paste" = lock false;
+            "general.autoScroll" = lock true;
+            "extensions.autoDisableScopes" = lock 0;
+            "extensions.enabledScopes" = lock 15;
+            "xpinstall.signatures.required" = lock false;
+            "extensions.langpacks.signatures.required" = lock false;
+            "gfx.webrender.all" = lock true;
+            "layers.acceleration.force-enabled" = lock true;
+            "font.name.sans-serif.x-western" = lock "Atkinson Hyperlegible Next";
+            "font.default.x-western" = lock "sans-serif";
+            "font.size.variable.x-western" = lock 15;
+            "browser.newtabpage.activity-stream.showSponsored" = lock false;
+            "browser.newtabpage.activity-stream.showSponsoredTopSites" = lock false;
+            "browser.newtabpage.activity-stream.feeds.section.topstories" = lock false;
+            "browser.newtabpage.activity-stream.feeds.opsouth" = lock false;
+            "browser.newtabpage.activity-stream.section.highlights.includePocket" = lock false;
+            "browser.topsites.contile.enabled" = lock false;
+            "browser.ml.enable" = lock true;
+            "browser.ml.chat.enabled" = lock true;
+            "browser.ml.chat.sidebar" = lock true;
+            "toolkit.legacyUserProfileCustomizations.stylesheets" = lock true;
+            "svg.context-properties.content.enabled" = lock true;
+            "widget.gtk.rounded-bottom-corners.enabled" = lock true;
+            "gnomeTheme.hideSingleTab" = lock true;
+            "gnomeTheme.normalWidthTabs" = lock false;
+            "gnomeTheme.bookmarksToolbarUnderTabs" = lock true;
+            "browser.uidensity" = lock 1;
+            "browser.tabs.drawInTitlebar" = lock true;
+          };
+        };
+      };
     }
   ];
-
-  # [!] Obsolete variables and activation scripts for pwamaker.py have been removed.
 }
