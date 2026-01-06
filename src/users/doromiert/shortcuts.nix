@@ -11,26 +11,26 @@
       activate-window-menu = [ "<Alt>space" ];
 
       # [CONFLICT REMOVAL]
-      # Disable default Gnome tiling keys (Win+Arrows) to prevent interference with Forge
+      # Disable default Gnome tiling keys to prevent interference with Forge
       maximize = [ ];
       unmaximize = [ ];
 
-      # Workspaces
-      switch-to-workspace-left = [ "<Super><Control>Left" ];
-      switch-to-workspace-right = [ "<Super><Control>Right" ];
-      move-to-workspace-left = [ "<Super><Control><Shift>Left" ];
-      move-to-workspace-right = [ "<Super><Control><Shift>Right" ];
+      # Workspaces (HJKL)
+      switch-to-workspace-left = [ "<Super><Control>h" ];
+      switch-to-workspace-right = [ "<Super><Control>l" ];
+      move-to-workspace-left = [ "<Super><Control><Shift>h" ];
+      move-to-workspace-right = [ "<Super><Control><Shift>l" ];
 
-      # Monitors
-      move-to-monitor-left = [ "<Super><Alt>Left" ];
-      move-to-monitor-right = [ "<Super><Alt>Right" ];
+      # Monitors (HJKL)
+      move-to-monitor-left = [ "<Super><Alt>h" ];
+      move-to-monitor-right = [ "<Super><Alt>l" ];
 
       # Input
       switch-input-source = [ "<Super>space" ];
       switch-input-source-backward = [ "<Shift><Super>space" ];
     };
 
-    # [CONFLICT REMOVAL] Disable side tiling (Win+Left/Right)
+    # [CONFLICT REMOVAL] Disable side tiling
     "org/gnome/mutter/keybindings" = {
       toggle-tiled-left = [ ];
       toggle-tiled-right = [ ];
@@ -43,6 +43,9 @@
 
     # --- Custom Keybindings (Apps) ---
     "org/gnome/settings-daemon/plugins/media-keys" = {
+      # [FIX] Remap Lock Screen to avoid conflict with <Super>l (Focus Right)
+      screensaver = [ "<Super>Escape" ];
+
       custom-keybindings = [
         "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/"
         "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/"
@@ -82,7 +85,7 @@
       toggle-menu = [ "<Control><Super>v" ];
     };
 
-    # Forge (Tiling)
+    # Forge (Tiling) - HJKLified
     "org/gnome/shell/extensions/forge/keybindings" = {
       con-split-horizontal = [ ];
       con-split-layout-toggle = [ ];
@@ -93,16 +96,22 @@
       focus-border-toggle = [ ];
       prefs-open = [ ];
       prefs-tiling-toggle = [ ];
-      window-focus-down = [ "<Super>Down" ];
-      window-focus-left = [ "<Super>Left" ];
-      window-focus-right = [ "<Super>Right" ];
-      window-focus-up = [ "<Super>Up" ];
+
+      # Focus (HJKL)
+      window-focus-left = [ "<Super>h" ];
+      window-focus-down = [ "<Super>j" ];
+      window-focus-up = [ "<Super>k" ];
+      window-focus-right = [ "<Super>l" ];
+
       window-gap-size-decrease = [ ];
       window-gap-size-increase = [ ];
-      window-move-down = [ "<Shift><Super>Down" ];
-      window-move-left = [ "<Shift><Super>Left" ];
-      window-move-right = [ "<Shift><Super>Right" ];
-      window-move-up = [ "<Shift><Super>Up" ];
+
+      # Move (Shift + HJKL)
+      window-move-left = [ "<Shift><Super>h" ];
+      window-move-down = [ "<Shift><Super>j" ];
+      window-move-up = [ "<Shift><Super>k" ];
+      window-move-right = [ "<Shift><Super>l" ];
+
       window-resize-bottom-decrease = [ ];
       window-resize-bottom-increase = [ ];
       window-resize-left-decrease = [ ];
@@ -127,7 +136,7 @@
     };
   };
 
-  # --- VS Code Keybindings (Merged from keybindings.json) ---
+  # --- VS Code Keybindings ---
   programs.vscode.keybindings = [
     # NAVIGATION
     {
@@ -184,6 +193,11 @@
       command = "workbench.action.newWindow";
       when = "!explorerViewletFocus";
     }
+
+    {
+      key = "ctrl+w";
+      command = "workbench.action.closeActiveEditor";
+    }
     {
       command = "deleteFile";
       key = "d";
@@ -193,6 +207,15 @@
     {
       key = "ctrl+shift+5";
       command = "editor.emmet.action.matchTag";
+    }
+    {
+      # [FIXED] Changed to avoid conflict with Undo (Ctrl+Z)
+      key = "ctrl+alt+z";
+      command = "workbench.action.toggleZenMode";
+    }
+    {
+      key = "ctrl+shift+c";
+      command = "workbench.action.toggleMaximizeEditorGroup";
     }
   ];
 }
