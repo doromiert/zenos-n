@@ -1,44 +1,148 @@
+#!/usr/bin/env bash
+
+# ## [ -0 ] ZENOS REBUILD TOOL
+# Wrapper for nixos-rebuild with Tmux safety, notifications, and resource optimization.
+
 set -e
 
-        # ==========================================
-        # zenos-rebuild (Safe Mode)
-        # ==========================================
+# --- Configuration & Colors ---
+BLUE='\033[0;34m'
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+YELLOW='\033[0;33m'
+NC='\033[0m'
+
+SESSION_NAME="zenos-rebuild"
+
+# --- Notification Helper ---
+notify() {
+    local title="$1"
+    local message="$2"
+    local urgency="$3"
+    
+    # Send desktop notification if available
+    if command -v notify-send &> /dev/null; then
+        notify-send -u "$urgency" -a "ZenOS Rebuild" "$title" "$message" 2>/dev/null || true
+    fi
+}
+
+# --- 1. Tmux Safety Check ---
+# If we are not inside tmux, re-launch self inside tmux
+if [ -z "$TMUX" ]; then
+    echo -e "${YELLOW}[Safety] Not in Tmux. Launching safe-mode session...${NC}"
+    
+    if tmux has-session -t "$SESSION_NAME" 2>/dev/null; then
+        exec tmux attach-session -t "$SESSION_NAME"
+    else
+        # [FIX] Create detached session first to configure it
+        tmux new-session -d -s "$SESSION_NAME"
         
-        SESSION_NAME="zenos-rebuild"
-        FLAKE_DIR="~/Projects/zenos-n"
-        FLAGS="--show-trace"
+        # [FIX] Enable Mouse (Scrolling) and increase History Limit
+        tmux set-option -t "$SESSION_NAME" mouse on
+        tmux set-option -t "$SESSION_NAME" history-limit 50000
+        
+        # Send the command to the session
+        # [FIX] Added '; exit' to ensure the pane/session closes after user input
+        tmux send-keys -t "$SESSION_NAME" "bash $0 $*; echo -e '\nPress Enter to exit...'; read; exit" C-m
+        
+        # Attach to the configured session
+        exec tmux attach-session -t "$SESSION_NAME"
+    fi
+fi
 
-        # 1. Validation: Ensure the flake actually exists at the target path
-        if [ ! -f "$FLAKE_DIR/flake.nix" ]; then
-          echo "❌ Error: No flake.nix found at $FLAKE_DIR"
-          echo "   Please edit 'flakeDir' in zenos-rebuild.nix to match your repo location."
-          exit 1
-        fi
+# --- 2. Resource Optimization (From Installer) ---
+# Calculate cores to prevent UI freeze during heavy compiles
+TOTAL_CORES=$(nproc)
+# Reserve 2 cores for system responsiveness, minimum 1
+MAX_JOBS=$((TOTAL_CORES - 2))
+[ $MAX_JOBS -lt 1 ] && MAX_JOBS=1
+# Limit per-job cores to keep context switching low
+CORES_PER_JOB=2
 
-        # 2. Check if we are already inside the safety session
-        if [ -n "$TMUX" ]; then
-            echo "🛡️  Inside Safe Session. Starting Rebuild..."
-            
-            # Move to HOME to ensure we aren't in a restrictive path
-            cd "$HOME"
-            
-            # Run the rebuild
-            sudo nixos-rebuild switch --flake "$FLAKE_DIR" $FLAGS
-            
-            echo "✅ Rebuild Complete."
-        else
-            echo "🚀 Launching Safe Rebuild Session..."
-            
-            if tmux has-session -t "$SESSION_NAME" 2>/dev/null; then
-                echo "   Attached to running session..."
-                tmux attach-session -t "$SESSION_NAME"
-            else
-                # Complex command to run inside tmux:
-                # 1. cd Home
-                # 2. Run Rebuild
-                # 3. Pause for user to read logs
-                CMD="cd $HOME; sudo nixos-rebuild switch --flake \"$FLAKE_DIR\" $FLAGS; echo '--------------------------------'; echo 'Press Enter to close session...'; read"
-                
-                tmux new-session -s "$SESSION_NAME" "$CMD"
-            fi
-    fi 
+# --- 3. Host & Flake Detection ---
+TARGET_HOST=$(hostname)
+FLAKE_PATH=""
+FORCE_HOST=""
+
+# Argument Parsing
+while [[ $# -gt 0 ]]; do
+    key="$1"
+    case $key in
+        -h|--host)
+        FORCE_HOST="$2"
+        shift 2
+        ;;
+        -d|--dir)
+        FLAKE_PATH="$2"
+        shift 2
+        ;;
+        *)
+        # Pass unknown args to nixos-rebuild? 
+        break
+        ;;
+    esac
+done
+
+if [ -n "$FORCE_HOST" ]; then
+    TARGET_HOST="$FORCE_HOST"
+fi
+
+# Locate Flake
+if [ -n "$FLAKE_PATH" ]; then
+    # User specified path
+    if [ ! -f "$FLAKE_PATH/flake.nix" ]; then
+        echo -e "${RED}[!] Error: No flake.nix found at $FLAKE_PATH${NC}"
+        notify "Error" "No flake.nix found at $FLAKE_PATH" "critical"
+        exit 1
+    fi
+elif [ -f "$PWD/flake.nix" ]; then
+    FLAKE_PATH="$PWD"
+elif [ -f "$HOME/zenos-config/flake.nix" ]; then
+    FLAKE_PATH="$HOME/zenos-config"
+elif [ -f "/etc/nixos/flake.nix" ]; then
+    FLAKE_PATH="/etc/nixos"
+else
+    echo -e "${RED}[!] Error: Could not locate flake.nix${NC}"
+    notify "Error" "Could not locate flake.nix in PWD, ~/zenos-config, or /etc/nixos." "critical"
+    exit 1
+fi
+
+FLAKE_URI="${FLAKE_PATH}#${TARGET_HOST}"
+
+# --- 4. Execution ---
+notify "Rebuild Started" "Target: $TARGET_HOST" "normal"
+
+echo -e "${BLUE}========================================${NC}"
+echo -e "  ${GREEN}ZenOS Rebuild${NC}"
+echo -e "  Target: ${YELLOW}${FLAKE_URI}${NC}"
+echo -e "  Optimization: ${YELLOW}-j${MAX_JOBS} -c${CORES_PER_JOB}${NC}"
+echo -e "${BLUE}========================================${NC}"
+
+# Temporarily disable 'set -e' to capture exit code manually
+set +e
+
+# Run the build directly.
+# We avoid wrapping it in 'if' to ensure stdout/stderr pipes behave exactly like standard shell.
+sudo nixos-rebuild switch \
+    --flake "$FLAKE_URI" \
+    --show-trace \
+    --print-build-logs \
+    --option max-jobs "$MAX_JOBS" \
+    --option cores "$CORES_PER_JOB" \
+    --option accept-flake-config true
+
+EXIT_CODE=$?
+
+# Re-enable strict mode (optional, but good practice)
+set -e
+
+echo -e "${BLUE}========================================${NC}"
+
+if [ $EXIT_CODE -eq 0 ]; then
+    notify "Rebuild Complete" "System switched successfully." "normal"
+    echo -e "${GREEN}SUCCESS: System updated.${NC}"
+else
+    notify "Rebuild Failed" "Check the terminal logs for details." "critical"
+    echo -e "${RED}FAILURE: Rebuild encountered errors (Exit Code: $EXIT_CODE).${NC}"
+    exit $EXIT_CODE
+fi

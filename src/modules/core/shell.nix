@@ -13,6 +13,18 @@ let
   );
 in
 {
+  security.sudo.extraRules = [
+    {
+      groups = [ "zenos-rebuild" ];
+      commands = [
+        {
+          command = "/run/current-system/sw/bin/nixos-rebuild";
+          options = [ "NOPASSWD" ];
+        }
+      ];
+    }
+  ];
+  users.groups.zenos-rebuild = { };
 
   programs.zsh = {
     enable = true;

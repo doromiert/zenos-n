@@ -8,6 +8,7 @@
     extraGroups = [
       "wheel"
       "networkmanager"
+      "zenos-rebuild"
     ];
     shell = pkgs.zsh;
     initialPassword = "setmelater";
@@ -19,7 +20,7 @@
     home.stateVersion = "25.11";
 
     home.file = {
-      ".config/zsh".source = ./resources/p10k.zsh;
+      ".p10k.zsh".source = ./resources/p10k.zsh;
       # ".local/bin".source = ./bin;
     };
 

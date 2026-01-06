@@ -143,6 +143,7 @@ in
           "org/gnome/desktop/interface" = {
             color-scheme = "prefer-dark";
             enable-hot-corners = false;
+            gtk-enable-primary-paste = false;
           };
 
           "org/gnome/shell" = {
