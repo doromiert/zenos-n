@@ -10,7 +10,10 @@
         80
         443
       ]; # SSH, HTTP, HTTPS
-      allowedUDPPorts = [ 53 ]; # DNS
+      allowedUDPPorts = [
+        53
+        5000
+      ];
     };
   };
   security = {
