@@ -31,36 +31,23 @@ let
   };
 in
 {
-  # --- SYSTEM CLEANUP ---
-  # We REMOVED the system-level programs.firefox block.
-  # This prevents NixOS from installing a "clean" Firefox that shadows
-  # the Home Manager "wrapped" Firefox (which has the policies).
-  #
-  # Since nixpwamaker uses pkgs.firefox directly (unwrapped), it doesn't need
-  # Firefox installed in the system profile to work.
-
   # --- HOME MANAGER LEVEL (User Specific) ---
-  # This configures the "Main" browser instance for all HM users.
   home-manager.sharedModules = [
     {
-      # Add necessary packages for PWA management command line usage
-      home.packages = [ pkgs.firefoxpwa ];
+      # Removed firefoxpwa package as requested
 
+      # --- 1. Standard Firefox Configuration ---
       programs.firefox = {
         enable = true;
-
-        # [CRITICAL] This package definition ensures HM builds a wrapped binary
-        # that includes the policies defined below.
         package = pkgs.firefox;
 
-        # Define Native Messaging Hosts here so they work with the user wrapper
+        # This links the manifest to ~/.mozilla/native-messaging-hosts/
+        # Standard Firefox looks here by default.
         nativeMessagingHosts = [
-          pkgs.firefoxpwa
           pkgs.keepassxc
         ];
 
         policies = {
-          # --- EXTENSIONS ---
           ExtensionSettings = builtins.listToAttrs (
             map (ext: {
               name = ext.id;
@@ -72,13 +59,11 @@ in
             }) (builtins.attrValues extensions)
           );
 
-          # --- SEARCH ENGINES ---
           SearchEngines = {
             Default = "DuckDuckGo";
             PreventInstalls = false;
           };
 
-          # --- PRIVACY & SETTINGS ---
           DisableTelemetry = true;
           DisableFirefoxStudies = true;
           DisableAppUpdate = true;
@@ -145,7 +130,27 @@ in
             "gnomeTheme.bookmarksToolbarUnderTabs" = lock true;
             "browser.uidensity" = lock 1;
             "browser.tabs.drawInTitlebar" = lock true;
+            "browser.ctrlTab.sortByRecentlyUsed" = lock true;
           };
+        };
+      };
+
+      # --- 2. PWA Maker Configuration ---
+      programs.pwamaker = {
+        enable = true;
+
+        # [CRITICAL] We must pass KeePassXC here so the PWA wrapper
+        # gets the MOZ_NATIVE_MESSAGING_HOSTS env var injected.
+        nativeMessagingHosts = [ pkgs.keepassxc ];
+
+        dispatcher = {
+          enable = true;
+          fallbackBrowser = "firefox";
+        };
+
+        # Example app definitions (keep your existing ones or modify as needed)
+        apps = {
+          # ... your apps here ...
         };
       };
     }

@@ -20,6 +20,12 @@ in
     enable = true;
     firefoxGnomeTheme = inputs.firefox-gnome-theme;
 
+    # [NEW] Enable the internal Dispatcher
+    dispatcher = {
+      enable = true;
+      fallbackBrowser = "firefox"; # Matches your global firefox binary name
+    };
+
     apps = {
       youtube = {
         id = "youtube";
@@ -50,6 +56,11 @@ in
           "google"
           "stream"
         ];
+        # Optional: Force YouTube links to open here too
+        openUrls = [
+          "youtube.com"
+          "youtu.be"
+        ];
       };
 
       github = {
@@ -77,6 +88,9 @@ in
           "github"
           "gh"
           "code"
+        ];
+        openUrls = [
+          "github.com"
         ];
       };
 
@@ -114,6 +128,9 @@ in
         layoutEnd = [
           "addons"
         ];
+        openUrls = [
+          "figma.com"
+        ];
       };
 
       twitter = {
@@ -140,6 +157,11 @@ in
           "social"
           "media"
           "x"
+        ];
+        # [NEW] This captures x.com and twitter.com links!
+        openUrls = [
+          "x.com"
+          "twitter.com"
         ];
         # Split layout around the tabs
         layoutStart = [
@@ -173,6 +195,10 @@ in
           "llm"
           "google"
         ];
+        openUrls = [
+          "gemini.google.com"
+          "aistudio.google.com"
+        ];
       };
 
       syncthing = {
@@ -189,6 +215,10 @@ in
           "sync"
           "backup"
           "p2p"
+        ];
+        openUrls = [
+          "localhost:8384"
+          "127.0.0.1:8384"
         ];
       };
     };

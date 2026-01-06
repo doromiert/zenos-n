@@ -26,7 +26,7 @@ RELOAD_REQUESTED=false
 destroy_zbridge_nodes() {
     echo ":: [Cleanup] Wiping residual ZeroBridge nodes..."
     # Fetch all node names and filter for ours, then destroy by name
-    # We use pw-link -ports to get names reliably without jq
+    # We use pw-link -ports to get names reliably without 
     for name in "$NODE_IN" "$NODE_OUT" "$NODE_MIC"; do
         if pw-link --ports | grep -q "^$name:"; then
             echo ":: [Cleanup] Destroying $name..."
@@ -49,6 +49,7 @@ reload_config() {
     RELOAD_REQUESTED=true
     [[ -n "$SCRCPY_PID" ]] && kill -TERM "$SCRCPY_PID" 2>/dev/null
     [[ -n "$BROADCAST_PID" ]] && kill "$BROADCAST_PID" 2>/dev/null
+    force_route_loop
 }
 
 trap cleanup SIGINT SIGTERM EXIT

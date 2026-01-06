@@ -68,6 +68,10 @@
             };
             memberCount.enable = true;
             showHiddenThings.enable = true;
+            PinDMs = {
+              canCollapseDmSection = true;
+
+            };
 
             # Privacy & Utility
             callTimer.enable = true;
@@ -78,6 +82,7 @@
             vencordToolbox.enable = true;
             webKeybinds.enable = true;
             webScreenShareFixes.enable = true;
+            youtubeAdblock.enable = true;
 
             # Custom RPC
             CustomRPC = {

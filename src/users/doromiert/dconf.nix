@@ -6,8 +6,38 @@
 }:
 
 let
-  mkUint32 = lib.hm.gvariant.mkUint32;
-  mkTuple = lib.hm.gvariant.mkTuple;
+  inherit (lib.hm.gvariant)
+    mkArray
+    mkVariant
+    mkTuple
+    mkUint32
+    ;
+
+  # Helper to create the nested variant structure: <{'position': <n>}>
+  # The 'position' value inside is also a variant.
+  mkPos =
+    p:
+    mkVariant (
+      mkArray "{sv}" [
+        (mkTuple [
+          "position"
+          (mkVariant p)
+        ])
+      ]
+    );
+
+  # 2. Dictionary Entry: ("app.id", <val>)
+  # A GVariant dictionary entry is strictly a Tuple.
+  mkEntry =
+    name: pos:
+    mkTuple [
+      name
+      (mkPos pos)
+    ];
+
+  # 3. Page: A Dictionary (Array of Entries)
+  # Type "{sv}" denotes a dictionary entry.
+  mkPage = entries: mkArray "{sv}" entries;
 in
 {
   # Provision the Burn My Windows profile
@@ -49,6 +79,14 @@ in
 
   # Use the native dconf module for standard/simple GNOME settings
   dconf.settings = {
+    "org/gnome/desktop" = {
+      app-folders = [
+        "System"
+        "YaST"
+        "Pardus"
+        "d4b55352-0853-4306-9cb0-4b01a00a9537"
+      ];
+    };
     "org/gnome/shell" = {
 
       favorite-apps = [
