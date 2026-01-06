@@ -15,6 +15,7 @@
         ./shortcuts.nix
         ./dconf.nix
         ./pwa.nix
+        ./keepass.nix
         inputs.nixcord.homeModules.nixcord
       ];
       #home.file.".config/forge/config/windows.json".source = ./resources/windows.json;
