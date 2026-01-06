@@ -49,7 +49,21 @@ in
 
   # Use the native dconf module for standard/simple GNOME settings
   dconf.settings = {
+    "org/gnome/shell" = {
 
+      favorite-apps = [
+        "firefox.desktop"
+        "discord.desktop"
+        "org.telegram.desktop.desktop"
+        "figma.desktop"
+        "code.desktop"
+        "org.gnome.Nautilus.desktop"
+        "com.raggesilver.BlackBox.desktop"
+        "steam.desktop"
+        "obsidian.desktop"
+        "gemini.desktop"
+      ];
+    };
     # --- Alphabetical App Grid ---
     "org/gnome/shell/extensions/alphabetical-app-grid" = {
       folder-order-position = "end";

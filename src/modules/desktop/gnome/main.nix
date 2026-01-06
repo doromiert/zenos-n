@@ -150,10 +150,9 @@ in
             enabled-extensions = map (ext: ext.extensionUuid) extensions;
 
             favorite-apps = [
-              "nautilus.desktop"
+              "firefox.desktop"
               "org.gnome.Nautilus.desktop"
               "com.raggesilver.BlackBox.desktop"
-              "org.gnome.Epiphany.desktop"
             ];
           };
         };
