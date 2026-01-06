@@ -39,6 +39,12 @@
           "vim.useSystemClipboard" = true;
           "vim.hlsearch" = true;
           "editor.selectionClipboard" = false;
+          # [ADDED] Visual Navigation Plugins
+          # 'easymotion' highlights all possible targets for a motion (like 'fs') with a key to jump to.
+          # Usage: <Leader><Leader> + f + <char>
+          "vim.easymotion" = true;
+          # 'sneak' allows jumping to any location specified by two characters (like 'st')
+          "vim.sneak" = true;
 
           # JSON Configs
           "editor.formatOnSave" = true;
@@ -51,9 +57,9 @@
           "workbench.statusBar.visible" = true;
           "editor.minimap.enabled" = false;
           "breadcrumbs.enabled" = false;
-          # "workbench.iconTheme" = "material-icon-theme";
+
           "update.showReleaseNotes" = false;
-          "workbench.activityBar.visible" = false;
+          "workbench.activityBar.visible" = true;
           "zenMode.hideLineNumbers" = false;
           "zenMode.hideTabs" = false;
           "editor.lineNumbers" = "relative";

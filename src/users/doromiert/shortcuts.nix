@@ -5,9 +5,15 @@
     # --- System Shortcuts ---
     "org/gnome/desktop/wm/keybindings" = {
       close = [ "<Super>q" ];
-      toggle-maximized = [ "<Super>w" ];
+      # [RESIZING] Updated to Ctrl+Shift+C per user request
+      toggle-maximized = [ "<Control><Shift>c" ];
       minimize = [ "<Super>Page_Down" ];
       activate-window-menu = [ "<Alt>space" ];
+
+      # [CONFLICT REMOVAL]
+      # Disable default Gnome tiling keys (Win+Arrows) to prevent interference with Forge
+      maximize = [ ];
+      unmaximize = [ ];
 
       # Workspaces
       switch-to-workspace-left = [ "<Super><Control>Left" ];
@@ -22,6 +28,12 @@
       # Input
       switch-input-source = [ "<Super>space" ];
       switch-input-source-backward = [ "<Shift><Super>space" ];
+    };
+
+    # [CONFLICT REMOVAL] Disable side tiling (Win+Left/Right)
+    "org/gnome/mutter/keybindings" = {
+      toggle-tiled-left = [ ];
+      toggle-tiled-right = [ ];
     };
 
     "org/gnome/shell/keybindings" = {
@@ -181,10 +193,6 @@
     {
       key = "ctrl+shift+5";
       command = "editor.emmet.action.matchTag";
-    }
-    {
-      key = "ctrl+z";
-      command = "workbench.action.toggleZenMode";
     }
   ];
 }
