@@ -12,6 +12,8 @@
       ]; # SSH, HTTP, HTTPS
       allowedUDPPorts = [
         53
+        5002
+        5001
         5000
       ];
       allowedTCPPortRanges = [

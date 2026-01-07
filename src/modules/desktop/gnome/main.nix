@@ -36,6 +36,10 @@ let
   ]
   ++ (with pkgs.gnomeExtensions; [
     # Window Management
+    app-hider
+    undecorate
+    hide-minimized
+    hide-cursor
     burn-my-windows
     compiz-windows-effect
     compiz-alike-magic-lamp-effect

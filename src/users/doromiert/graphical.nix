@@ -82,12 +82,19 @@
           "vim.normalModeKeyBindingsNonRecursive" = [
             # NAVIGATION
             # switch b/w buffers
+            # Change these in vim.normalModeKeyBindingsNonRecursive
             {
-              before = [ "<S-h>" ];
+              before = [
+                "<leader>"
+                "h"
+              ]; # instead of <S-h>
               commands = [ ":bprevious" ];
             }
             {
-              before = [ "<S-l>" ];
+              before = [
+                "<leader>"
+                "l"
+              ]; # instead of <S-l>
               commands = [ ":bnext" ];
             }
 
@@ -214,14 +221,14 @@
               commands = [ "editor.action.indentLines" ];
             }
             # Move selected lines while staying in visual mode
-            {
-              before = [ "J" ];
-              commands = [ "editor.action.moveLinesDownAction" ];
-            }
-            {
-              before = [ "K" ];
-              commands = [ "editor.action.moveLinesUpAction" ];
-            }
+            # {
+            #   before = [ "J" ];
+            #   commands = [ "editor.action.moveLinesDownAction" ];
+            # }
+            # {
+            #   before = [ "K" ];
+            #   commands = [ "editor.action.moveLinesUpAction" ];
+            # }
             # toggle comment selection
             {
               before = [

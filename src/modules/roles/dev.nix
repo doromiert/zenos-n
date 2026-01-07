@@ -5,6 +5,8 @@
   environment.systemPackages = [
     pkgs.nixd
     pkgs.nixfmt-rfc-style
+    pkgs.android-tools
+    pkgs.scrcpy
   ];
 
   # -- Flatpak Dev Tools --

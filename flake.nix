@@ -26,6 +26,11 @@
     illogical-impulse.url = "github:soymou/illogical-flake";
 
     swisstag.url = "github:doromiert/swisstag";
+    zbridge = {
+      url = "github:doromiert/zerobridge";
+      # url = "path:/home/doromiert/Projects/zerobridge";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     # External PWA Maker Module
     nixpwamaker = {
@@ -150,6 +155,7 @@
                   home-manager.sharedModules = [
                     # Use the module from the flake input
                     inputs.nixpwamaker.homeManagerModules.pwamaker
+                    inputs.zbridge.homeManagerModules.default
                   ];
                 };
               }

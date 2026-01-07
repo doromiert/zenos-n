@@ -6,9 +6,10 @@
     "org/gnome/desktop/wm/keybindings" = {
       close = [ "<Super>q" ];
       # [RESIZING] Updated to Ctrl+Shift+C per user request
-      toggle-maximized = [ "<Control><Shift>c" ];
+      toggle-maximized = [ "<Super>w" ];
       minimize = [ "<Super>Page_Down" ];
       activate-window-menu = [ "<Alt>space" ];
+      begin-resize = [ "<Control><Super>c" ];
 
       # [CONFLICT REMOVAL]
       # Disable default Gnome tiling keys to prevent interference with Forge
@@ -187,11 +188,6 @@
       key = "shift+n";
       command = "explorer.newFolder";
       when = "explorerViewletFocus";
-    }
-    {
-      key = "shift+n";
-      command = "workbench.action.newWindow";
-      when = "!explorerViewletFocus";
     }
 
     {
