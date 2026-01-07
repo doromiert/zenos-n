@@ -74,6 +74,12 @@ in
           name = "GitHub";
           url = "https://github.com/search?q={searchTerms}";
         };
+        layoutStart = [
+          "home"
+          "back"
+          "forward"
+          "reload"
+        ];
 
         extensions = [
           exts.ublock
