@@ -328,9 +328,10 @@
 
             # UI Improvements
             betterFolders = {
-              enable = true;
-              sidebar = true;
+              enable = false;
+              sidebar = false;
               sidebarAnim = true;
+
             };
             memberCount.enable = true;
             showHiddenThings.enable = true;
