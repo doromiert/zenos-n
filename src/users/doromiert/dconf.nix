@@ -107,6 +107,10 @@ in
       folder-order-position = "end";
     };
 
+    "org/gnome/shell/extensions/app-hider" = {
+      hidden-apps = [ "vesktop.desktop" ];
+    };
+
     # --- BlackBox Terminal ---
     "com/raggesilver/BlackBox" = {
       floating-controls = true;
