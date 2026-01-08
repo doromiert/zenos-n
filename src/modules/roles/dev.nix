@@ -7,6 +7,7 @@
     pkgs.nixfmt-rfc-style
     pkgs.android-tools
     pkgs.scrcpy
+    pkgs.unityhub
   ];
 
   # -- Flatpak Dev Tools --
@@ -36,6 +37,10 @@
             mkhl.direnv
             piousdeer.adwaita-theme
             ms-vsliveshare.vsliveshare
+
+            # c#
+            #ms-dotnettools.vscode-dotnet-runtime
+            #ms-dotnettools.csharp
 
             # Utilities
             eamodio.gitlens
