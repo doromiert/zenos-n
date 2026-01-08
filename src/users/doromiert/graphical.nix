@@ -293,7 +293,7 @@
             };
           };
           settings = {
-            "hardwareVideoAcceleration" = true;
+            # "hardwareVideoAcceleration" = true;
             "customTitleBar" = true;
             "staticTitle" = false;
           };

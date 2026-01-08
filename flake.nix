@@ -27,8 +27,8 @@
 
     swisstag.url = "github:doromiert/swisstag";
     zbridge = {
-      url = "github:doromiert/zerobridge";
-      # url = "path:/home/doromiert/Projects/zerobridge";
+      # url = "github:doromiert/zerobridge";
+      url = "path:/home/doromiert/Projects/zerobridge";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
