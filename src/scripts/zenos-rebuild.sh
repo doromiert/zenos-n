@@ -141,6 +141,12 @@ echo -e "${BLUE}========================================${NC}"
 if [ $EXIT_CODE -eq 0 ]; then
     notify "Rebuild Complete" "System switched successfully." "normal"
     echo -e "${GREEN}SUCCESS: System updated.${NC}"
+elif [ $EXIT_CODE -eq 130 ]; then
+    # 130 is the standard exit code for SIGINT (Ctrl+C)
+    notify "Rebuild Interrupted" "Operation cancelled by user." "low"
+    echo -e "${YELLOW}INFO: Rebuild cancelled by user (Exit Code: 130).${NC}"
+    # We exit cleanly so wrapping scripts don't freak out
+    exit 0
 else
     notify "Rebuild Failed" "Check the terminal logs for details." "critical"
     echo -e "${RED}FAILURE: Rebuild encountered errors (Exit Code: $EXIT_CODE).${NC}"

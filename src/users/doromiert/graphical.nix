@@ -338,7 +338,7 @@
             PinDMs = {
               enable = true;
               canCollapseDmSection = true;
-              pinOrder = 1;
+              pinOrder = 0;
 
               # Converted from JSON export
               # Note: Keys beginning with numbers must be quoted in Nix
