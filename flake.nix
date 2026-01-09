@@ -28,7 +28,7 @@
     swisstag.url = "github:doromiert/swisstag";
     zbridge = {
       url = "github:doromiert/zerobridge";
-      # url = "path:/home/doromiert/Projects/zerobridge";
+      #url = "path:/home/doromiert/Projects/zerobridge";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -205,7 +205,10 @@
           roles = [
             "web"
             "gaming"
-            "creative"
+            "creative/audio"
+            "creative/graphics"
+            "creative/video"
+            "creative/misc"
             "dev"
             "pipewire"
             "zbridge"
