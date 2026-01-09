@@ -160,6 +160,18 @@ in
               "com.raggesilver.BlackBox.desktop"
             ];
           };
+
+          # [FIX] Crash Prevention: Disable edge tiling to stop auto-maximize logic
+          "org/gnome/desktop/wm/preferences" = {
+            edge-tiling = false;
+            action-double-click-titlebar = "toggle-maximize";
+          };
+
+          # [FIX] UX: Center new windows since we disabled auto-max
+          "org/gnome/mutter" = {
+            edge-tiling = false;
+            center-new-windows = true;
+          };
         };
       }
     ];

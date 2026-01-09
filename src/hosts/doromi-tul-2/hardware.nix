@@ -47,6 +47,8 @@
     "preempt=full"
     "threadirqs"
     "amd_pstate=active"
+    # [FIX] Disable Mid-Command Buffer Preemption to prevent Ring GFX timeouts/Mutter crashes
+    "amdgpu.mcbp=0"
   ];
 
   # --- Power & Thermal Management ---
@@ -103,6 +105,8 @@
   environment.variables = {
     "WLR_DRM_NO_ATOMIC" = "1";
     "AMD_VULKAN_ICD" = "RADV";
+    # [FIX] Move KMS thread to user space to prevent race conditions in Mutter
+    "MUTTER_DEBUG_KMS_THREAD_TYPE" = "user";
   };
 
   networking.useDHCP = lib.mkDefault true;
