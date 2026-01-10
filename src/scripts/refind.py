@@ -8,7 +8,7 @@ PROFILE_DIR = "/nix/var/nix/profiles/"
 # Assumes the ESP is mounted at /boot. Change if mounted at /boot/efi
 ESP_MOUNT = "/boot" 
 OUTPUT_FILE = os.path.join(ESP_MOUNT, "EFI/refind/zenos-entries.conf")
-ICON_PATH = "/EFI/refind/themes/refind-ambience-hack/icons/os_zenos.png"
+ICON_PATH = "/EFI/refind/themes/zenos-picker/icons/os_zenos.png"
 
 # Flags from your manual config that might not be in the generation's kernel-params
 # Use this to enforce your hardware specific settings
