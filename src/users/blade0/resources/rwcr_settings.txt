@@ -1,0 +1,1 @@
+{'padding': <{'left': uint32 1, 'right': 1, 'top': 1, 'bottom': 1}>, 'keepRoundedCorners': <{'maximized': false, 'fullscreen': false}>, 'borderRadius': <uint32 12>, 'smoothing': <0.0>, 'borderColor': <(0.19215686619281769, 0.19215686619281769, 0.20784313976764679, 1.0)>, 'enabled': <true>}

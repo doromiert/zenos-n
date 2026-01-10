@@ -253,6 +253,47 @@
             inputs.jovian.nixosModules.default
           ];
         };
+        test-vm = mkHost {
+          prettyName = "Bob's test VM";
+
+          rootUUID = "8e1e39fe-becf-40f7-bf3e-447ecdfef32d";
+          bootUUID = "E4BC-AD87";
+          locale = {
+            timeZone = "Europe/Dublin";
+            language = "en_US.UTF-8";
+            defaultLocale = "en_GB.UTF-8";
+            kbLayout = "gb";
+          };
+          users = [
+            "blade0"
+          ];
+          desktop = "gnome";
+          roles = [
+            "web"
+            "dev"
+            "pipewire"
+            "zbridge"
+          ];
+          # ill change this once i install it for more than testing
+          excludeCoreModules = [
+            "syncthing"
+          ];
+          extraModules = [
+            inputs.nixos-hardware.nixosModules.common-cpu-intel
+            inputs.nixos-hardware.nixosModules.common-pc-laptop-ssd
+
+            # Virtualization Guest Support
+            # This enables SPICE/QEMU agents or VMware/VirtualBox tools automatically
+            (
+              { modulesPath, ... }:
+              {
+                imports = [ (modulesPath + "/profiles/qemu-guest.nix") ];
+                services.qemuGuest.enable = true;
+                services.spice-vdagentd.enable = true; # Essential for GNOME copy/paste in VM
+              }
+            )
+          ];
+        };
       };
     };
 }

@@ -62,7 +62,10 @@ in
       python3
       git
       jq # Added for parsing GitHub API in the bootstrap script
-      steam-rom-manager
+
+      # Quality of Life Gaming Tools
+      protonup-qt # GUI to install Proton-GE
+      protontricks # Winetricks for Proton
     ];
 
     # 5. Firewall for Decky
@@ -123,11 +126,14 @@ in
     environment.sessionVariables = {
       STEAM_FORCE_DESKTOPUI_SCALING = "1";
     };
-  };
 
-  # -- Flatpak Games & Tools --
-  services.flatpak.packages = [
-    "com.usebottles.bottles" # Bottles (Wine Prefix Manager)
-    "net.davidotek.pupgui2" # ProtonUp-Qt
-  ];
+    # 8. Kernel & System Tweaks for Gaming
+    boot.kernel.sysctl = {
+      # Essential for many large games (prevents crashes in Wine/Proton)
+      "vm.max_map_count" = 2147483642;
+    };
+
+    # Enable NTFS support (common for external/shared game drives)
+    boot.supportedFilesystems = [ "ntfs" ];
+  };
 }
