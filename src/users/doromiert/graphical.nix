@@ -3,7 +3,9 @@
   ...
 }:
 {
-  # Ensure the Nixcord module is imported
+  imports = [
+    ./janitor.nix
+  ];
 
   home-manager.users.doromiert =
     {

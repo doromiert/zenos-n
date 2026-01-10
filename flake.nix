@@ -28,18 +28,20 @@
     swisstag.url = "github:doromiert/swisstag";
     zbridge = {
       url = "github:doromiert/zerobridge";
-      #   url = "path:/home/doromiert/Projects/zerobridge";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # External PWA Maker Module
+    # [ ZenFS ] Local Input
+    zenfs = {
+      url = "path:/home/doromiert/Projects/ZenFS";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     nixpwamaker = {
-      # url = "path:/home/doromiert/Projects/nixpwamaker";
       url = "github:doromiert/nixpwamaker";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # Added theme input for pwamaker (still needed to pass to the module)
     firefox-gnome-theme = {
       url = "github:rafaelmardojai/firefox-gnome-theme";
       flake = false;
@@ -121,11 +123,19 @@
                 };
 
                 config = {
-                  # Correct NZFS Option Path
-                  services.nz-filesystem = {
+                  # [ ZenFS ] Core Configuration
+                  services.zenfs = {
                     enable = true;
+                    roaming.enable = true;
+                    janitor = {
+                      offloader = {
+                        enable = true;
+                        threshold = 80;
+                      };
+                    };
                     mainDrive = rootUUID;
                     bootDrive = bootUUID;
+                    # Janitor config is handled by the imported janitor.nix
                   };
 
                   nix.settings.experimental-features = [
@@ -149,10 +159,9 @@
                   system.stateVersion = "25.11";
                   home-manager.useGlobalPkgs = true;
                   home-manager.backupFileExtension = "backup";
-                  # PASS INPUTS TO HOME MANAGER MODULES
+
                   home-manager.extraSpecialArgs = { inherit inputs; };
                   home-manager.sharedModules = [
-                    # Use the module from the flake input
                     inputs.nixpwamaker.homeManagerModules.pwamaker
                     inputs.zbridge.homeManagerModules.default
                   ];
@@ -160,7 +169,12 @@
               }
             )
 
-            ./src/modules/core/nzfs.nix
+            # [ ZenFS ] Module Import
+            inputs.zenfs.nixosModules.default
+
+            # [ ZenFS ] Config Import (Ensure janitor.nix is placed here)
+            # You can also use just ./janitor.nix if it's in the flake root
+
             inputs.home-manager.nixosModules.home-manager
             inputs.nix-flatpak.nixosModules.nix-flatpak
             inputs.nur.modules.nixos.default
@@ -204,6 +218,7 @@
           roles = [
             "web"
             "gaming"
+            # "emulation"
             "creative/audio"
             "creative/graphics"
             "creative/video"
@@ -212,7 +227,9 @@
             "pipewire"
             "zbridge"
           ];
-          excludeCoreModules = [ "syncthing" ];
+          excludeCoreModules = [
+            "syncthing"
+          ]; # Exclude old nzfs if present in core
           extraModules = [
             inputs.nixos-hardware.nixosModules.common-cpu-amd
             inputs.nixos-hardware.nixosModules.common-gpu-amd
