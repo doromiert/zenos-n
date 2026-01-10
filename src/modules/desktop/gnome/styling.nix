@@ -71,6 +71,21 @@ let
     cp -r ${../../../../resources/Adwaita-hacks} $out/share/icons/Adwaita-hacks || mkdir -p $out/share/icons/Adwaita-hacks
   '';
 
+  # [FIX] GDM Logo Rasterizer
+  # Since the source SVG is 16x16 (Symbolic), GDM renders it pixelated.
+  # We use ImageMagick to bake it into a crisp 256px PNG.
+  gdmLogoPkg =
+    pkgs.runCommand "zenos-gdm-logo"
+      {
+        nativeBuildInputs = [ pkgs.imagemagick ];
+      }
+      ''
+        mkdir -p $out/share/pixmaps
+        # Density 2400 ensures the 16px vector is calculated at super-high res before resizing
+        magick -background none -density 2400 ${../../../../resources/plymouth/zenos.svg} \
+          -resize 256x256 $out/share/pixmaps/zenos-gdm.png
+      '';
+
   mimePkg = pkgs.runCommand "zenos-mimetypes" { } ''
     mkdir -p $out/share/mime/packages
     cp -r ${../../../../resources/mimetypes}/* $out/ || true
@@ -175,6 +190,7 @@ in
       mimePkg
       cursorPkg
       wallpaperPkg
+      gdmLogoPkg # Ensure logo is available system-wide
       adw-gtk3
       adwaita-qt
       adwaita-qt6
@@ -184,6 +200,30 @@ in
     ++ emulatorAssocs;
 
   boot.plymouth.enable = true;
+
+  # ============================================================================
+  # [ GDM CONFIGURATION ]
+  # ============================================================================
+  # Configure the Login Screen (GDM) to match the ZenOS Brand
+  programs.dconf.profiles.gdm.databases = [
+    {
+      settings = {
+        "org/gnome/login-screen" = {
+          # Point to the high-res PNG instead of the SVG
+          logo = "${gdmLogoPkg}/share/pixmaps/zenos-gdm.png";
+        };
+        "org/gnome/desktop/interface" = {
+          # Match system branding
+          accent-color = "purple";
+          cursor-theme = "GoogleDot-Black";
+          icon-theme = "Adwaita-hacks";
+          font-name = "Atkinson Hyperlegible Next 11";
+          # Force dark mode on login screen
+          color-scheme = "prefer-dark";
+        };
+      };
+    }
+  ];
 
   # ============================================================================
   # [ FIREFOX RESOURCES & PWA FIX ]

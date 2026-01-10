@@ -22,7 +22,8 @@ notify() {
     
     # Send desktop notification if available
     if command -v notify-send &> /dev/null; then
-        notify-send -u "$urgency" -a "ZenOS Rebuild" "$title" "$message" 2>/dev/null || true
+        # [FIX] Added -i zenos-symbolic for branding
+        notify-send -u "$urgency" -i "zenos-symbolic" -a "ZenOS Rebuild" "$title" "$message" 2>/dev/null || true
     fi
 }
 
