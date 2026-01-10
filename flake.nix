@@ -33,7 +33,7 @@
 
     # [ ZenFS ] Local Input
     zenfs = {
-      url = "path:/home/doromiert/Projects/ZenFS";
+      url = "github:doromiert/zenfs";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -59,6 +59,7 @@
       system = "x86_64-linux";
       lib = nixpkgs.lib;
 
+      # helper to import all .nix files in a directory
       importDir =
         path: excludes:
         let
@@ -73,9 +74,13 @@
         in
         map (name: path + "/${name}") (builtins.attrNames nixFiles);
 
+      # ==============================================================================
+      # [ HOST BUILDER ]
+      # Supports Pretty Names and Automatic Folder Inference
+      # ==============================================================================
       mkHost =
         {
-          hostName,
+          prettyName, # Input: "Doromi Tul 2" or "Doromi Tul II"
           rootUUID ? "ROOT_UUID_PLACEHOLDER",
           bootUUID ? "BOOT_UUID_PLACEHOLDER",
           locale ? {
@@ -92,18 +97,28 @@
           roles ? [ ],
           serverServices ? [ ],
         }:
+        let
+          # [LOGIC] Convert "Doromi Tul 2" -> "doromi-tul-2"
+          # 1. Lowercase
+          # 2. Replace spaces with hyphens
+          hostName = lib.strings.toLower (builtins.replaceStrings [ " " ] [ "-" ] prettyName);
+        in
         nixpkgs.lib.nixosSystem {
           inherit system;
           specialArgs = {
             inherit
               inputs
               self
-              hostName
+              hostName # Used for networking.hostName
+              prettyName # Used via 'devicePrettyName' in branding.nix
               mainUser
               rootUUID
               bootUUID
               locale
               ;
+            # Alias prettyName to devicePrettyName for module compatibility
+            devicePrettyName = prettyName;
+
             pkgs-unstable = import nixpkgs-unstable {
               inherit system;
               config.allowUnfree = true;
@@ -135,8 +150,10 @@
                     };
                     mainDrive = rootUUID;
                     bootDrive = bootUUID;
-                    # Janitor config is handled by the imported janitor.nix
                   };
+
+                  # [LOGIC] Set the system hostname automatically
+                  networking.hostName = hostName;
 
                   nix.settings.experimental-features = [
                     "nix-command"
@@ -145,7 +162,6 @@
                   nixpkgs.config.allowUnfree = true;
 
                   mainUser = lib.mkDefault mainUser;
-                  networking.hostName = hostName;
 
                   nixpkgs.overlays = [
                     (final: prev: {
@@ -172,9 +188,6 @@
             # [ ZenFS ] Module Import
             inputs.zenfs.nixosModules.default
 
-            # [ ZenFS ] Config Import (Ensure janitor.nix is placed here)
-            # You can also use just ./janitor.nix if it's in the flake root
-
             inputs.home-manager.nixosModules.home-manager
             inputs.nix-flatpak.nixosModules.nix-flatpak
             inputs.nur.modules.nixos.default
@@ -190,6 +203,7 @@
             else
               [ ]
           )
+          # [UPDATED] Import logic uses the sanitized hostName (e.g. src/hosts/doromi-tul-2)
           ++ (importDir (./src/hosts + "/${hostName}") excludeCoreModules)
           ++ (map (user: ./src/users + "/${user}/main.nix") users)
           ++ (if desktop != null then (map (user: ./src/users + "/${user}/graphical.nix") users) else [ ])
@@ -200,8 +214,13 @@
     in
     {
       nixosConfigurations = {
+        # The key here can remain "doromi-tul-2" or match the new standard.
+        # It's what you type in `nixos-rebuild switch --flake .#<key>`
         doromi-tul-2 = mkHost {
-          hostName = "doromi-tul-2";
+          # [UPDATED] Using Pretty Name.
+          # Logic will convert this to "doromi-tul-2" for hostname and folder lookup.
+          prettyName = "doromi tul 2";
+
           rootUUID = "8e1e39fe-becf-40f7-bf3e-447ecdfef32d";
           bootUUID = "E4BC-AD87";
           locale = {
@@ -229,7 +248,7 @@
           ];
           excludeCoreModules = [
             "syncthing"
-          ]; # Exclude old nzfs if present in core
+          ];
           extraModules = [
             inputs.nixos-hardware.nixosModules.common-cpu-amd
             inputs.nixos-hardware.nixosModules.common-gpu-amd

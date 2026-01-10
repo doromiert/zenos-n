@@ -1,16 +1,17 @@
-# contains stuff like ssh and default shell
 {
   pkgs,
   ...
 }:
 let
   # [ ACTION ] Import zenos-rebuild directly from source
-  # We read the file content directly into the store package.
-  # Note: The script must handle finding the flake (e.g. using $PWD)
-  # because 'dirname $0' will now resolve to /nix/store/...
   zenosRebuild = pkgs.writeScriptBin "zenos-rebuild" (
     builtins.readFile ../../scripts/zenos-rebuild.sh
   );
+
+  # [ ACTION ] Import P10k Config
+  # We read the file content directly into a store file
+  p10kConfig = pkgs.writeText "p10k.zsh" (builtins.readFile ../../../resources/shell/p10k.zsh);
+
 in
 {
   security.sudo.extraRules = [
@@ -25,6 +26,9 @@ in
     }
   ];
   users.groups.zenos-rebuild = { };
+
+  # [ ACTION ] Map the config to a global location
+  environment.etc."zsh/p10k.zsh".source = p10kConfig;
 
   programs.zsh = {
     enable = true;
@@ -58,7 +62,9 @@ in
           source "''${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-''${(%):-%n}.zsh"
       fi
 
-      [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+      # [FIX] Source the system-wide config instead of the user one
+      # We check if the global config exists and source it
+      [[ ! -f /etc/zsh/p10k.zsh ]] || source /etc/zsh/p10k.zsh
     '';
   };
 
@@ -74,8 +80,8 @@ in
     tree
     zsh-powerlevel10k
 
-    tmux # [MOVED] From web.nix
-    zenosRebuild # [UPDATED] Now just links to the script
+    tmux
+    zenosRebuild
     libnotify
   ];
 }

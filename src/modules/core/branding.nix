@@ -3,6 +3,7 @@
   pkgs,
   lib,
   self,
+  devicePrettyName ? null,
   ...
 }:
 
@@ -14,9 +15,14 @@ let
 
   version = if releaseType == "beta" then "${baseVersion}b (${commitId})" else baseVersion;
 
+  # --- Device Name Logic ---
+  # If devicePrettyName is passed from flake (mkHost), use it.
+  # Otherwise fallback to the raw hostname.
+  # e.g. "Doromi Tul II" vs "doromi-tul-ii"
+  finalDeviceName = if devicePrettyName != null then devicePrettyName else config.networking.hostName;
+
   # --- Config Variables ---
   distroName = config.system.nixos.distroName or "ZenOS";
-  hostName = config.networking.hostName;
 
   # --- [1] The Icon Theme ---
   zenosIcons = pkgs.runCommand "zenos-icon-theme" { } ''
@@ -33,7 +39,7 @@ let
 
     env_distroName = distroName;
     env_version = version;
-    env_hostName = hostName;
+    env_deviceName = finalDeviceName; # [UPDATED] Use the pretty name
 
     buildPhase = ''
       # --- ASSET GENERATION ---
@@ -41,7 +47,10 @@ let
       font_reg="${pkgs.atkinson-hyperlegible}/share/fonts/opentype/AtkinsonHyperlegible-Regular.otf"
 
       magick -background none -density 1200 logo.svg -resize 120x120 icon_top.png
-      magick -background none -fill white -font "$font_bold" -pointsize 72 label:"$env_hostName" host_text.png
+
+      # [UPDATED] Use the pretty Device Name for the top text
+      magick -background none -fill white -font "$font_bold" -pointsize 72 label:"$env_deviceName" host_text.png
+
       magick -background none -fill white -font "$font_reg" -pointsize 32 label:"Powered by" powered_by.png
       magick -background none -density 1200 zenos.svg -resize 64x64 icon_bottom.png
       magick -background none -fill white -font "$font_reg" -pointsize 48 label:"$env_distroName " os_name.png
@@ -111,7 +120,6 @@ let
   };
 
   # --- Fastfetch Config Pkg ---
-  # We read the user's JSON but replace the home path with the system path
   zenosFastfetchConfig = pkgs.writeText "config.jsonc" (
     builtins.replaceStrings [ "~/.config/fastfetch/ascii.txt" ] [ "/etc/fastfetch/ascii.txt" ] (
       builtins.readFile ../../../resources/fastfetch/zenos.jsonc
@@ -128,20 +136,16 @@ in
   ];
 
   # --- Fastfetch Deployment ---
-  # 1. Map the patched config to /etc
   environment.etc."fastfetch/config.jsonc".source = zenosFastfetchConfig;
-
-  # 2. Map the ASCII art
   environment.etc."fastfetch/ascii.txt".source = ../../../resources/fastfetch/ascii.txt;
-
-  # 3. Create global alias/default config
-  # This makes 'fastfetch' use our config by default if the user hasn't made their own
   environment.variables.FASTFETCH_CONFIG = "/etc/fastfetch/config.jsonc";
+  environment.shellAliases.neofetch = "fastfetch";
 
-  # 4. Alias neofetch to fastfetch for muscle memory
-  environment.shellAliases = {
-    neofetch = "fastfetch";
-  };
+  # --- GNOME Pretty Hostname ---
+  # This lets GNOME Settings > About show "Doromi Tul II" instead of "doromi-tul-ii"
+  environment.etc."machine-info".text = ''
+    PRETTY_HOSTNAME="${finalDeviceName}"
+  '';
 
   fonts.packages = with pkgs; [ atkinson-hyperlegible ];
   fonts.fontconfig.defaultFonts.sansSerif = [ "Atkinson Hyperlegible" ];
