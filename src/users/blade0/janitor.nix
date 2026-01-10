@@ -8,7 +8,7 @@
       enable = true;
       interval = "5min";
       gracePeriod = 60;
-      watchedDirs = [ "/home/doromiert/Downloads" ];
+      watchedDirs = [ "/home/blade0/Downloads" ];
       rules = {
         "Android" = [
           "android.zip"
@@ -154,8 +154,8 @@
     music = {
       enable = true;
       # tagging.enable = true; # Enable Swisstag
-      musicDir = "/home/doromiert/Music";
-      unsortedDir = "/home/doromiert/Music/.database";
+      musicDir = "/home/blade0/Music";
+      unsortedDir = "/home/blade0/Music/.database";
       artistSplitSymbols = [ ";" ];
       interval = "1min";
     };

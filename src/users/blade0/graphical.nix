@@ -7,7 +7,7 @@
     ./janitor.nix
   ];
 
-  home-manager.users.doromiert =
+  home-manager.users.blade0 =
     {
       pkgs,
       ...

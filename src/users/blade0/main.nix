@@ -2,9 +2,9 @@
 { config, pkgs, ... }:
 
 {
-  users.users.doromiert = {
+  users.users.blade0 = {
     isNormalUser = true;
-    description = "doromiert";
+    description = "blade0";
     extraGroups = [
       "wheel"
       "networkmanager"
@@ -14,7 +14,7 @@
     initialPassword = "setmelater";
   };
 
-  home-manager.users.doromiert = {
+  home-manager.users.blade0 = {
 
     # never touch this
     home.stateVersion = "25.11";
@@ -29,22 +29,22 @@
       createDirectories = true;
 
       # Standard XDG paths
-      download = "${config.users.users.doromiert.home}/Downloads";
-      documents = "${config.users.users.doromiert.home}/Documents";
-      desktop = "${config.users.users.doromiert.home}/Desktop";
+      download = "${config.users.users.blade0.home}/Downloads";
+      documents = "${config.users.users.blade0.home}/Documents";
+      desktop = "${config.users.users.blade0.home}/Desktop";
 
       # Custom paths go into extraConfig
       extraConfig = {
-        XDG_FUNNY_DIR = "${config.users.users.doromiert.home}/Funny";
-        XDG_PROJECTS_DIR = "${config.users.users.doromiert.home}/Projects";
-        XDG_THREED_DIR = "${config.users.users.doromiert.home}/3D";
-        XDG_ANDROID_DIR = "${config.users.users.doromiert.home}/Android";
-        XDG_AI_DIR = "${config.users.users.doromiert.home}/AI";
-        XDG_APPS_SCRIPTS_DIR = "${config.users.users.doromiert.home}/Apps & Scripts";
-        XDG_DOOM_DIR = "${config.users.users.doromiert.home}/Doom";
-        XDG_RIFT_DIR = "${config.users.users.doromiert.home}/Rift";
-        XDG_RANDOM_DIR = "${config.users.users.doromiert.home}/Random";
-        XDG_PASSWORDS_DIR = "${config.users.users.doromiert.home}/Passwords";
+        XDG_FUNNY_DIR = "${config.users.users.blade0.home}/Funny";
+        XDG_PROJECTS_DIR = "${config.users.users.blade0.home}/Projects";
+        XDG_THREED_DIR = "${config.users.users.blade0.home}/3D";
+        XDG_ANDROID_DIR = "${config.users.users.blade0.home}/Android";
+        XDG_AI_DIR = "${config.users.users.blade0.home}/AI";
+        XDG_APPS_SCRIPTS_DIR = "${config.users.users.blade0.home}/Apps & Scripts";
+        XDG_DOOM_DIR = "${config.users.users.blade0.home}/Doom";
+        XDG_RIFT_DIR = "${config.users.users.blade0.home}/Rift";
+        XDG_RANDOM_DIR = "${config.users.users.blade0.home}/Random";
+        XDG_PASSWORDS_DIR = "${config.users.users.blade0.home}/Passwords";
       };
     };
 
@@ -114,8 +114,8 @@
         enable = true;
         settings = {
           user = {
-            name = "doromiert";
-            email = "doromiert@gmail.com";
+            name = "blade0";
+            email = "blade0@gmail.com";
           };
           pull.rebase = false;
           init.defaultBranch = "main";
