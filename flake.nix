@@ -214,11 +214,7 @@
     in
     {
       nixosConfigurations = {
-        # The key here can remain "doromi-tul-2" or match the new standard.
-        # It's what you type in `nixos-rebuild switch --flake .#<key>`
         doromi-tul-2 = mkHost {
-          # [UPDATED] Using Pretty Name.
-          # Logic will convert this to "doromi-tul-2" for hostname and folder lookup.
           prettyName = "doromi tul 2";
 
           rootUUID = "8e1e39fe-becf-40f7-bf3e-447ecdfef32d";
@@ -237,7 +233,6 @@
           roles = [
             "web"
             "gaming"
-            # "emulation"
             "creative/audio"
             "creative/graphics"
             "creative/video"
@@ -246,6 +241,7 @@
             "pipewire"
             "zbridge"
           ];
+          # ill change this once i install it for more than testing
           excludeCoreModules = [
             "syncthing"
           ];
