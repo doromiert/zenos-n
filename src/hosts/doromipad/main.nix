@@ -64,7 +64,7 @@
     # 1. Fingerprint & Input
     fprintd.enable = true;
     xserver.wacom.enable = true;
-    boltd.enable = true;
+    #boltd.enable = true;
 
     # 2. Power Profiles Daemon (Standard GNOME Power Management)
     power-profiles-daemon.enable = true;
@@ -95,11 +95,11 @@
     # 5. Logind Overrides (Ignore power key so ACPI handler works)
     logind = {
       powerKey = "ignore";
-      extraConfig = ''
-        HandlePowerKey=ignore
-        HandleLidSwitch=lock
-        HandleLidSwitchExternalPower=lock
-      '';
+      #extraConfig = ''
+      #  HandlePowerKey=ignore
+      #  HandleLidSwitch=lock
+      #  HandleLidSwitchExternalPower=lock
+      #'';
     };
 
     # 6. Udev Rules for Wakeup

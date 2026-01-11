@@ -294,9 +294,9 @@
             "tablet"
           ];
           # ill change this once i install it for more than testing
-          excludeCoreModules = [
-            "syncthing"
-          ];
+          # excludeCoreModules = [
+          #   "syncthing"
+          # ];
           extraModules = [
             inputs.nixos-hardware.nixosModules.lenovo-thinkpad-l13
             inputs.nixos-hardware.nixosModules.common-cpu-intel
