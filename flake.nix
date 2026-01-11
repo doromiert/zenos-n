@@ -261,10 +261,6 @@
             "pipewire"
             "zbridge"
           ];
-          # ill change this once i install it for more than testing
-          excludeCoreModules = [
-            "syncthing"
-          ];
           extraModules = [
             inputs.nixos-hardware.nixosModules.common-cpu-amd
             inputs.nixos-hardware.nixosModules.common-gpu-amd
@@ -277,8 +273,8 @@
         doromipad = mkHost {
           prettyName = "doromipad";
 
-          rootUUID = "8e1e39fe-becf-40f7-bf3e-447ecdfef32d";
-          bootUUID = "E4BC-AD87";
+          rootUUID = "f3fbcbcc-1063-426b-a0ab-0ddb7ff9dd76";
+          bootUUID = "3296-E5E9";
           locale = {
             timeZone = "Europe/Warsaw";
             language = "en_US.UTF-8";
