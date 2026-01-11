@@ -309,7 +309,7 @@
         };
 
         test-vm = mkHost {
-          prettyName = "Bob's test VM";
+          prettyName = "test vm";
 
           rootUUID = "8e1e39fe-becf-40f7-bf3e-447ecdfef32d";
           bootUUID = "E4BC-AD87";
@@ -347,6 +347,44 @@
                 services.spice-vdagentd.enable = true; # Essential for GNOME copy/paste in VM
               }
             )
+          ];
+        };
+        aethertop = mkHost {
+          prettyName = "aethertop";
+
+          rootUUID = "8e1e39fe-becf-40f7-bf3e-447ecdfef32d";
+          bootUUID = "E4BC-AD87";
+          locale = {
+            timeZone = "America/Puerto_Rico";
+            language = "en_US.UTF-8";
+            defaultLocale = "es_PR.UTF-8";
+            kbLayout = "us";
+          };
+          users = [
+            "aether"
+          ];
+          desktop = "gnome";
+          roles = [
+            "web"
+            "gaming"
+            "creative/audio"
+            "creative/graphics"
+            "creative/video"
+            "creative/misc"
+            "dev"
+            "pipewire"
+            "zbridge"
+          ];
+          # ill change this once i install it for more than testing
+          excludeCoreModules = [
+            "syncthing"
+          ];
+          extraModules = [
+            inputs.nixos-hardware.nixosModules.common-cpu-amd
+            inputs.nixos-hardware.nixosModules.common-gpu-amd
+            inputs.nixos-hardware.nixosModules.common-pc-ssd
+            inputs.nix-gaming.nixosModules.platformOptimizations
+            inputs.jovian.nixosModules.default
           ];
         };
       };

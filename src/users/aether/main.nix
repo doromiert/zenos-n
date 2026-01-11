@@ -4,8 +4,12 @@
 {
   users.users.aether = {
     isNormalUser = true;
-    description = "";
-    extraGroups = [ ];
+    description = "aether";
+    extraGroups = [
+      "wheel"
+      "networkmanager"
+      "zenos-rebuild"
+    ];
     shell = pkgs.zsh;
     initialPassword = "setmelater";
   };
@@ -13,7 +17,12 @@
   home-manager.users.aether = {
 
     # never touch this
-    stateVersion = "25.11";
+    home.stateVersion = "25.11";
+
+    home.file = {
+      ".p10k.zsh".source = ./resources/p10k.zsh;
+      # ".local/bin".source = ./bin;
+    };
 
     programs = {
 
@@ -25,12 +34,28 @@
       zsh = {
 
         enable = true;
-        enableCompletions = true;
+        enableCompletion = true;
         autosuggestion.enable = true;
         syntaxHighlighting.enable = true;
 
+        # [P13.9] User-Specific Tools
+        # Removed CD shortcuts as Zoxide handles navigation
         shellAliases = {
+          # Git Rapid-Fire
+          g = "git";
+          ga = "git add";
+          gaa = "git add .";
+          gc = "git commit -m";
+          gs = "git status";
+          gp = "git push";
+          gl = "git log --oneline --graph --decorate";
 
+          # Nix / Direnv
+          da = "direnv allow";
+          dr = "direnv reload";
+
+          # Networking
+          myip = "curl ifconfig.me";
         };
 
         history.size = 10000;
@@ -65,9 +90,10 @@
         enable = true;
         settings = {
           user = {
-            name = "";
-            email = "";
+            name = "aether";
+            email = "aether@gmail.com";
           };
+          pull.rebase = false;
           init.defaultBranch = "main";
         };
       };
