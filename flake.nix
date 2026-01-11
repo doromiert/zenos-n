@@ -313,7 +313,7 @@
         };
 
         test-vm = mkHost {
-          prettyName = "Bob's test VM";
+          prettyName = "test vm";
 
           rootUUID = "8e1e39fe-becf-40f7-bf3e-447ecdfef32d";
           bootUUID = "E4BC-AD87";
