@@ -66,59 +66,59 @@
   # [ Power Management & Services ]
   services = {
     # 1. Fingerprint & Input
-    fprintd.enable = true;
-    xserver.wacom.enable = true;
+    # fprintd.enable = true;
+    # xserver.wacom.enable = true;
     #boltd.enable = true;
 
     # 2. Power Profiles Daemon (Standard GNOME Power Management)
     power-profiles-daemon.enable = true;
 
     # 3. Thermald (Dynamic Thermal Management)
-    thermald.enable = true;
+    # thermald.enable = true;
 
     # 4. ACPI Power Button Handler (Lock Screen instead of Power Off)
-    acpid = {
-      enable = true;
-      handlers.power = {
-        event = "button/power";
-        action = ''
-          # Dynamic user detection for locking
-          ACTIVE_USER=$(${pkgs.systemd}/bin/loginctl list-users --no-legend | ${pkgs.gawk}/bin/gawk '{print $2; exit}')
+    # acpid = {
+    #   enable = true;
+    #   handlers.power = {
+    #     event = "button/power";
+    #     action = ''
+    #       # Dynamic user detection for locking
+    #       ACTIVE_USER=$(${pkgs.systemd}/bin/loginctl list-users --no-legend | ${pkgs.gawk}/bin/gawk '{print $2; exit}')
 
-          if [ -n "$ACTIVE_USER" ]; then
-            ${pkgs.systemd}/bin/machinectl shell "$ACTIVE_USER@.host" \
-                ${pkgs.glib}/bin/gdbus call --session \
-                    --dest org.gnome.ScreenSaver \
-                    --object-path /org/gnome/ScreenSaver \
-                    --method org.gnome.ScreenSaver.Lock
-          fi
-        '';
-      };
-    };
+    #       if [ -n "$ACTIVE_USER" ]; then
+    #         ${pkgs.systemd}/bin/machinectl shell "$ACTIVE_USER@.host" \
+    #             ${pkgs.glib}/bin/gdbus call --session \
+    #                 --dest org.gnome.ScreenSaver \
+    #                 --object-path /org/gnome/ScreenSaver \
+    #                 --method org.gnome.ScreenSaver.Lock
+    #       fi
+    #     '';
+    #   };
+    # };
 
     # 5. Logind Overrides (Ignore power key so ACPI handler works)
-    logind = {
-      powerKey = "ignore";
-      #extraConfig = ''
-      #  HandlePowerKey=ignore
-      #  HandleLidSwitch=lock
-      #  HandleLidSwitchExternalPower=lock
-      #'';
-    };
+    # logind = {
+    #   powerKey = "ignore";
+    #   #extraConfig = ''
+    #   #  HandlePowerKey=ignore
+    #   #  HandleLidSwitch=lock
+    #   #  HandleLidSwitchExternalPower=lock
+    #   #'';
+    # };
 
     # 6. Udev Rules for Wakeup
-    udev.extraRules = ''
-      SUBSYSTEM=="power_supply", KERNEL=="AC", ATTR{power/wakeup}="enabled"
-      SUBSYSTEM=="power", KERNEL=="PWRB", ATTR{power/wakeup}="enabled"
-    '';
+    # udev.extraRules = ''
+    #   SUBSYSTEM=="power_supply", KERNEL=="AC", ATTR{power/wakeup}="enabled"
+    #   SUBSYSTEM=="power", KERNEL=="PWRB", ATTR{power/wakeup}="enabled"
+    # '';
 
     # 7. GNOME Settings Overrides
-    xserver.desktopManager.gnome.extraGSettingsOverrides = ''
-      [org.gnome.settings-daemon.plugins.power]
-      power-button-action='nothing'
-      sleep-inactive-ac-type='nothing'
-      sleep-inactive-battery-type='nothing'
-    '';
+    # xserver.desktopManager.gnome.extraGSettingsOverrides = ''
+    #   [org.gnome.settings-daemon.plugins.power]
+    #   power-button-action='nothing'
+    #   sleep-inactive-ac-type='nothing'
+    #   sleep-inactive-battery-type='nothing'
+    # '';
   };
 
   # [ Systemd Services ]
@@ -151,7 +151,6 @@
   # [ Environment ]
   environment.systemPackages = with pkgs; [
     libsmbios
-    rnote
     msr-tools
   ];
 }
