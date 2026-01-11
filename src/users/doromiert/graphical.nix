@@ -33,7 +33,10 @@
       # This extends the base configuration defined in dev.nix
       programs.vscode = {
         # The Vim Addon (User Preference)
-        extensions = [ pkgs.vscode-extensions.vscodevim.vim ];
+        extensions = with pkgs.vscode-extensions; [
+          vscodevim.vim
+          # brandonkirbyson.vscode-animations
+        ];
 
         # Merged from settings.json
         profiles.default.userSettings = {
@@ -47,6 +50,13 @@
           "vim.surround" = true; # Essential for cs"' etc.
           "vim.commentary" = true; # gcc to comment
           "vim.indentObject" = true; # vii to select indentation block
+
+          "editor.cursorSmoothCaretAnimation" = "on";
+          "editor.cursorBlinking" = "smooth";
+          # "editor.cursorStyle" = "block";
+          "terminal.integrated.cursorStyle" = "block";
+          "terminal.integrated.cursorBlinking" = true;
+          "terminal.integrated.gpuAcceleration" = "on";
 
           # [RECOMMENDED] Advanced Movements & Visuals
           "vim.camelCaseMotion.enable" = true; # Move inside CamelCase words
