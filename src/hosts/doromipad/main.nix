@@ -54,7 +54,7 @@
 
     # Sysctl Tweaks
     kernel.sysctl = {
-      "vm.swappiness" = lib.mkForce 10; # Prefer ZRAM
+      # NOTE: vm.swappiness is now managed by ZenFS
       "dev.nvme.0.queue_mode" = lib.mkForce "none"; # NVMe Scheduler optimization
     };
   };
@@ -67,14 +67,10 @@
     boltd.enable = true;
 
     # 2. Power Profiles Daemon (Standard GNOME Power Management)
-    # Replaces TLP. Works better with GNOME's quick settings.
     power-profiles-daemon.enable = true;
 
     # 3. Thermald (Dynamic Thermal Management)
-    # Works alongside PPD to prevent overheating on Intel chips
     thermald.enable = true;
-
-    # [ REMOVED ] TLP configuration
 
     # 4. ACPI Power Button Handler (Lock Screen instead of Power Off)
     acpid = {
@@ -113,7 +109,6 @@
     '';
 
     # 7. GNOME Settings Overrides
-    # Ensures GNOME doesn't try to hijack the power button from our ACPI script
     xserver.desktopManager.gnome.extraGSettingsOverrides = ''
       [org.gnome.settings-daemon.plugins.power]
       power-button-action='nothing'
@@ -134,15 +129,12 @@
     '';
 
     # 2. BD_PROCHOT Dethrottle Service
-    # Forcefully disables the "Bi-Directional Processor Hot" signal
-    # which often causes ThinkPads to stick at 400MHz.
     services.disable-throttling = {
       description = "Disable BD_PROCHOT Throttling";
       wantedBy = [ "multi-user.target" ];
       serviceConfig = {
         Type = "oneshot";
         RemainAfterExit = true;
-        # Checks for MSR device before running wrmsr to avoid failure
         ExecStart = "${pkgs.bash}/bin/bash -c 'if [ -e /dev/cpu/0/msr ]; then ${pkgs.msr-tools}/bin/wrmsr 0x1FC 2 || true; fi'";
         After = [
           "local-fs.target"
@@ -152,16 +144,10 @@
     };
   };
 
-  # [ Swap / Memory ]
-  zramSwap = {
-    enable = true;
-    priority = 100;
-  };
-
   # [ Environment ]
   environment.systemPackages = with pkgs; [
     libsmbios
     rnote
-    msr-tools # Required for the dethrottle script
+    msr-tools
   ];
 }

@@ -1,4 +1,3 @@
-# src/modules/core/boot.nix
 {
   pkgs,
   lib,
@@ -13,17 +12,38 @@ let
   refindResources = ../../../resources/Refind;
 in
 {
-  boot.loader = {
-    # 1. Standard systemd-boot for generation management
-    systemd-boot = {
-      enable = true;
-      configurationLimit = 10;
-    };
+  boot = {
+    # [ SILENCE ] Essential settings for a flicker-free boot
+    # Note: Plymouth is enabled in your branding module, but these settings
+    # are required to hide the text *before* Plymouth starts.
+    consoleLogLevel = 0;
+    initrd.verbose = false;
 
-    # 2. Prevent NixOS from fighting rEFInd for the #1 Boot Order slot
-    efi = {
-      canTouchEfiVariables = false;
-      efiSysMountPoint = "/boot";
+    kernelParams = [
+      "quiet"
+      "splash"
+      "boot.shell_on_fail"
+      "loglevel=3"
+      "rd.systemd.show_status=false"
+      "rd.udev.log_level=3"
+      "udev.log_priority=3"
+    ];
+
+    loader = {
+      # 1. Standard systemd-boot for generation management
+      systemd-boot = {
+        enable = true;
+        configurationLimit = 10;
+        # Hide systemd-boot menu to prevent "Double Menu" (rEFInd -> systemd-boot)
+        # This makes the transition from rEFInd to Plymouth instant.
+        timeout = 0;
+      };
+
+      # 2. Prevent NixOS from fighting rEFInd for the #1 Boot Order slot
+      efi = {
+        canTouchEfiVariables = false;
+        efiSysMountPoint = "/boot";
+      };
     };
   };
 

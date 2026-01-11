@@ -23,6 +23,7 @@
   # Kernel modules for ThinkPad
   boot.kernelModules = [
     "kvm-intel"
+    "i915"
     # "acpi_call" # Sometimes useful for TLP / ThinkPad specific calls
   ];
 
