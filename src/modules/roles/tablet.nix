@@ -13,7 +13,7 @@
 
   # Essential for Wacom stylus kernel drivers.
   # Note: 'xsetwacom' command won't work on Wayland; map buttons via GNOME Settings.
-  services.xserver.wacom.enable = true;
+  # services.xserver.wacom.enable = true;
 
   # [ Software: Touch & Handwriting Suite ]
   environment.systemPackages = with pkgs; [
