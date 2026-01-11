@@ -54,14 +54,14 @@ in
 
   # Use the native dconf module for standard/simple GNOME settings
   dconf.settings = {
-    "org/gnome/desktop" = {
-      app-folders = [
-        "System"
-        "YaST"
-        "Pardus"
-        "d4b55352-0853-4306-9cb0-4b01a00a9537"
-      ];
-    };
+    # "org/gnome/desktop" = {
+    #   app-folders = [
+    #     "System"
+    #     "YaST"
+    #     "Pardus"
+    #     "d4b55352-0853-4306-9cb0-4b01a00a9537"
+    #   ];
+    # };
     "org/gnome/shell" = {
 
       favorite-apps = [
