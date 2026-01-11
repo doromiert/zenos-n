@@ -37,6 +37,12 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # [ ZenOS Maintenance ]
+    zenos-maintenance = {
+      url = "github:doromiert/zenos-maintenance";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     nixpwamaker = {
       url = "github:doromiert/nixpwamaker";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -152,6 +158,10 @@
                     bootDrive = bootUUID;
                   };
 
+                  # [ ZenOS Maintenance ] Default Enable
+                  # This ensures all hosts (laptop, PC, VM) get auto-updates & cleanup.
+                  zenos.maintenance.enable = true;
+
                   # [LOGIC] Set the system hostname automatically
                   networking.hostName = hostName;
 
@@ -187,6 +197,9 @@
 
             # [ ZenFS ] Module Import
             inputs.zenfs.nixosModules.default
+
+            # [ ZenOS Maintenance ] Module Import
+            inputs.zenos-maintenance.nixosModules.default
 
             inputs.home-manager.nixosModules.home-manager
             inputs.nix-flatpak.nixosModules.nix-flatpak
@@ -253,6 +266,45 @@
             inputs.jovian.nixosModules.default
           ];
         };
+
+        doromipad = mkHost {
+          prettyName = "doromipad";
+
+          rootUUID = "8e1e39fe-becf-40f7-bf3e-447ecdfef32d";
+          bootUUID = "E4BC-AD87";
+          locale = {
+            timeZone = "Europe/Warsaw";
+            language = "en_US.UTF-8";
+            defaultLocale = "pl_PL.UTF-8";
+            kbLayout = "pl";
+          };
+          users = [
+            "doromiert"
+            "hubi"
+          ];
+          desktop = "gnome";
+          roles = [
+            "web"
+            "creative/audio"
+            "creative/graphics"
+            "creative/misc"
+            "dev"
+            "pipewire"
+            "zbridge"
+            "tablet"
+          ];
+          # ill change this once i install it for more than testing
+          excludeCoreModules = [
+            "syncthing"
+          ];
+          extraModules = [
+            inputs.nixos-hardware.nixosModules.lenovo-thinkpad-l13
+            inputs.nixos-hardware.nixosModules.common-cpu-intel
+            inputs.nixos-hardware.nixosModules.common-gpu-intel
+            inputs.nixos-hardware.nixosModules.common-pc-laptop-ssd
+          ];
+        };
+
         test-vm = mkHost {
           prettyName = "Bob's test VM";
 

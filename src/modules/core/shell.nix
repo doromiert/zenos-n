@@ -66,6 +66,7 @@ in
       # We check if the global config exists and source it
       [[ ! -f /etc/zsh/p10k.zsh ]] || source /etc/zsh/p10k.zsh
     '';
+
   };
 
   # SSH Service

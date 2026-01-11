@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ ... }:
 {
   # --- PipeWire Core & Virtual Sinks ---
   security.rtkit.enable = true;

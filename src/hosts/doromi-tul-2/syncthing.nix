@@ -1,12 +1,24 @@
 # doromi-tul-2-specific syncthing settings
-{ config, pkgs, lib, ... }:
+{
+  config,
+  lib,
+  ...
+}:
+let
+  # 1. Grab the list of devices that actually exist in the final config
+  #    (This automatically excludes the ones we filtered out in the previous file)
+  enabledDevices = builtins.attrNames config.services.syncthing.settings.devices;
+
+  # 2. Define a helper: Only keep devices that are in both lists
+  active = list: lib.intersectLists list enabledDevices;
+in
 
 {
   services.syncthing = {
     enable = true;
     user = config.mainUser; # Dynamically use the mainUser defined in flake.nix
     group = "users";
-    
+
     # Using config.users.users.${config.mainUser}.home is safe here as long as config is in scope
     dataDir = "${config.users.users.${config.mainUser}.home}/.local/share/syncthing";
     configDir = "${config.users.users.${config.mainUser}.home}/.config/syncthing";
@@ -17,7 +29,7 @@
       "books" = {
         id = "6dovv-1tpo9";
         path = "${config.users.users.${config.mainUser}.home}/Documents/books";
-        devices = [
+        devices = active [
           "doromi-tul-2"
           "doromi-server"
           "doromipad"
@@ -37,7 +49,7 @@
       "obsidian-rondomix" = {
         id = "75ycc-ar6pj";
         path = "${config.users.users.${config.mainUser}.home}/Documents/rondomix";
-        devices = [
+        devices = active [
           "doromi-tul-2"
           "doromi-server"
           "doromipad"
@@ -56,7 +68,7 @@
       "obsidian-negative-zero" = {
         id = "Negative Zero";
         path = "${config.users.users.${config.mainUser}.home}/Documents/obsidian/-0";
-        devices = [
+        devices = active [
           "doromi-tul-2"
           "doromi-server"
           "doromipad"
@@ -75,7 +87,7 @@
       "obsidian-school" = {
         id = "o2qk0-vgpjz";
         path = "${config.users.users.${config.mainUser}.home}/Documents/obsidian/school";
-        devices = [
+        devices = active [
           "doromi-tul-2"
           "doromi-server"
           "doromipad"
@@ -94,7 +106,7 @@
       "obsidian-ixni" = {
         id = "dlebo-khhal";
         path = "${config.users.users.${config.mainUser}.home}/Documents/obsidian/ixni";
-        devices = [
+        devices = active [
           "doromi-tul-2"
           "doromi-server"
           "doromipad"
@@ -113,7 +125,7 @@
       "passwords" = {
         id = "passwords";
         path = "${config.users.users.${config.mainUser}.home}/Passwords";
-        devices = [
+        devices = active [
           "doromi-tul-2"
           "doromi-server"
           "doromipad"
@@ -132,22 +144,21 @@
       # 7. Music (Receive Only from Main PC)
       "Music" = {
         id = "Music";
-        path = "${config.users.users.${config.mainUser}.home}/Music";
-        devices = [
+        path = "${config.users.users.${config.mainUser}.home}/Music/.database";
+        devices = active [
           "doromi-tul-2"
           "doromi-server"
           "doromipad"
           "np2"
           "quest"
         ];
-        type = "receiveonly";
       };
 
       # 8. rnote
       "rnote" = {
         id = "rnote";
         path = "${config.users.users.${config.mainUser}.home}/Documents/rnote";
-        devices = [
+        devices = active [
           "doromi-tul-2"
           "doromi-server"
           "doromipad"

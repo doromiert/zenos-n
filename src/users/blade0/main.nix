@@ -24,30 +24,6 @@
       # ".local/bin".source = ./bin;
     };
 
-    xdg.userDirs = {
-      enable = true;
-      createDirectories = true;
-
-      # Standard XDG paths
-      download = "${config.users.users.blade0.home}/Downloads";
-      documents = "${config.users.users.blade0.home}/Documents";
-      desktop = "${config.users.users.blade0.home}/Desktop";
-
-      # Custom paths go into extraConfig
-      extraConfig = {
-        XDG_FUNNY_DIR = "${config.users.users.blade0.home}/Funny";
-        XDG_PROJECTS_DIR = "${config.users.users.blade0.home}/Projects";
-        XDG_THREED_DIR = "${config.users.users.blade0.home}/3D";
-        XDG_ANDROID_DIR = "${config.users.users.blade0.home}/Android";
-        XDG_AI_DIR = "${config.users.users.blade0.home}/AI";
-        XDG_APPS_SCRIPTS_DIR = "${config.users.users.blade0.home}/Apps & Scripts";
-        XDG_DOOM_DIR = "${config.users.users.blade0.home}/Doom";
-        XDG_RIFT_DIR = "${config.users.users.blade0.home}/Rift";
-        XDG_RANDOM_DIR = "${config.users.users.blade0.home}/Random";
-        XDG_PASSWORDS_DIR = "${config.users.users.blade0.home}/Passwords";
-      };
-    };
-
     programs = {
 
       direnv = {

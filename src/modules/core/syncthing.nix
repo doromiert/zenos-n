@@ -1,5 +1,5 @@
 # will contain generic syncthing settings and devices
-{ ... }:
+{ lib, ... }:
 {
   services.syncthing = {
     enable = true;
@@ -9,7 +9,7 @@
 
     openDefaultPorts = true;
 
-    settings.devices = {
+    settings.devices = lib.filterAttrs (n: v: v.id != "placeholder") {
       # my devices
       "doromi-tul-2" = {
         id = "placeholder";
