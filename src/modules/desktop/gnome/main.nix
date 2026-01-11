@@ -180,6 +180,10 @@ in
             edge-tiling = false;
             center-new-windows = true;
             auto-maximize = false;
+            experimental-features = [
+              "scale-monitor-framebuffer"
+              "xwayland-native-scaling"
+            ];
           };
         };
       }
