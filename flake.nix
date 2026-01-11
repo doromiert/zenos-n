@@ -144,6 +144,10 @@
                 };
 
                 config = {
+                  # [ HARDWARE ] Universal Firmware Enable
+                  # Enforces redistributable firmware (linux-firmware) for all hosts.
+                  hardware.enableRedistributableFirmware = true;
+
                   # [ ZenFS ] Core Configuration
                   services.zenfs = {
                     enable = true;
@@ -160,7 +164,10 @@
 
                   # [ ZenOS Maintenance ] Default Enable
                   # This ensures all hosts (laptop, PC, VM) get auto-updates & cleanup.
-                  zenos.maintenance.enable = true;
+                  zenos.maintenance = {
+                    enable = true;
+                    flakePath = "/home/doromiert/Projects/zenos-n";
+                  };
 
                   # [LOGIC] Set the system hostname automatically
                   networking.hostName = hostName;

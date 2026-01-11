@@ -31,6 +31,10 @@
     };
   };
 
+  environment.variables = {
+    GSK_RENDERER = "ngl";
+    LIBVA_DRIVER_NAME = "iHD";
+  };
   # [ Boot / Kernel / Throttling ]
   boot = {
     # Load MSR module for dethrottling script

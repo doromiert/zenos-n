@@ -35,6 +35,7 @@
     # Force Firefox to use native Wayland
     # This enables 1:1 touchpad/touchscreen gestures (pinch-zoom, scroll)
     MOZ_ENABLE_WAYLAND = "1";
+    MOZ_USE_XINPUT2 = "1";
 
     # Hint Electron apps (VS Code, Discord, etc.) to use Wayland ozone backend
     # Reduces latency and improves touch input
