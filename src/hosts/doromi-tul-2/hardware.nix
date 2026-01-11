@@ -65,7 +65,7 @@
 
   # Sysctl optimizations for high-speed SSD and gaming
   boot.kernel.sysctl = {
-    "vm.swappiness" = 10;
+    # "vm.swappiness" = 10;
     "vm.max_map_count" = 2147483642;
   };
 

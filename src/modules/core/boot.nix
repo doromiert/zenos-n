@@ -8,14 +8,13 @@ let
   # Path to your custom python script relative to this file
   refindScript = ../../scripts/refind.py;
   # Path to resources (Theme, icons, etc.)
-  # Nix will copy this directory to the store, ensuring reproducibility.
   refindResources = ../../../resources/Refind;
 in
 {
   boot = {
     # [ SILENCE ] Essential settings for a flicker-free boot
-    # Note: Plymouth is enabled in your branding module, but these settings
-    # are required to hide the text *before* Plymouth starts.
+    # Note: Plymouth is enabled in your branding module.
+    # These settings hide the text *before* Plymouth starts.
     consoleLogLevel = 0;
     initrd.verbose = false;
 
@@ -30,13 +29,14 @@ in
     ];
 
     loader = {
+      # [ TIMEOUT ] Set to 0 to hide systemd-boot and boot immediately
+      # This effectively delegates the menu strictly to rEFInd
+      timeout = 0;
+
       # 1. Standard systemd-boot for generation management
       systemd-boot = {
         enable = true;
         configurationLimit = 10;
-        # Hide systemd-boot menu to prevent "Double Menu" (rEFInd -> systemd-boot)
-        # This makes the transition from rEFInd to Plymouth instant.
-        timeout = 0;
       };
 
       # 2. Prevent NixOS from fighting rEFInd for the #1 Boot Order slot

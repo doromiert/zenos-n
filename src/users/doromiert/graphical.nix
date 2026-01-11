@@ -36,7 +36,7 @@
         extensions = [ pkgs.vscode-extensions.vscodevim.vim ];
 
         # Merged from settings.json
-        userSettings = {
+        profiles.default.userSettings = {
           # Existing Nix overrides
           "vim.useSystemClipboard" = true;
           "vim.hlsearch" = true;

@@ -1,5 +1,10 @@
 # kitchen sink for the user
-{ config, pkgs, ... }:
+{
+  config,
+  inputs,
+  pkgs,
+  ...
+}:
 
 {
   users.users.doromiert = {
@@ -13,6 +18,10 @@
     shell = pkgs.zsh;
     initialPassword = "setmelater";
   };
+
+  environment.systemPackages = [
+    inputs.swisstag.packages.${pkgs.system}.default
+  ];
 
   home-manager.users.doromiert = {
 
