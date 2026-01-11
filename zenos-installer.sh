@@ -158,20 +158,20 @@ mount_target() {
     mount --bind /mnt/nix /mnt/System/nix
 
     # --- SWAP INITIALIZATION (64GB - RAM) ---
-    local PHYSICAL_SWAP="/mnt/Live/swapfile"
-    if [ ! -f "$PHYSICAL_SWAP" ]; then
-        local TOTAL_RAM_GB=$(free -g | awk '/^Mem:/{print $2}')
-        local TARGET_SWAP_GB=$((64 - TOTAL_RAM_GB))
-        if [ "$TARGET_SWAP_GB" -lt 4 ]; then TARGET_SWAP_GB=4; fi
+    # local PHYSICAL_SWAP="/mnt/Live/swapfile"
+    # if [ ! -f "$PHYSICAL_SWAP" ]; then
+    #     local TOTAL_RAM_GB=$(free -g | awk '/^Mem:/{print $2}')
+    #     local TARGET_SWAP_GB=$((64 - TOTAL_RAM_GB))
+    #     if [ "$TARGET_SWAP_GB" -lt 4 ]; then TARGET_SWAP_GB=4; fi
 
-        log "Synthesizing Dynamic Swap Buffer (${TARGET_SWAP_GB}GB) in /Live..."
-        truncate -s 0 "$PHYSICAL_SWAP"
-        chattr +C "$PHYSICAL_SWAP"
-        fallocate -l "${TARGET_SWAP_GB}G" "$PHYSICAL_SWAP" || dd if=/dev/zero of="$PHYSICAL_SWAP" bs=1M count=$((TARGET_SWAP_GB * 1024)) status=progress
-        chmod 600 "$PHYSICAL_SWAP"
-        mkswap "$PHYSICAL_SWAP"
-    fi
-    if ! swapon --show | grep -q "$(readlink -f $PHYSICAL_SWAP)"; then swapon "$PHYSICAL_SWAP"; fi
+    #     log "Synthesizing Dynamic Swap Buffer (${TARGET_SWAP_GB}GB) in /Live..."
+    #     truncate -s 0 "$PHYSICAL_SWAP"
+    #     chattr +C "$PHYSICAL_SWAP"
+    #     fallocate -l "${TARGET_SWAP_GB}G" "$PHYSICAL_SWAP" || dd if=/dev/zero of="$PHYSICAL_SWAP" bs=1M count=$((TARGET_SWAP_GB * 1024)) status=progress
+    #     chmod 600 "$PHYSICAL_SWAP"
+    #     mkswap "$PHYSICAL_SWAP"
+    # fi
+    # if ! swapon --show | grep -q "$(readlink -f $PHYSICAL_SWAP)"; then swapon "$PHYSICAL_SWAP"; fi
 }
 
 # --- Phase 2: Hardware Discovery ---
