@@ -10,6 +10,30 @@
       minimize = [ "<Super>Page_Down" ];
       activate-window-menu = [ "<Alt>space" ];
       begin-resize = [ "<Control><Super>c" ];
+      # Workspaces (HJKL)
+      switch-to-workspace-left = [ "<Super><Control>h" ];
+      switch-to-workspace-right = [ "<Super><Control>l" ];
+      move-to-workspace-left = [ "<Super><Control><Shift>h" ];
+      move-to-workspace-right = [ "<Super><Control><Shift>l" ];
+
+      # Monitors (HJKL)
+      move-to-monitor-left = [ "<Super><Alt>h" ];
+      move-to-monitor-right = [ "<Super><Alt>l" ];
+
+      # Input
+      switch-input-source = [ "<Super>space" ];
+      switch-input-source-backward = [ "<Shift><Super>space" ];
+    };
+
+    # [CONFLICT REMOVAL] Disable side tiling
+    "org/gnome/mutter/keybindings" = {
+      toggle-tiled-left = [ ];
+      toggle-tiled-right = [ ];
+    };
+
+    # --- Custom Keybindings (Apps) ---
+    "org/gnome/settings-daemon/plugins/media-keys" = {
+      # [FIX] Remap Lock Screen to avoid conflict with <Super>l (Focus Right)
 
       # [CONFLICT REMOVAL]
       # Disable default Gnome tiling keys to prevent interference with Forge
