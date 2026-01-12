@@ -147,9 +147,8 @@ in
       mouse_hide_wait 3.0
 
       # --- Layout ---
-      # Padding: 5 is too small for touch. Bumping to 10 for better touch-drag area 
       # (if you use Super+Drag on the window body)
-      window_padding_width 10
+      window_padding_width 5
       hide_window_decorations yes
 
       # --- Performance & Behavior ---
