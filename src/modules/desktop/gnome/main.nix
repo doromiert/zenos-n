@@ -1,41 +1,33 @@
-# contains gnome-specific configs
-{ pkgs, ... }:
+{ pkgs, lib, ... }:
 
 let
-  # Define custom Forge extension from local precompiled resources
+  # [HIJACK] Fake gnome-terminal wrapper
+  fake-gnome-terminal = pkgs.writeShellScriptBin "gnome-terminal" ''
+    exec ${pkgs.kitty}/bin/kitty "$@"
+  '';
+
+  # Define custom Forge extension
   forge-custom = pkgs.stdenv.mkDerivation rec {
     pname = "gnome-shell-extension-forge";
     version = "custom";
-
-    # Point to the precompiled local directory
-    src = ../../../../resources/forge;
-
-    # No build steps needed for precompiled code
+    src = ../../../../resources/forge; # Adjust path as needed
     dontBuild = true;
-
     installPhase = ''
       export UUID="forge@jmmaranan.com"
       dest="$out/share/gnome-shell/extensions/$UUID"
       mkdir -p "$dest"
-
-      # Copy the precompiled contents directly
       cp -a . "$dest/"
-
-      # Just in case, ensure schemas are compiled for the store path
       if [ -d "$dest/schemas" ]; then
         ${pkgs.glib.dev}/bin/glib-compile-schemas "$dest/schemas"
       fi
     '';
-
     passthru.extensionUuid = "forge@jmmaranan.com";
   };
 
-  # Define extensions
   extensions = [
     forge-custom
   ]
   ++ (with pkgs.gnomeExtensions; [
-    # Window Management
     app-hider
     undecorate
     hide-minimized
@@ -45,29 +37,21 @@ let
     compiz-alike-magic-lamp-effect
     rounded-window-corners-reborn
     blur-my-shell
-
-    # UX / Navigation
     alphabetical-app-grid
     category-sorted-app-grid
     coverflow-alt-tab
     hide-top-bar
     mouse-tail
     window-is-ready-remover
-
-    # System
     gsconnect
     clipboard-indicator
     notification-timeout
   ]);
 in
 {
-  imports = [
-    ./styling.nix
-  ];
+  imports = [ ./styling.nix ];
 
   # [FIX] Portal Configuration
-  # This fixes the VS Code freeze and PWA crashes on file picker.
-  # We strictly prioritize the GNOME portal.
   xdg.portal = {
     enable = true;
     extraPortals = [
@@ -80,73 +64,72 @@ in
     ];
   };
 
-  # 1. Core Desktop Services
-  services = {
-    displayManager.gdm.enable = true;
-    desktopManager.gnome.enable = true;
-    udev.packages = with pkgs; [ gnome-settings-daemon ];
+  services.xserver.desktopManager.gnome.enable = true;
+  services.xserver.displayManager.gdm.enable = true;
+  services.udev.packages = with pkgs; [ gnome-settings-daemon ];
 
-  };
+  # [KITTY BASE] Desktop-Default Config
+  # (Will be overwritten by tablet.nix if imported)
+  environment.etc."xdg/kitty/kitty.conf".text = lib.mkDefault ''
+    font_family      Atkynson Mono NF
+    font_size        11.0
+    background #1e1e1e
+    foreground #ffffff
+    # ... (rest of standard config)
+    cursor_shape beam
+    window_padding_width 5
+    hide_window_decorations yes
+  '';
 
-  # 2. System-wide Packages
-  environment = {
-    systemPackages =
-      with pkgs;
-      [
-        pipewire
-        gst_all_1.gstreamer
-        gst_all_1.gst-plugins-base
-        gst_all_1.gst-plugins-good
-        gst_all_1.gst-plugins-bad
-        gst_all_1.gst-plugins-ugly
-        gst_all_1.gst-libav # Essential for common formats like .mp4/.mkv
+  environment.systemPackages =
+    with pkgs;
+    [
+      gnome-tweaks
+      kitty
+      fake-gnome-terminal
+      nautilus-open-any-terminal
+      gnome-extension-manager
+      wl-clipboard
+      dconf-editor
+      # ... (Your standard app list)
+      biblioteca
+      dialect
+      decoder
+      raider
+      wike
+      curtail
+      czkawka
+      hieroglyphic
+      warehouse
+      switcheroo
+      letterpress
+      resources
+      icon-library
+      pika-backup
+      helvum
+      commit
+    ]
+    ++ extensions;
 
-        gnome-tweaks
-        blackbox-terminal
-        gnome-extension-manager
-        wl-clipboard
-        dconf-editor
+  environment.gnome.excludePackages = (
+    with pkgs;
+    [
+      gnome-photos
+      gnome-tour
+      gedit
+      cheese
+      gnome-music
+      gnome-maps
+      epiphany
+      gnome-contacts
+      gnome-weather
+      gnome-console
+    ]
+  );
 
-        biblioteca
-        dialect
-        decoder
-        raider
-        wike
-        curtail
-        czkawka
-        hieroglyphic
-        warehouse
-        switcheroo
-        letterpress
-        resources
-        icon-library
-        pika-backup
-        helvum
-        commit
-      ]
-      ++ extensions;
+  services.flatpak.packages = [ "com.github.tchx84.Flatseal" ];
 
-    gnome.excludePackages = (
-      with pkgs;
-      [
-        gnome-photos
-        gnome-tour
-        gedit
-        cheese
-        gnome-music
-        gnome-maps
-        epiphany
-        gnome-contacts
-        gnome-weather
-      ]
-    );
-  };
-
-  services.flatpak.packages = [
-    "com.github.tchx84.Flatseal"
-  ];
-
-  # 3. Declarative GSettings (Dconf) for All Users
+  # [DCONF BASE]
   programs.dconf = {
     enable = true;
     profiles.user.databases = [
@@ -155,31 +138,24 @@ in
           "org/gnome/desktop/interface" = {
             color-scheme = "prefer-dark";
             enable-hot-corners = false;
-            gtk-enable-primary-paste = false;
           };
-
           "org/gnome/shell" = {
             disable-user-extensions = false;
             enabled-extensions = map (ext: ext.extensionUuid) extensions;
-
             favorite-apps = [
               "firefox.desktop"
               "org.gnome.Nautilus.desktop"
-              "com.raggesilver.BlackBox.desktop"
+              "kitty.desktop"
             ];
           };
-
-          # [FIX] Crash Prevention: Disable edge tiling to stop auto-maximize logic
-          "org/gnome/desktop/wm/preferences" = {
-            edge-tiling = false;
-            action-double-click-titlebar = "toggle-maximize";
+          "com/github/stunkymonkey/nautilus-open-any-terminal" = {
+            terminal = "kitty";
+            keybindings = "<Super>t";
+            new-tab = true;
           };
-
-          # [FIX] UX: Center new windows since we disabled auto-max
           "org/gnome/mutter" = {
             edge-tiling = false;
             center-new-windows = true;
-            auto-maximize = false;
             experimental-features = [
               "scale-monitor-framebuffer"
               "xwayland-native-scaling"
