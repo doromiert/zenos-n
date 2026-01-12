@@ -95,14 +95,12 @@ in
   # 2. System-wide Packages
   environment = {
     etc."xdg/kitty/kitty.conf".text = ''
-      # --- Font (Manually scaled for Touch/1080p) ---
-      # 11pt * 1.25 (Text Scale) = ~13.5. 
-      # Bumping to 13.5 ensures Kitty hit targets match GNOME.
+      # --- Font ---
       font_family      Atkynson Mono NF
       bold_font        auto
       italic_font      auto
       bold_italic_font auto
-      font_size        13.5
+      font_size        11
 
       # --- Adwaita Dark (Official Palette) ---
       background            #1e1e1e
