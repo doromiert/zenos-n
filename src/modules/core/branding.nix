@@ -113,7 +113,7 @@ let
       os_ver.SetX(os_name.GetX() + os_name.GetImage().GetWidth()); os_ver.SetY(row_y);
 
       progress = 0;
-      fun refresh_callback () { progress++; glow.SetOpacity(0.6 + (Math.Sin(progress / 70) * 0.5)); }
+      fun refresh_callback () { progress++; glow.SetOpacity(0.6 + (Math.Sin(progress / 70) * 0.3)); }
       Plymouth.SetRefreshFunction(refresh_callback);
       EOF
     '';

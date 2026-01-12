@@ -39,10 +39,18 @@ in
       # --- 1. Standard Firefox Configuration ---
       programs.firefox = {
         enable = true;
-        package = pkgs.firefox;
+
+        # [P13.D] ENVIRONMENT OVERRIDE
+        # Forces Wayland mode at the binary level to match the working profile
+        package = pkgs.firefox.overrideAttrs (old: {
+          buildCommand = old.buildCommand + ''
+            wrapProgram $out/bin/firefox \
+              --set MOZ_ENABLE_WAYLAND 1 \
+              --set GTK_USE_PORTAL 1
+          '';
+        });
 
         # This links the manifest to ~/.mozilla/native-messaging-hosts/
-        # Standard Firefox looks here by default.
         nativeMessagingHosts = [
           pkgs.keepassxc
         ];
@@ -99,9 +107,36 @@ in
           };
 
           Preferences = {
-            "layout.css.devPixelsPerPx" = 1.25;
-            "widget.wayland.fractional-scale.enabled" = lock true;
+            # --- [P13.D] REPLICATED "WORKING PROFILE" CONFIG ---
+
+            # 1. Disable the broken Fractional Scale Protocol
+            # (Forces integer scaling which avoids the blur)
+            "widget.wayland.fractional-scale.enabled" = lock false;
+
+            # 2. Force Software Rendering
+            # (Bypasses the Intel GPU driver bug causing the blur)
+            "gfx.webrender.software" = lock true;
+            "gfx.webrender.all" = lock true; # Keep enabled as per working profile
+
+            # 3. Force Hardware Surface Export
+            # (Ensures correct window buffer transport)
+            "widget.dmabuf.force-enabled" = lock true;
+            "gfx.webrender.compositor.force-enabled" = lock true;
+
+            # 4. Auto-detect Scale
+            # (Working profile uses -1, allowing it to snap to 2x integer scale)
+            "layout.css.devPixelsPerPx" = lock (-1.0);
+
+            # 5. Security Check
+            # (Ensure this doesn't override scaling)
+            "privacy.resistFingerprinting" = lock false;
+
+            # --- END SCALING FIXES ---
+
+            # [P5.4] Force Libadwaita Picker
             "widget.use-xdg-desktop-portal.file-picker" = lock 1;
+            "widget.use-xdg-desktop-portal.mime-handler" = lock 1;
+
             "browser.contentblocking.category" = lock "standard";
             "browser.formfill.enable" = lock false;
             "browser.search.suggest.enabled" = lock false;
@@ -111,7 +146,6 @@ in
             "extensions.enabledScopes" = lock 15;
             "xpinstall.signatures.required" = lock false;
             "extensions.langpacks.signatures.required" = lock false;
-            "gfx.webrender.all" = lock true;
             "layers.acceleration.force-enabled" = lock true;
             "font.name.sans-serif.x-western" = lock "Atkinson Hyperlegible Next";
             "font.default.x-western" = lock "sans-serif";
