@@ -147,7 +147,6 @@ in
 
   # 1. Fonts
   fonts = {
-    fontDir.enable = true;
     packages = with pkgs; [
       atkinson-hyperlegible-next # Sans (UI)
       noto-fonts

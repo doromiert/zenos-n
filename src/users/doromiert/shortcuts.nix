@@ -58,8 +58,8 @@
     };
 
     "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1" = {
-      name = "terminal";
-      command = "kitty";
+      name = "Black Box";
+      command = "blackbox";
       binding = "<Super>t";
     };
 

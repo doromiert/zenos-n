@@ -294,7 +294,6 @@
             "dev"
             "pipewire"
             "zbridge"
-            "tablet-scaling"
             "tablet"
           ];
           # ill change this once i install it for more than testing
