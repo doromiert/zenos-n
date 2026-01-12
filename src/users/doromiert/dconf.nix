@@ -71,7 +71,7 @@ in
         "figma.desktop"
         "code.desktop"
         "org.gnome.Nautilus.desktop"
-        "com.raggesilver.BlackBox.desktop"
+        "kitty.desktop"
         "steam.desktop"
         "obsidian.desktop"
         "gemini.desktop"

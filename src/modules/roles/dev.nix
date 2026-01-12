@@ -1,5 +1,5 @@
 # stuff for devving
-{ pkgs, lib, ... }:
+{ pkgs, ... }:
 
 {
   environment.systemPackages = [
@@ -25,8 +25,18 @@
     {
       programs.vscode = {
         enable = true;
-        package = pkgs.vscode;
+        package = (
+          pkgs.vscode.override {
+            commandLineArgs = [
+              # 1. Force Native Wayland
+              "--ozone-platform=wayland"
+              "--enable-features=WaylandWindowDecorations"
 
+              # 2. THE FIX: Force it to ignore System 1.25x and render at 1:1
+              "--force-device-scale-factor=1"
+            ];
+          }
+        );
         # [P13.9] Practical Utilities & Core Workflow
         extensions =
           with pkgs.vscode-extensions;

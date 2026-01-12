@@ -16,19 +16,20 @@
   # services.xserver.wacom.enable = true;
 
   # [ Software: Touch & Handwriting Suite ]
-  environment.systemPackages = with pkgs; [
-    # 1. Handwriting & Sketching
-    rnote # Best-in-class vector sketching/handwriting app (Rust/GTK4)
-    xournalpp # Standard for PDF annotation and handwritten notes
-
-    # 2. Reading
-    foliate # Modern, touch-friendly eBook reader
-
-    # 3. Utilities
-    iio-sensor-proxy # Rotation sensor
-    wl-clipboard # Command-line clipboard for Wayland scripts
-    satty # Screenshot annotation tool (works great with touch/stylus)
-  ];
+  environment.systemPackages =
+    with pkgs;
+    [
+      rnote # Vector sketching (Rust/GTK4)
+      foliate # Touch-friendly eBook reader
+      iio-sensor-proxy # Sensor driver
+      wl-clipboard # Needed for wayland scripts
+      satty # Screenshot annotation
+    ]
+    ++ (with pkgs.gnomeExtensions; [
+      gjs-osk # Better On-Screen Keyboard
+      touchup # Touch tweaks
+      screen-rotate # Rotation button
+    ]);
 
   # [ Environment Tweaks ]
   environment.variables = {
@@ -40,5 +41,6 @@
     # Hint Electron apps (VS Code, Discord, etc.) to use Wayland ozone backend
     # Reduces latency and improves touch input
     NIXOS_OZONE_WL = "1";
+    ELECTRON_OZONE_PLATFORM_HINT = "auto";
   };
 }

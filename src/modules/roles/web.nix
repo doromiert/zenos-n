@@ -99,6 +99,9 @@ in
           };
 
           Preferences = {
+            "layout.css.devPixelsPerPx" = 1.25;
+            "widget.wayland.fractional-scale.enabled" = lock true;
+            "widget.use-xdg-desktop-portal.file-picker" = lock 1;
             "browser.contentblocking.category" = lock "standard";
             "browser.formfill.enable" = lock false;
             "browser.search.suggest.enabled" = lock false;
@@ -132,25 +135,6 @@ in
             "browser.tabs.drawInTitlebar" = lock true;
             "browser.ctrlTab.sortByRecentlyUsed" = lock true;
           };
-        };
-      };
-
-      # --- 2. PWA Maker Configuration ---
-      programs.pwamaker = {
-        enable = true;
-
-        # [CRITICAL] We must pass KeePassXC here so the PWA wrapper
-        # gets the MOZ_NATIVE_MESSAGING_HOSTS env var injected.
-        nativeMessagingHosts = [ pkgs.keepassxc ];
-
-        dispatcher = {
-          enable = true;
-          fallbackBrowser = "firefox";
-        };
-
-        # Example app definitions (keep your existing ones or modify as needed)
-        apps = {
-          # ... your apps here ...
         };
       };
     }

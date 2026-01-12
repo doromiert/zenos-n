@@ -1,5 +1,5 @@
 # contains gnome-specific configs
-{ pkgs, ... }:
+{ lib, pkgs, ... }:
 
 let
   # Define custom Forge extension from local precompiled resources
@@ -29,6 +29,10 @@ let
 
     passthru.extensionUuid = "forge@jmmaranan.com";
   };
+
+  fake-gnome-terminal = pkgs.writeShellScriptBin "gnome-terminal" ''
+    exec ${pkgs.kitty}/bin/kitty "$@"
+  '';
 
   # Define extensions
   extensions = [
@@ -90,6 +94,74 @@ in
 
   # 2. System-wide Packages
   environment = {
+    etc."xdg/kitty/kitty.conf".text = ''
+      # --- Font (Manually scaled for Touch/1080p) ---
+      # 11pt * 1.25 (Text Scale) = ~13.5. 
+      # Bumping to 13.5 ensures Kitty hit targets match GNOME.
+      font_family      Atkynson Mono NF
+      bold_font        auto
+      italic_font      auto
+      bold_italic_font auto
+      font_size        13.5
+
+      # --- Adwaita Dark (Official Palette) ---
+      background            #1e1e1e
+      foreground            #ffffff
+      selection_background  #9841bb
+      selection_foreground  #ffffff
+      url_color             #c061cb
+      cursor                #ffffff
+
+      # Standard Colors
+      color0  #241f31
+      color1  #c01c28
+      color2  #2ec27e
+      color3  #f5c211
+      color4  #1e78e4
+      color5  #9841bb
+      color6  #0ab9dc
+      color7  #c0bfbc
+
+      # Bright Colors
+      color8  #5e5c64
+      color9  #ed333b
+      color10 #57e389
+      color11 #f8e45c
+      color12 #51a1ff
+      color13 #c061cb
+      color14 #4fd2fd
+      color15 #ffffff
+
+      # --- UX & Cursor Anims (GPU Accel) ---
+      cursor_shape beam
+      cursor_beam_thickness 1.5
+      cursor_blink_interval 0.5
+
+      # The "Fluid" Feel
+      cursor_trail 3
+      cursor_trail_decay 0.1 0.4
+      cursor_trail_start_threshold 2
+
+      # --- Touchscreen Optimization ---
+      # Multiplier > 1.0 makes scrolling feel like a phone/GTK
+      touch_scroll_multiplier 5.0
+      # Prevent cursor flickering on touch tap
+      mouse_hide_wait 3.0
+
+      # --- Layout ---
+      # Padding: 5 is too small for touch. Bumping to 10 for better touch-drag area 
+      # (if you use Super+Drag on the window body)
+      window_padding_width 10
+      hide_window_decorations yes
+
+      # --- Performance & Behavior ---
+      repaint_delay 8
+      input_delay 1
+      sync_to_monitor yes
+      confirm_os_window_close 0
+      detect_urls yes
+    '';
+
     systemPackages =
       with pkgs;
       [
@@ -102,7 +174,8 @@ in
         gst_all_1.gst-libav # Essential for common formats like .mp4/.mkv
 
         gnome-tweaks
-        blackbox-terminal
+        fake-gnome-terminal
+        kitty
         gnome-extension-manager
         wl-clipboard
         dconf-editor
@@ -123,6 +196,7 @@ in
         pika-backup
         helvum
         commit
+        nautilus-open-any-terminal
       ]
       ++ extensions;
 
@@ -138,6 +212,7 @@ in
         epiphany
         gnome-contacts
         gnome-weather
+        gnome-console
       ]
     );
   };
@@ -156,6 +231,12 @@ in
             color-scheme = "prefer-dark";
             enable-hot-corners = false;
             gtk-enable-primary-paste = false;
+          };
+          "com/github/stunkymonkey/nautilus-open-any-terminal" = {
+            terminal = "kitty";
+            keybindings = "<Ctrl><Alt>t";
+            new-tab = true;
+            flatpak = false;
           };
 
           "org/gnome/shell" = {
