@@ -189,7 +189,7 @@ in
       split-border-toggle = false;
       stacked-tiling-mode-enabled = false;
       tabbed-tiling-mode-enabled = false;
-      window-gap-size = mkUint32 5;
+      window-gap-size = mkUint32 4;
     };
 
     "org/gnome/shell/extensions/gsconnect/preferences" = {

@@ -270,6 +270,7 @@ in
   services.flatpak.overrides = {
     global = {
       Context.filesystems = [
+
         "xdg-config/gtk-3.0:ro"
         "xdg-config/gtk-4.0:ro"
         "xdg-data/icons:ro"
