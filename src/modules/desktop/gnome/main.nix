@@ -1,9 +1,9 @@
 # contains gnome-specific configs
-{ lib, pkgs, ... }:
+{ pkgs, ... }:
 
 let
   # Define custom Forge extension from local precompiled resources
-  forge-custom = pkgs.stdenv.mkDerivation rec {
+  forge-custom = pkgs.stdenv.mkDerivation {
     pname = "gnome-shell-extension-forge";
     version = "custom";
 
