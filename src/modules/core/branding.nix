@@ -10,9 +10,16 @@
 let
   # --- Release Configuration ---
   releaseType = "beta";
-  commitId = self.shortRev or "dirty";
   baseVersion = "1.0N";
 
+  # --- Commit ID Logic ---
+  # If the tree is clean, self.shortRev exists.
+  # If dirty, we use the dirtyShortRev with a -dirty suffix.
+  commitId = if (self ? shortRev) then self.shortRev else "${self.dirtyShortRev or "unknown"}";
+
+  # Logic:
+  # Stable -> "1.0N"
+  # Beta   -> "1.0Nb (commit)"
   version = if releaseType == "beta" then "${baseVersion}b (${commitId})" else baseVersion;
 
   # --- Device Name Logic ---
@@ -39,7 +46,7 @@ let
 
     env_distroName = distroName;
     env_version = version;
-    env_deviceName = finalDeviceName; # [UPDATED] Use the pretty name
+    env_deviceName = finalDeviceName;
 
     buildPhase = ''
       # --- ASSET GENERATION ---
@@ -48,7 +55,7 @@ let
 
       magick -background none -density 1200 logo.svg -resize 120x120 icon_top.png
 
-      # [UPDATED] Use the pretty Device Name for the top text
+      # Use the pretty Device Name for the top text
       magick -background none -fill white -font "$font_bold" -pointsize 72 label:"$env_deviceName" host_text.png
 
       magick -background none -fill white -font "$font_reg" -pointsize 32 label:"Powered by" powered_by.png
@@ -113,7 +120,7 @@ let
       os_ver.SetX(os_name.GetX() + os_name.GetImage().GetWidth()); os_ver.SetY(row_y);
 
       progress = 0;
-      fun refresh_callback () { progress++; glow.SetOpacity(0.6 + (Math.Sin(progress / 70) * 0.3)); }
+      fun refresh_callback () { progress++; glow.SetOpacity(0.6 + (Math.Sin(progress / 50) * 0.3)); }
       Plymouth.SetRefreshFunction(refresh_callback);
       EOF
     '';
