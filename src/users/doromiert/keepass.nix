@@ -1,6 +1,8 @@
 { config, pkgs, ... }:
 
 {
+  xdg.configFile."autostart/org.keepassxc.KeePassXC.desktop".source =
+    "${pkgs.keepassxc}/share/applications/org.keepassxc.KeePassXC.desktop";
 
   # 1. Configure KeePassXC Settings via INI
   xdg.configFile."keepassxc/keepassxc.ini".text = ''
@@ -15,7 +17,8 @@
     [GUI]
     ApplicationTheme=classic
     MinimizeOnStartup=true
-    TrayIconAppearance=monochrome-lightOpenPreviousDatabasesOnStartup=true
+    TrayIconAppearance=monochrome-light
+    OpenPreviousDatabasesOnStartup=true
     MinimizeToTray=true
 
     [Browser]

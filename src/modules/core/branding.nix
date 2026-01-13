@@ -14,7 +14,7 @@ let
 
   # --- Commit ID Logic ---
   # If the tree is clean, self.shortRev exists.
-  # If dirty, we use the dirtyShortRev with a -dirty suffix.
+  # If dirty, we use the dirtyShortRev
   commitId = if (self ? shortRev) then self.shortRev else "${self.dirtyShortRev or "unknown"}";
 
   # Logic:
