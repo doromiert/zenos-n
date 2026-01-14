@@ -41,7 +41,7 @@ let
   ++ (with pkgs.gnomeExtensions; [
     # Window Management
     app-hider
-    undecorate
+    # undecorate
     hide-minimized
     hide-cursor
     burn-my-windows
