@@ -47,7 +47,7 @@ in
         ${pkgs.dconf}/bin/dconf write /org/gnome/shell/extensions/gsconnect/device/865f1fa442c84b45ae4f512266515aed/plugin/runcommand/command-list ${lib.strings.escapeShellArg (builtins.readFile ./resources/gsc_commands.txt)}
 
         # GSConnect - Notifications
-        ${pkgs.dconf}/bin/dconf write /org/gnome/shell/extensions/gsconnect/device/865f1fa442c84b45ae4f512266515aed/plugin/notification/applications ${lib.strings.escapeShellArg (builtins.readFile ./resources/gsc_notifications.txt)}
+        # ${pkgs.dconf}/bin/dconf write /org/gnome/shell/extensions/gsconnect/device/865f1fa442c84b45ae4f512266515aed/plugin/notification/applications ${lib.strings.escapeShellArg (builtins.readFile ./resources/gsc_notifications.txt)}
       ''}";
     };
   };

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # ## [ -0 ] ZENOS REBUILD TOOL
-# Wrapper for nixos-rebuild with Tmux safety, notifications, and resource optimization.
+# Wrapper for nixos-rebuild with Tmux safety, notifications, resource optimization, and automation.
 
 set -e
 
@@ -22,7 +22,6 @@ notify() {
     
     # Send desktop notification if available
     if command -v notify-send &> /dev/null; then
-        # [FIX] Added -i zenos-symbolic for branding
         notify-send -u "$urgency" -i "zenos-symbolic" -a "ZenOS Rebuild" "$title" "$message" 2>/dev/null || true
     fi
 }
@@ -35,23 +34,23 @@ if [ -z "$TMUX" ]; then
     if tmux has-session -t "$SESSION_NAME" 2>/dev/null; then
         exec tmux attach-session -t "$SESSION_NAME"
     else
-        # [FIX] Create detached session first to configure it
+        # Create detached session first to configure it
         tmux new-session -d -s "$SESSION_NAME"
         
-        # [FIX] Enable Mouse (Scrolling) and increase History Limit
+        # Enable Mouse (Scrolling) and increase History Limit
         tmux set-option -t "$SESSION_NAME" mouse on
         tmux set-option -t "$SESSION_NAME" history-limit 50000
         
         # Send the command to the session
-        # [FIX] Added '; exit' to ensure the pane/session closes after user input
-        tmux send-keys -t "$SESSION_NAME" "bash $0 $*; echo -e '\nPress Enter to exit...'; read; exit" C-m
+        # We pass "$@" to ensure flags like -r or -l are preserved inside the session
+        tmux send-keys -t "$SESSION_NAME" "bash $0 $@; echo -e '\nPress Enter to exit...'; read; exit" C-m
         
         # Attach to the configured session
         exec tmux attach-session -t "$SESSION_NAME"
     fi
 fi
 
-# --- 2. Resource Optimization (From Installer) ---
+# --- 2. Resource Optimization ---
 # Calculate cores to prevent UI freeze during heavy compiles
 TOTAL_CORES=$(nproc)
 # Reserve 2 cores for system responsiveness, minimum 1
@@ -64,6 +63,8 @@ CORES_PER_JOB=2
 TARGET_HOST=$(hostname)
 FLAKE_PATH=""
 FORCE_HOST=""
+AUTO_REBOOT=false
+AUTO_LOGOUT=false
 
 # Argument Parsing
 while [[ $# -gt 0 ]]; do
@@ -77,8 +78,17 @@ while [[ $# -gt 0 ]]; do
         FLAKE_PATH="$2"
         shift 2
         ;;
+        -r|--reboot)
+        AUTO_REBOOT=true
+        shift
+        ;;
+        -l|--logout)
+        AUTO_LOGOUT=true
+        shift
+        ;;
         *)
-        # Pass unknown args to nixos-rebuild? 
+        # Pass unknown args to nixos-rebuild eventually? 
+        # For now, we assume simple usage.
         break
         ;;
     esac
@@ -117,13 +127,17 @@ echo -e "${BLUE}========================================${NC}"
 echo -e "  ${GREEN}ZenOS Rebuild${NC}"
 echo -e "  Target: ${YELLOW}${FLAKE_URI}${NC}"
 echo -e "  Optimization: ${YELLOW}-j${MAX_JOBS} -c${CORES_PER_JOB}${NC}"
+if [ "$AUTO_REBOOT" = true ]; then
+    echo -e "  Post-Action: ${RED}AUTO-REBOOT ENABLED${NC}"
+elif [ "$AUTO_LOGOUT" = true ]; then
+    echo -e "  Post-Action: ${YELLOW}AUTO-LOGOUT ENABLED${NC}"
+fi
 echo -e "${BLUE}========================================${NC}"
 
 # Temporarily disable 'set -e' to capture exit code manually
 set +e
 
 # Run the build directly.
-# We avoid wrapping it in 'if' to ensure stdout/stderr pipes behave exactly like standard shell.
 sudo nixos-rebuild switch \
     --flake "$FLAKE_URI" \
     --show-trace \
@@ -134,7 +148,7 @@ sudo nixos-rebuild switch \
 
 EXIT_CODE=$?
 
-# Re-enable strict mode (optional, but good practice)
+# Re-enable strict mode
 set -e
 
 echo -e "${BLUE}========================================${NC}"
@@ -142,11 +156,25 @@ echo -e "${BLUE}========================================${NC}"
 if [ $EXIT_CODE -eq 0 ]; then
     notify "Rebuild Complete" "System switched successfully." "normal"
     echo -e "${GREEN}SUCCESS: System updated.${NC}"
+
+    # Handle Automation Flags (Only on Success)
+    if [ "$AUTO_REBOOT" = true ]; then
+        echo -e "${RED}[!] REBOOTING IN 3 SECONDS... (Ctrl+C to cancel)${NC}"
+        notify "System" "Rebooting in 3 seconds..." "critical"
+        sleep 3
+        sudo reboot
+    elif [ "$AUTO_LOGOUT" = true ]; then
+        echo -e "${YELLOW}[!] LOGGING OUT IN 3 SECONDS... (Ctrl+C to cancel)${NC}"
+        notify "System" "Logging out in 3 seconds..." "critical"
+        sleep 3
+        # Attempt to terminate the current session gracefully via systemd
+        loginctl terminate-session "${XDG_SESSION_ID:-self}" || kill -9 -1
+    fi
+
 elif [ $EXIT_CODE -eq 130 ]; then
     # 130 is the standard exit code for SIGINT (Ctrl+C)
     notify "Rebuild Interrupted" "Operation cancelled by user." "low"
     echo -e "${YELLOW}INFO: Rebuild cancelled by user (Exit Code: 130).${NC}"
-    # We exit cleanly so wrapping scripts don't freak out
     exit 0
 else
     notify "Rebuild Failed" "Check the terminal logs for details." "critical"
