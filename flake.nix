@@ -40,6 +40,7 @@
     # [ ZenOS Maintenance ]
     zenos-maintenance = {
       url = "github:doromiert/zenos-maintenance";
+      # url = "path:/home/doromiert/Projects/zenos-maintainance";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -87,6 +88,7 @@
       mkHost =
         {
           prettyName, # Input: "Doromi Tul 2" or "Doromi Tul II"
+          deviceIcon ? null,
           rootUUID ? "ROOT_UUID_PLACEHOLDER",
           bootUUID ? "BOOT_UUID_PLACEHOLDER",
           locale ? {
@@ -113,6 +115,7 @@
           inherit system;
           specialArgs = {
             inherit
+              deviceIcon
               inputs
               self
               hostName # Used for networking.hostName
@@ -239,6 +242,7 @@
 
           rootUUID = "8e1e39fe-becf-40f7-bf3e-447ecdfef32d";
           bootUUID = "E4BC-AD87";
+          deviceIcon = "desktop";
           locale = {
             timeZone = "Europe/Warsaw";
             language = "en_US.UTF-8";

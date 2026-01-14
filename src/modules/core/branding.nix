@@ -4,6 +4,7 @@
   lib,
   self,
   devicePrettyName ? null,
+  deviceIcon ? null,
   ...
 }:
 
@@ -11,6 +12,8 @@ let
   # --- Release Configuration ---
   releaseType = "beta";
   baseVersion = "1.0N";
+
+  icon = if deviceIcon != null then deviceIcon else "negzero";
 
   # --- Commit ID Logic ---
   # If the tree is clean, self.shortRev exists.
@@ -53,7 +56,7 @@ let
       font_bold="${pkgs.atkinson-hyperlegible}/share/fonts/opentype/AtkinsonHyperlegible-Bold.otf"
       font_reg="${pkgs.atkinson-hyperlegible}/share/fonts/opentype/AtkinsonHyperlegible-Regular.otf"
 
-      magick -background none -density 1200 logo.svg -resize 120x120 icon_top.png
+      magick -background none -density 1200 ${icon}.svg -resize 120x120 icon_top.png
 
       # Use the pretty Device Name for the top text
       magick -background none -fill white -font "$font_bold" -pointsize 72 label:"$env_deviceName" host_text.png
