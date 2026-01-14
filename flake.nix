@@ -268,6 +268,9 @@
             inputs.nix-gaming.nixosModules.platformOptimizations
             inputs.jovian.nixosModules.default
           ];
+          excludeCoreModules = [
+            "syncthing"
+          ];
         };
 
         doromipad = mkHost {

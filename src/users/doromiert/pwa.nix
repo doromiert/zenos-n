@@ -27,6 +27,35 @@ in
     };
 
     apps = {
+      instagram = {
+        id = "instagram";
+        name = "Instagram";
+        url = "https://www.instagram.com";
+        icon = "applications-photography";
+
+        extensions = [
+          exts.ublock
+          exts.keepass
+        ];
+        categories = [
+          "Network"
+          "Video"
+          "AudioVideo"
+        ];
+        keywords = [
+          "video"
+          "music"
+          "insta"
+          "meta"
+          "facebook"
+          "stream"
+        ];
+        # Optional: Force YouTube links to open here too
+        openUrls = [
+          "instagram.com"
+        ];
+      };
+
       youtube = {
         id = "youtube";
         name = "YouTube";
