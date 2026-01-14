@@ -79,6 +79,7 @@
       libvdpau-va-gl
     ];
   };
+  hardware.amdgpu.opencl.enable = true;
 
   # --- Host-Specific User Groups ---
   users.users.${config.mainUser} = {
