@@ -253,7 +253,7 @@ in
 
           # [NEW] Date Menu Formatter Configuration (Matched to user dconf dump)
           "org/gnome/shell/extensions/date-menu-formatter" = {
-            pattern = "dd.MM HH:mm";
+            pattern = "dd.MM  HH:mm";
             formatter = "01_luxon";
             text-align = "center";
             # [FIX] Explicitly type integers
