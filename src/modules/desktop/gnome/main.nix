@@ -1,4 +1,3 @@
-# contains gnome-specific configs
 { pkgs, ... }:
 
 let
@@ -58,6 +57,9 @@ let
     hide-top-bar
     mouse-tail
     window-is-ready-remover
+
+    # [NEW] Clock Formatting (Modern replacement)
+    date-menu-formatter
 
     # System
     gsconnect
@@ -247,6 +249,16 @@ in
               "org.gnome.Nautilus.desktop"
               "com.raggesilver.BlackBox.desktop"
             ];
+          };
+
+          # [NEW] Date Menu Formatter Configuration (Matched to user dconf dump)
+          "org/gnome/shell/extensions/date-menu-formatter" = {
+            pattern = "dd.MM HH:mm";
+            formatter = "01_luxon";
+            text-align = "center";
+            # [FIX] Explicitly type integers
+            font-size = pkgs.lib.gvariant.mkInt32 9;
+            update-level = pkgs.lib.gvariant.mkInt32 1;
           };
 
           # [FIX] Crash Prevention: Disable edge tiling to stop auto-maximize logic
