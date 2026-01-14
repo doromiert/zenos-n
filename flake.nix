@@ -279,7 +279,7 @@
 
         doromipad = mkHost {
           prettyName = "doromipad";
-
+          deviceIcon = "laptop";
           rootUUID = "f3fbcbcc-1063-426b-a0ab-0ddb7ff9dd76";
           bootUUID = "3296-E5E9";
           locale = {
