@@ -1,130 +1,113 @@
 {
   pkgs,
   lib,
+  config,
   ...
 }:
 
 {
   # ============================================================================
-  #  Doromipad (ThinkPad L13 Yoga) - Specific Toolset
+  #  Doromipad (ThinkPad L13 Yoga) - Optimized [P13.D]
   # ============================================================================
 
   # [ Hardware Support ]
   hardware = {
-    # Enable IIO Sensor Proxy for auto-rotation (Accelerometer)
-    sensor.iio.enable = true;
-
-    # Bluetooth configuration
+    sensor.iio.enable = true; # Auto-rotation
     bluetooth = {
       enable = true;
       powerOnBoot = true;
     };
 
-    # Intel Media Driver for hardware acceleration
+    # Graphics: Modern Intel Stack
     graphics = {
       enable = true;
       extraPackages = with pkgs; [
-        intel-media-driver
-        intel-vaapi-driver
+        intel-media-driver # iHD (Broadwell+) - REQUIRED for L13 Gen1/2+
+        intel-vaapi-driver # i965 (Older fallback, likely unused but safe)
         libvdpau-va-gl
       ];
     };
   };
 
+  # [ Environment Variables ]
   environment.variables = {
-    GSK_RENDERER = "ngl";
+    # Force Intel Media Driver (iHD) for video acceleration
     LIBVA_DRIVER_NAME = "iHD";
+
+    # Firefox VAAPI Fixes
+    MOZ_DISABLE_RDD_SANDBOX = "1";
   };
+
+  # [ ! ] DRIVER FIX: Removed "services.xserver.videoDrivers" to use 'modesetting'.
 
   # [ Boot / Kernel / Throttling ]
   boot = {
-    # Load MSR module for dethrottling script
     kernelModules = [ "msr" ];
 
-    # Merged Kernel Parameters
     kernelParams = [
       "quiet"
       "splash"
-      # Graphics optimization
-      "i915.enable_guc=2"
-      # Power management & Sleep
-      "mem_sleep_default=s2idle"
-      "acpi.power_button.enable=1"
+      "i915.enable_guc=3" # Enable GuC/HuC firmware
+      "i915.enable_fbc=1" # Framebuffer compression (Saves RAM bandwidth)
+      "mem_sleep_default=s2idle" # Modern standby
+      "nowatchdog" # Disable watchdog timers to save CPU cycles
     ];
 
-    # Intel Graphics Power Saving (Frame Buffer Compression)
     extraModprobeConfig = ''
-      options i915 enable_fbc=1 enable_guc=2
+      options i915 enable_fbc=1 enable_guc=3 
     '';
 
-    # Sysctl Tweaks
+    # [ MEMORY TUNING ]
+    # Critical for 27% Swap usage. We shift pressure to ZRAM.
     kernel.sysctl = {
-      # NOTE: vm.swappiness is now managed by ZenFS
-      "dev.nvme.0.queue_mode" = lib.mkForce "none"; # NVMe Scheduler optimization
+      "dev.nvme.0.queue_mode" = "none";
+
+      # ZRAM Optimization
+      "vm.swappiness" = lib.mkForce 130; # Aggressively use swap (ZRAM) to keep RAM free for active tasks
+      "vm.watermark_boost_factor" = lib.mkForce 0; # Disable aggressive reclaimer boosting (reduces stutter)
+      "vm.watermark_scale_factor" = lib.mkForce 125; # Increase headroom before direct reclaim kicks in
+      "vm.page-cluster" = 0; # Read 1 page at a time (better for ZRAM latency)
     };
+  };
+
+  # [ Memory Management ]
+  # Explicitly defined here to ensure integration with the sysctl settings above
+  zramSwap = {
+    enable = true;
+    algorithm = "zstd";
+    memoryPercent = 100; # Use up to 100% of RAM as swap (compressed)
+    priority = 100;
   };
 
   # [ Power Management & Services ]
   services = {
-    # 1. Fingerprint & Input
-    # fprintd.enable = true;
-    # xserver.wacom.enable = true;
-    #boltd.enable = true;
-
-    # 2. Power Profiles Daemon (Standard GNOME Power Management)
     power-profiles-daemon.enable = true;
+    thermald.enable = true;
 
-    # 3. Thermald (Dynamic Thermal Management)
-    # thermald.enable = true;
+    # [ SAFETY NET ]
+    # Kills heavy background tabs instead of freezing the OS
+    earlyoom = {
+      enable = true;
+      enableNotifications = true;
+      freeMemThreshold = 5;
+      freeSwapThreshold = 5;
+    };
 
-    # 4. ACPI Power Button Handler (Lock Screen instead of Power Off)
-    # acpid = {
-    #   enable = true;
-    #   handlers.power = {
-    #     event = "button/power";
-    #     action = ''
-    #       # Dynamic user detection for locking
-    #       ACTIVE_USER=$(${pkgs.systemd}/bin/loginctl list-users --no-legend | ${pkgs.gawk}/bin/gawk '{print $2; exit}')
-
-    #       if [ -n "$ACTIVE_USER" ]; then
-    #         ${pkgs.systemd}/bin/machinectl shell "$ACTIVE_USER@.host" \
-    #             ${pkgs.glib}/bin/gdbus call --session \
-    #                 --dest org.gnome.ScreenSaver \
-    #                 --object-path /org/gnome/ScreenSaver \
-    #                 --method org.gnome.ScreenSaver.Lock
-    #       fi
-    #     '';
-    #   };
-    # };
-
-    # 5. Logind Overrides (Ignore power key so ACPI handler works)
-    # logind = {
-    #   powerKey = "ignore";
-    #   #extraConfig = ''
-    #   #  HandlePowerKey=ignore
-    #   #  HandleLidSwitch=lock
-    #   #  HandleLidSwitchExternalPower=lock
-    #   #'';
-    # };
-
-    # 6. Udev Rules for Wakeup
-    # udev.extraRules = ''
-    #   SUBSYSTEM=="power_supply", KERNEL=="AC", ATTR{power/wakeup}="enabled"
-    #   SUBSYSTEM=="power", KERNEL=="PWRB", ATTR{power/wakeup}="enabled"
-    # '';
-
-    # 7. GNOME Settings Overrides
-    # xserver.desktopManager.gnome.extraGSettingsOverrides = ''
-    #   [org.gnome.settings-daemon.plugins.power]
-    #   power-button-action='nothing'
-    #   sleep-inactive-ac-type='nothing'
-    #   sleep-inactive-battery-type='nothing'
-    # '';
+    # [ THERMAL ]
+    # Attempt to undervolt if CPU allows (Mitigates 87°C peaks)
+    # If locked by BIOS, this service will just fail quietly or do nothing.
+    undervolt = {
+      enable = true;
+      # Moderate defaults for ThinkPads. Adjust if unstable.
+      coreOffset = -50;
+      gpuOffset = -50;
+      uncoreOffset = -50;
+      analogioOffset = -50;
+    };
   };
 
   # [ Systemd Services ]
   systemd = {
-    # 1. Custom Sleep Config
     sleep.extraConfig = ''
       [Sleep]
       SuspendMode=suspend
@@ -133,7 +116,9 @@
       HibernateState=disk
     '';
 
-    # 2. BD_PROCHOT Dethrottle Service
+    # BD_PROCHOT Dethrottle Service
+    # WARNING: With 87°C temps, this removes the safety brake.
+    # If the laptop shuts down abruptly, DISABLE THIS.
     services.disable-throttling = {
       description = "Disable BD_PROCHOT Throttling";
       wantedBy = [ "multi-user.target" ];
@@ -141,17 +126,15 @@
         Type = "oneshot";
         RemainAfterExit = true;
         ExecStart = "${pkgs.bash}/bin/bash -c 'if [ -e /dev/cpu/0/msr ]; then ${pkgs.msr-tools}/bin/wrmsr 0x1FC 2 || true; fi'";
-        After = [
-          "local-fs.target"
-          "systemd-modules-load.service"
-        ];
+        After = [ "local-fs.target" ];
       };
     };
   };
 
-  # [ Environment ]
   environment.systemPackages = with pkgs; [
     libsmbios
     msr-tools
+    intel-gpu-tools
+    undervolt # Tool to check/set undervolt manually if needed
   ];
 }

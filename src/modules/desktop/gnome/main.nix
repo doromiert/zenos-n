@@ -200,6 +200,7 @@ in
     gnome.excludePackages = (
       with pkgs;
       [
+        gnome-software
         gnome-photos
         gnome-tour
         gedit
