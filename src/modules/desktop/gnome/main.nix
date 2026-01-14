@@ -39,6 +39,7 @@ let
     forge-custom
   ]
   ++ (with pkgs.gnomeExtensions; [
+    user-themes
     # Window Management
     app-hider
     # undecorate

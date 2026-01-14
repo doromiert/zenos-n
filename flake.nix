@@ -252,7 +252,7 @@
           desktop = "gnome";
           roles = [
             "web"
-            "gaming"
+            # "gaming"
             "creative/audio"
             "creative/graphics"
             "creative/video"

@@ -18,7 +18,7 @@ let
     # "com.github.rafostar.Clapper"
   ];
 
-  # ===========================================================================
+  # ============================================================================
   # [ FIREFOX THEMING RESOURCES ]
   # ============================================================================
 
@@ -42,6 +42,82 @@ let
   # ============================================================================
   # [ ASSETS & HELPERS ]
   # ============================================================================
+
+  # [CRITICAL FIX] Font Generator
+  # This builds a fresh TTF font ("ZeroClock") from source SVGs.
+  # It bypasses all metadata issues by creating the font programmatically.
+  zeroFontPkg =
+    pkgs.runCommand "zenos-font-zero-generated"
+      {
+        nativeBuildInputs = [ pkgs.fontforge ];
+      }
+      ''
+              mkdir -p $out/share/fonts/truetype
+              
+              # Python script to assemble the font via FontForge
+              cat > build.py <<EOF
+        import fontforge
+        import os
+
+        # 1. Initialize Font
+        font = fontforge.font()
+        font.familyname = "ZeroClock"
+        font.fontname = "ZeroClock-Regular"
+        font.fullname = "ZeroClock"
+        font.weight = "Regular"
+        font.encoding = "UnicodeFull"
+
+        # 2. Define Mapping: Filename (no ext) -> [List of Unicode Points]
+        # We map 'a' to both 'a' and 'A' to create a case-insensitive font.
+        char_map = {
+            "dot": [0x2E],    # .
+            "colon": [0x3A],  # :
+        }
+
+        # Map a-z (and A-Z aliases)
+        for i in range(97, 123): # a-z
+            char = chr(i)
+            char_map[char] = [i, i - 32] # 97(a) and 65(A)
+
+        # Map 0-9
+        for i in range(48, 58): # 0-9
+            char = chr(i)
+            char_map[char] = [i]
+
+        # 3. Import Glyphs
+        src_dir = "${../../../../resources/zero-raw}"
+
+        for fname, codepoints in char_map.items():
+            svg_path = os.path.join(src_dir, fname + ".svg")
+            
+            if not os.path.exists(svg_path):
+                print(f"Skipping {fname}: {svg_path} not found")
+                continue
+
+            # Import SVG into the primary code point
+            primary_code = codepoints[0]
+            glyph = font.createChar(primary_code)
+            glyph.importOutlines(svg_path)
+            
+            # Auto-adjust metrics (simple spacing)
+            glyph.left_side_bearing = 15
+            glyph.right_side_bearing = 15
+
+            # Create Reference Glyphs (Aliases)
+            for alias_code in codepoints[1:]:
+                font.selection.select(alias_code)
+                font.copyReference()
+                # This links the alias to the primary glyph without duplicating geometry
+                alias_glyph = font.createChar(alias_code)
+                alias_glyph.addReference(primary_code)
+
+        # 4. Generate TTF
+        font.generate(f"{os.environ['out']}/share/fonts/truetype/ZeroClock.ttf")
+        EOF
+
+              # Execute
+              fontforge -script build.py
+      '';
 
   wallpaperPkg = pkgs.runCommand "zenos-wallpapers" { } ''
     dest=$out/share/backgrounds/zenos
@@ -148,11 +224,15 @@ in
   # 1. Fonts
   fonts = {
     packages = with pkgs; [
-      atkinson-hyperlegible-next # Sans (UI)
+      atkinson-hyperlegible-next
       noto-fonts
       noto-fonts-color-emoji
       nerd-fonts.atkynson-mono
+      zeroFontPkg # [NEW] Custom generated font
     ];
+
+    # [NEW] Ensure the font directory is explicitly generated
+    fontDir.enable = true;
 
     fontconfig = {
       defaultFonts = {
@@ -195,6 +275,7 @@ in
       adwaita-qt
       adwaita-qt6
       gnome-themes-extra
+      # [NOTE] Extension managed externally as requested
       libsForQt5.qt5ct
     ]
     ++ emulatorAssocs;
@@ -341,7 +422,25 @@ in
           x11.enable = true;
         };
 
+        # [NEW] Generate the Custom Shell Theme Override
+        # [FIX] Requesting "ZeroClock" which is now guaranteed by the generator.
+        home.file.".local/share/themes/ClockOverride/gnome-shell/gnome-shell.css".text = ''
+          @import url("resource:///org/gnome/shell/theme/default.css");
+
+          .clock-display {
+              font-family: 'ZeroClock', monospace !important;
+              font-weight: normal !important;
+              font-style: normal !important;
+          }
+        '';
+
         dconf.settings = {
+          # [NOTE] Extension must be enabled manually or via your other config file.
+          # This setting ensures that IF enabled, it picks the right theme.
+          "org/gnome/shell/extensions/user-theme" = {
+            name = "ClockOverride";
+          };
+
           "org/gnome/desktop/interface" = {
             color-scheme = "prefer-dark";
             accent-color = "purple";
