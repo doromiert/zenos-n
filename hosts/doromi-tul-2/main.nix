@@ -11,7 +11,6 @@
 {
   imports = [
     # ./hardware-configuration.nix
-    ./placeholder.nix
   ];
 
   zenos = {
@@ -55,7 +54,8 @@
 
     deviceConfigs = {
       tablet.enable = false;
-      # graphics.amd.enable = true;
+      amd.gpu.rx6900xt.enable = true;
+      amd.cpu.r9-9700.enable = true;
     };
   };
 
