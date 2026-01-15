@@ -1,5 +1,0 @@
-# pipewire stuff
-{ ... }:
-{
-
-}

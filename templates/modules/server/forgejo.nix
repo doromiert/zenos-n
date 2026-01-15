@@ -1,5 +1,0 @@
-# forgejo config
-{ ... }:
-{
-
-}

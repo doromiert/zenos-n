@@ -1,5 +1,0 @@
-# will contain useful security stuff
-{ ... }:
-{
-
-}

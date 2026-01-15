@@ -1,3 +1,7 @@
+# @file: flake.nix
+# @brief: Global flake config for ZenOS. Imports all dependencies and host configurations.
+# @context: system configuration
+
 {
   description = "ZenOS N (NixOS-based ZenOS)";
 
