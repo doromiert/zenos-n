@@ -1,5 +1,5 @@
-# @file: hosts/doromi-tul-2/main.nix
-# @brief: Host configuration for doromi tul 2.
+# @file: hosts/doromi-server/main.nix
+# @brief: Host configuration for doromi server.
 # @context: host configuration
 {
   config,
@@ -14,12 +14,14 @@
   ];
 
   zenos = {
-    deviceIcon = "desktop";
-    prettyName = "doromi tul 2";
+    deviceIcon = "server";
+    prettyName = "doromi server";
     users = [
       "doromiert"
       "hubi"
+
     ];
+    isServer = true;
     locale = {
       timeZone = "Europe/Warsaw";
       language = "en_US.UTF-8";
@@ -32,24 +34,13 @@
       rootUUID = "f3fbcbcc-1063-426b-a0ab-0ddb7ff9dd76";
       bootUUID = "3296-E5E9";
     };
-    excludedCoreModules = {
-      shared = [ "syncthing" ];
-    };
+
     modules = {
-      gaming = [
-        "steam"
-      ];
+      server = [ "copyparty" ];
 
-      dev = "*";
-
-      desktops = [ "gnome" ];
     };
     deviceConfigs = {
-      tablet.enable = false; # Example: It's a PC
-
-      # Assuming you have ./deviceConfigs/graphics/amd.nix
-      graphics.amd.enable = true;
-      graphics.amd.proDrivers = true;
+      qemu-guest.enable = true;
     };
   };
 }
