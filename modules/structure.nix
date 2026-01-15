@@ -73,7 +73,16 @@ in
       };
     };
 
-    # --- 5. Dynamic Modules ---
+    # --- 5. Desktop Environments ---
+    # We define the root option here, but the specific attributes (gnome, kde)
+    # are now defined in their respective files in ./desktops
+    desktop = lib.mkOption {
+      description = "Desktop Environment Configurations";
+      default = { };
+      type = types.attrsOf types.anything;
+    };
+
+    # --- 6. Dynamic Modules ---
     modules = lib.mkOption {
       description = "Dynamic module imports by category";
       default = { };
@@ -86,7 +95,7 @@ in
       default = { };
     };
 
-    # --- 6. Core Module Exclusions ---
+    # --- 7. Core Module Exclusions ---
     excludedCoreModules = lib.mkOption {
       description = "List of core modules to disable by category";
       type = types.attrsOf (types.listOf types.str);
@@ -105,8 +114,17 @@ in
     services.xserver.xkb.layout = cfg.locale.kbLayout;
     console.keyMap = cfg.locale.kbLayout;
 
-    # NOTE: User generation is now handled by ./users/<user>/*.nix
-    # We only ensure the admin group exists here if needed, or leave it to individual files.
+    # Map Users
+    users.users = lib.genAttrs cfg.users (name: {
+      isNormalUser = true;
+      extraGroups = [
+        "networkmanager"
+        "video"
+        "audio"
+      ]
+      ++ (lib.optional (name == cfg.admin) "wheel");
+      shell = pkgs.fish;
+    });
 
     # Map Disabled Modules
     disabledModules = lib.flatten (

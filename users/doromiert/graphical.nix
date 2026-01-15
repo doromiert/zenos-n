@@ -19,12 +19,6 @@ let
 in
 {
   config = lib.mkIf enableGraphical {
-    # Graphical-only settings for this user
-    # e.g. Home Manager graphical apps
 
-    # users.users.${username}.packages = with pkgs; [
-    #   firefox
-    #   vscode
-    # ];
   };
 }
