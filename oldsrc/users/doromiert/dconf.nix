@@ -207,11 +207,6 @@ in
       mouse-sensitive-fullscreen-window = false;
     };
 
-    # --- Rounded Corners ---
-    "org/gnome/shell/extensions/lennart-k/rounded_corners" = {
-      corner-radius = 24;
-    };
-
     # --- Media Controls ---
     "org/gnome/shell/extensions/mediacontrols" = {
       extension-index = mkUint32 1;
