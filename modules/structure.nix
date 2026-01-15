@@ -153,5 +153,19 @@ in
         ]
       ) cfg.users
     ))
+
+    # --- Dynamic Host Imports ---
+    (
+      let
+        host = config.networking.hostName;
+        syncthingPath = ./hosts + "/${host}/syncthing.nix";
+        # Flatten excluded modules and check if "syncthing" is present in any category
+        isExcluded = lib.any (modules: lib.elem "syncthing" modules) (
+          lib.attrValues cfg.excludedCoreModules
+        );
+      in
+      # Only import if NOT excluded AND the file actually exists
+      lib.mkIf (!isExcluded && builtins.pathExists syncthingPath) (importUserModule syncthingPath)
+    )
   ];
 }

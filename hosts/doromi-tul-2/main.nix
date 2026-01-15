@@ -10,7 +10,6 @@
 
 {
   imports = [
-    # ./hardware-configuration.nix
   ];
 
   zenos = {
@@ -49,7 +48,6 @@
     modules = {
       gaming = [ "steam" ];
       dev = "*";
-      # Note: 'desktops' is removed from here
     };
 
     deviceConfigs = {
