@@ -7,6 +7,16 @@
 let
   types = lib.types;
   cfg = config.zenos;
+
+  # Helper to import a file that might be a function (standard module pattern)
+  # We manually pass the standard module arguments since we are importing inside config
+  importUserModule =
+    path:
+    let
+      m = import path;
+      args = { inherit lib config pkgs; };
+    in
+    if lib.isFunction m then m args else m;
 in
 {
   options.zenos = {
@@ -103,34 +113,45 @@ in
     };
   };
 
-  config = {
-    # Map Branding
-    zenos.branding.prettyName = cfg.prettyName;
-    zenos.branding.icon = cfg.deviceIcon;
+  config = lib.mkMerge [
+    # --- Base Configuration ---
+    {
+      # Map Branding
+      zenos.branding.prettyName = cfg.prettyName;
+      zenos.branding.icon = cfg.deviceIcon;
 
-    # Map Locale
-    time.timeZone = cfg.locale.timeZone;
-    i18n.defaultLocale = cfg.locale.defaultLocale;
-    services.xserver.xkb.layout = cfg.locale.kbLayout;
-    console.keyMap = cfg.locale.kbLayout;
+      # Map Locale
+      time.timeZone = cfg.locale.timeZone;
+      i18n.defaultLocale = cfg.locale.defaultLocale;
+      services.xserver.xkb.layout = cfg.locale.kbLayout;
+      console.keyMap = cfg.locale.kbLayout;
 
-    # Map Users
-    users.users = lib.genAttrs cfg.users (name: {
-      isNormalUser = true;
-      extraGroups = [
-        "networkmanager"
-        "video"
-        "audio"
-      ]
-      ++ (lib.optional (name == cfg.admin) "wheel");
-      shell = pkgs.fish;
-    });
+      # Map Disabled Modules
+      disabledModules = lib.flatten (
+        lib.mapAttrsToList (
+          category: modules: map (name: "coremodules/${category}/${name}.nix") modules
+        ) cfg.excludedCoreModules
+      );
+    }
 
-    # Map Disabled Modules
-    disabledModules = lib.flatten (
-      lib.mapAttrsToList (
-        category: modules: map (name: "coremodules/${category}/${name}.nix") modules
-      ) cfg.excludedCoreModules
-    );
-  };
+    # --- Dynamic User Imports ---
+    (lib.mkMerge (
+      map (
+        name:
+        let
+          # Construct paths dynamically based on the username
+          userDir = ./users + "/${name}";
+          mainPath = userDir + "/main.nix";
+          graphicalPath = userDir + "/graphical.nix";
+        in
+        lib.mkMerge [
+          # Always import the user's main config
+          (importUserModule mainPath)
+
+          # Conditionally import graphical config if desktop is enabled
+          (lib.mkIf (cfg.desktop != { }) (importUserModule graphicalPath))
+        ]
+      ) cfg.users
+    ))
+  ];
 }
