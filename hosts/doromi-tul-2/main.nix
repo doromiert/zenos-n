@@ -56,6 +56,14 @@
       tablet.enable = false;
       amd.gpu.rx6900xt.enable = true;
       amd.cpu.r9-9700.enable = true;
+      ram.tier32.enable = true;
+      hosts.dt2.tweaks.enable = true;
+      tweaks.networking.enable = true;
+      tweaks.storage = {
+        enable = true;
+        # options.nvme = false; # (Default)
+        # options.sata = true;  # (Default)
+      };
     };
   };
 
