@@ -33,7 +33,7 @@ in
     users = lib.mkOption {
       type = types.listOf types.str;
       default = [ ];
-      description = "List of users to create";
+      description = "List of users to enable on this host";
     };
 
     admin = lib.mkOption {
@@ -105,17 +105,8 @@ in
     services.xserver.xkb.layout = cfg.locale.kbLayout;
     console.keyMap = cfg.locale.kbLayout;
 
-    # Map Users
-    users.users = lib.genAttrs cfg.users (name: {
-      isNormalUser = true;
-      extraGroups = [
-        "networkmanager"
-        "video"
-        "audio"
-      ]
-      ++ (lib.optional (name == cfg.admin) "wheel");
-      shell = pkgs.fish;
-    });
+    # NOTE: User generation is now handled by ./users/<user>/*.nix
+    # We only ensure the admin group exists here if needed, or leave it to individual files.
 
     # Map Disabled Modules
     disabledModules = lib.flatten (
