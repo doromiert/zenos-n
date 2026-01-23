@@ -27,7 +27,8 @@
 
     swisstag.url = "github:doromiert/swisstag";
     zbridge = {
-      url = "github:doromiert/zerobridge";
+      # url = "github:doromiert/zerobridge";
+      url = "path:/home/doromiert/Projects/zerobridge";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -45,7 +46,8 @@
     };
 
     nixpwamaker = {
-      url = "github:doromiert/nixpwamaker";
+      # url = "github:doromiert/nixpwamaker";
+      url = "path:/home/doromiert/Projects/nixpwamaker";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 

@@ -115,13 +115,14 @@ in
 
             # 2. Force Software Rendering
             # (Bypasses the Intel GPU driver bug causing the blur)
-            "gfx.webrender.software" = lock true;
+            "gfx.webrender.software" = lock false;
             "gfx.webrender.all" = lock true; # Keep enabled as per working profile
 
             # 3. Force Hardware Surface Export
             # (Ensures correct window buffer transport)
             "widget.dmabuf.force-enabled" = lock true;
             "gfx.webrender.compositor.force-enabled" = lock true;
+            "media.ffmpeg.vaapi.enabled" = lock true;
 
             # 4. Auto-detect Scale
             # (Working profile uses -1, allowing it to snap to 2x integer scale)
@@ -132,6 +133,31 @@ in
             "privacy.resistFingerprinting" = lock false;
 
             # --- END SCALING FIXES ---
+            # Disable Accessibility Services
+            # Drastically lowers CPU usage on Linux by preventing the browser from
+            # constantly scanning the DOM for accessibility tools.
+            "accessibility.force_disabled" = lock 1;
+
+            # Hard Limit on Content Processes
+            # Default is 8+. Reducing to 4 significantly lowers RAM usage per tab
+            # by sharing processes, at a slight risk of multi-tab crashing.
+            "dom.ipc.processCount" = lock 4;
+
+            # Reduce Session History
+            # Limits RAM used to store "Back" button pages (Default is 50).
+            "browser.sessionhistory.max_entries" = lock 10;
+
+            # Disable Prefetching
+            # Stops loading pages you haven't clicked yet. Saves CPU/Bandwidth.
+            "network.prefetch-next" = lock false;
+
+            # Limit Memory Cache
+            # Cap the RAM cache to 512MB (Value in KB).
+            "browser.cache.memory.capacity" = lock 524288;
+
+            # Disk Writes
+            # Write session data to disk every 60s instead of 15s (Saves SSD/CPU).
+            "browser.sessionstore.interval" = lock 60000;
 
             # [P5.4] Force Libadwaita Picker
             "widget.use-xdg-desktop-portal.file-picker" = lock 1;
@@ -161,7 +187,7 @@ in
             "browser.ml.chat.sidebar" = lock true;
             "toolkit.legacyUserProfileCustomizations.stylesheets" = lock true;
             "svg.context-properties.content.enabled" = lock true;
-            "widget.gtk.rounded-bottom-corners.enabled" = lock true;
+            "widget.gtk.rounded-bottom-corners.enabled" = lock false;
             "gnomeTheme.hideSingleTab" = lock true;
             "gnomeTheme.normalWidthTabs" = lock false;
             "gnomeTheme.bookmarksToolbarUnderTabs" = lock true;
