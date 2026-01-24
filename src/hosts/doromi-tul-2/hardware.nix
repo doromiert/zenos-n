@@ -42,6 +42,8 @@
 
   # GPU Passthrough & IOMMU Logic
   boot.kernelParams = [
+    "initcall_blacklist=sysfb_init"
+    "video=efifb:nobg"
     "amd_iommu=on"
     "iommu=pt"
     "preempt=full"
