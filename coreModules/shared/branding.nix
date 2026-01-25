@@ -81,12 +81,6 @@ in
       pkgs.fastfetch
     ];
 
-    # --- Fastfetch Deployment ---
-    environment.etc."fastfetch/config.jsonc".source = zenosFastfetchConfig;
-    environment.etc."fastfetch/ascii.txt".source = "${resourcesPath}/fastfetch/ascii.txt";
-    environment.variables.FASTFETCH_CONFIG = "/etc/fastfetch/config.jsonc";
-    environment.shellAliases.neofetch = "fastfetch";
-
     # --- GNOME Pretty Hostname ---
     environment.etc."machine-info".text = ''
       PRETTY_HOSTNAME="${finalDeviceName}"

@@ -19,6 +19,21 @@ let
 in
 {
   config = lib.mkIf enableGraphical {
-
+    config.users.${username} = {
+      accentColor = "purple";
+      colorScheme = "adwaita";
+      darkMode = true;
+      defaults = {
+        shell = pkgs.zsh;
+        mail = pkgs.geary;
+        terminal = pkgs.kitty;
+        music = pkgs.decibels;
+        browser = pkgs.firefox;
+        fileManager = pkgs.nautilus;
+        calendar = pkgs.gnome-calendar;
+        photos = pkgs.loupe;
+        video = pkgs.showtime;
+      };
+    };
   };
 }

@@ -1,5 +1,0 @@
-# jellyfin config
-{ ... }:
-{
-
-}

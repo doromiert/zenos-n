@@ -1,5 +1,0 @@
-# immich config
-{ ... }:
-{
-
-}

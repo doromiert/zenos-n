@@ -2,9 +2,26 @@
 # @brief: Random utils.
 # @context: utils
 
-{ lib, inputs, ... }:
+{
+  lib,
+  inputs,
+  self,
+  ...
+}:
 
 rec {
+  osVersionString =
+    let
+      major = inputs.self.version.majorVer;
+      variant = inputs.self.version.variant;
+      type = inputs.self.version.type;
+    in
+    "${major}${variant}${type}${
+      if type != "stable" then
+        "b (${if (self ? shortRev) then self.shortRev else "${self.dirtyShortRev or "unknown"}"})"
+      else
+        ""
+    }";
   # Recursively find all .nix files in a directory and return them as a list of paths
   recursiveImports =
     path:

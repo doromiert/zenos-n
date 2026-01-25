@@ -1,5 +1,0 @@
-# kitchen sink for aethertop
-{ ... }:
-{
-
-}
