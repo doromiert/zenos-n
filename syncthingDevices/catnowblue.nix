@@ -1,0 +1,5 @@
+{
+  "ralue_pixel_7" = {
+    id = "4MMSZK2-4HE35WA-EFVWNA5-W26GBMO-LQHJPW7-BIG6ZZA-EH44LIR-K3ZMGAT";
+  };
+}
