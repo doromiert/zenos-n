@@ -38,7 +38,7 @@ in
       # We use escapeShellArg to safely inject the raw file content.
       ExecStart = "${pkgs.writeShellScript "apply-dconf-complex" ''
         # Blur My Shell - Pipelines
-        ${pkgs.dconf}/bin/dconf write /org/gnome/shell/extensions/blur-my-shell/pipelines ${lib.strings.escapeShellArg (builtins.readFile ./resources/bms_settings.txt)}
+        # ${pkgs.dconf}/bin/dconf write /org/gnome/shell/extensions/blur-my-shell/pipelines ${lib.strings.escapeShellArg (builtins.readFile ./resources/bms_settings.txt)}
 
         # Rounded Window Corners Reborn - Global Settings
         ${pkgs.dconf}/bin/dconf write /org/gnome/shell/extensions/rounded-window-corners-reborn/global-rounded-corner-settings ${lib.strings.escapeShellArg (builtins.readFile ./resources/rwcr_settings.txt)}
@@ -105,6 +105,41 @@ in
     "org/gnome/shell/extensions/blur-my-shell" = {
       settings-version = 2;
       # pipelines handled by systemd service above
+      pipelines = {
+        pipeline_default = {
+          name = "Default";
+          effects = [
+            {
+              type = "native_static_gaussian_blur";
+              id = "effect_000000000000";
+              params = {
+                radius = 30;
+                brightness = lib.hm.gvariant.mkDouble 0.6;
+              };
+            }
+          ];
+        };
+        pipeline_default_rounded = {
+          name = "Default rounded";
+          effects = [
+            {
+              type = "native_static_gaussian_blur";
+              id = "effect_000000000001";
+              params = {
+                radius = 30;
+                brightness = lib.hm.gvariant.mkDouble 0.6;
+              };
+            }
+            {
+              type = "corner";
+              id = "effect_000000000002";
+              params = {
+                radius = 24;
+              };
+            }
+          ];
+        };
+      };
     };
 
     "org/gnome/shell/extensions/blur-my-shell/appfolder" = {

@@ -31,25 +31,6 @@ let
   # Note: Adjusted path depth to match coremodules/shared/branding.nix (2 levels deep)
   resourcesPath = ../../../resources;
 
-  # --- [1] The Icon Theme ---
-  zenosIcons = pkgs.runCommand "zenos-icon-theme" { } ''
-    mkdir -p $out/share/icons
-    cp -r ${resourcesPath}/hicolor $out/share/icons/hicolor
-  '';
-
-  # --- [2] The Plymouth Theme (Restored) ---
-  zenosPlymouth = pkgs.runCommand "plymouth-theme-zenos" { } ''
-    mkdir -p $out/share/plymouth/themes/zenos
-    cp -r ${resourcesPath}/plymouth/zenos/* $out/share/plymouth/themes/zenos
-
-    # If a custom icon is set and exists, overwrite the logo
-    if [ "${icon}" != "negzero" ]; then
-       if [ -e ${resourcesPath}/hicolor/256x256/apps/${icon}.png ]; then
-         cp -f ${resourcesPath}/hicolor/256x256/apps/${icon}.png $out/share/plymouth/themes/zenos/logo.png
-       fi
-    fi
-  '';
-
   # Helper to read fastfetch config
   zenosFastfetchConfig = pkgs.writeText "config.jsonc" (
     builtins.replaceStrings [ "~/.config/fastfetch/ascii.txt" ] [ "/etc/fastfetch/ascii.txt" ] (
@@ -59,12 +40,29 @@ let
 
 in
 {
+  meta = {
+    description = "Configures system branding, icons, and identification";
+    longDescription = ''
+      This module manages the visual identity of the system, including:
+      - System icons (via `zenos-icons`)
+      - Hostname prettification (`machine-info`)
+      - Version strings (`/etc/issue`)
+      - Fastfetch configuration
+
+      It acts as the central source of truth for branding assets used by other modules (like ZenBoot).
+    '';
+    maintainers = with lib.maintainers; [ doromiert ];
+    license = lib.licenses.napl;
+    platforms = lib.platforms.zenos;
+  };
+
   # Define options to replace the old function arguments
   options.zenos.branding = {
     prettyName = lib.mkOption {
       type = lib.types.nullOr lib.types.str;
       default = null;
-      description = "The fancy name of the device (e.g. 'Doromi Tul II')";
+      description = "The fancy name of the device";
+      example = "doromi tul 2";
     };
     icon = lib.mkOption {
       type = lib.types.nullOr lib.types.str;
@@ -75,9 +73,7 @@ in
 
   config = {
     environment.systemPackages = [
-      zenosIcons
-      zenosPlymouth
-      pkgs.hicolor-icon-theme
+      pkgs.zenos.icons
       pkgs.fastfetch
     ];
 
@@ -89,17 +85,9 @@ in
     fonts.packages = with pkgs; [ atkinson-hyperlegible ];
     fonts.fontconfig.defaultFonts.sansSerif = [ "Atkinson Hyperlegible" ];
 
-    # --- Plymouth Config (Restored) ---
-    boot.plymouth = {
-      enable = true;
-      theme = "zenos";
-      themePackages = [ zenosPlymouth ];
-    };
-
     # --- System Version ---
     environment.etc."issue".text = ''
       \e[1;35mZenOS ${finalVersionString}\e[0m (\l)
-
     '';
 
     system.nixos.label = finalVersionString;
