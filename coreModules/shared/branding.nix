@@ -75,6 +75,7 @@ in
     environment.systemPackages = [
       pkgs.zenos.icons
       pkgs.fastfetch
+      zenosFastfetchConfig
     ];
 
     # --- GNOME Pretty Hostname ---

@@ -26,7 +26,11 @@
       timeZone = "Europe/Warsaw";
       language = "en_US.UTF-8";
       defaultLocale = "pl_PL.UTF-8";
-      kbLayout = "pl";
+      kbLayout = [
+        "pl"
+        "ro"
+        "ru"
+      ];
     };
 
     zenfs = {
@@ -35,14 +39,16 @@
       bootUUID = "3296-E5E9";
     };
 
-    desktop = {
-      gnome = {
-        enable = true;
-        config = {
-          zenosTheming = true;
-          zeroClock = true;
-        };
+    desktops.gnome = {
+      enable = true;
+      tweaks = {
+        firefoxTheming.enable = true;
+        zenosExtensions.enable = true;
+        zenosFonts.enable = true;
+        zeroClock.enable = true;
       };
+      extraPackages = true;
+      excludeGnomeConsole = true;
     };
 
     modules = {
