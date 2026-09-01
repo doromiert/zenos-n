@@ -21,6 +21,7 @@
 
   programs.virt-manager.enable = true;
   virtualisation.libvirtd.qemu.swtpm.enable = true;
+  systemd.services.libvirtd.path = [ pkgs.passt ];
 
   # -------------------------------------------------------------------------
   # Guest Interaction
