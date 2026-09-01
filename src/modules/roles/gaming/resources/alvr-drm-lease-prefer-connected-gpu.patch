@@ -1,0 +1,99 @@
+Prefer the GPU that actually drives a display when faking a DRM lease.
+
+open_drm_fd() walked /dev/dri in readdir order and took the first card
+with any connectors at all, then connectors[0] -- without checking
+whether anything was plugged in. On a machine with an unused secondary
+GPU (e.g. a Ryzen iGPU alongside a dGPU) it could hand SteamVR a lease
+on the idle GPU, giving a black screen and then a compositor crash.
+
+Pick the first card that has a CONNECTED connector, falling back to the
+previous behaviour when nothing is connected anywhere.
+
+--- upstream: https://github.com/alvr-org/ALVR
+
+--- a/alvr/vrcompositor_wrapper/drm-lease-shim.cpp
++++ b/alvr/vrcompositor_wrapper/drm-lease-shim.cpp
+@@ -66,19 +66,76 @@
+ static void open_drm_fd()
+ {
+     static drmModeResPtr (*real_drmModeGetResources)(int fd) = nullptr;
++    static drmModeConnectorPtr (*real_drmModeGetConnector)(int fd, uint32_t connectorId) = nullptr;
+     LOAD_FN(drmModeGetResources);
++    LOAD_FN(drmModeGetConnector);
++
++    // Cards that expose connectors but have nothing plugged in are kept only as
++    // a last resort, so a headless secondary GPU (e.g. an unused iGPU) can no
++    // longer win the race against the GPU actually driving the displays.
++    int fallback_fd = -1;
++    int fallback_connector_id = -1;
++
+     for(auto cardCandidate : std::filesystem::directory_iterator("/dev/dri")) {
+-        if(cardCandidate.path().filename().string().rfind("card", 0) == 0) {
+-            LOG("cardCandidateFound: file=%s", cardCandidate.path().c_str());
+-            drm_fd = open(cardCandidate.path().c_str(), O_RDONLY);
+-            auto res = real_drmModeGetResources(drm_fd);
+-            if (res && res->count_connectors) {
+-                drm_connector_id = res->connectors[0];
++        if(cardCandidate.path().filename().string().rfind("card", 0) != 0) {
++            continue;
++        }
++
++        LOG("cardCandidateFound: file=%s", cardCandidate.path().c_str());
++
++        int fd = open(cardCandidate.path().c_str(), O_RDONLY);
++        if (fd < 0) {
++            continue;
++        }
++
++        auto res = real_drmModeGetResources(fd);
++        if (!res || !res->count_connectors) {
++            if (res) {
++                drmModeFreeResources(res);
++            }
++            close(fd);
++            continue;
++        }
++
++        int first_connector_id = res->connectors[0];
++        int connected_id = -1;
++        for (int i = 0; i < res->count_connectors; i++) {
++            auto con = real_drmModeGetConnector(fd, res->connectors[i]);
++            if (!con) {
++                continue;
++            }
++            bool connected = con->connection == DRM_MODE_CONNECTED;
++            drmModeFreeConnector(con);
++            if (connected) {
++                connected_id = res->connectors[i];
+                 break;
+             }
+         }
++
++        drmModeFreeResources(res);
++
++        if (connected_id != -1) {
++            LOG("cardSelected: file=%s (has a connected connector)", cardCandidate.path().c_str());
++            if (fallback_fd >= 0) {
++                close(fallback_fd);
++            }
++            drm_fd = fd;
++            drm_connector_id = connected_id;
++            LOG("DRM: fd=%d, connector_id=%d", drm_fd, drm_connector_id);
++            return;
++        }
++
++        if (fallback_fd < 0) {
++            fallback_fd = fd;
++            fallback_connector_id = first_connector_id;
++        } else {
++            close(fd);
++        }
+     }
+-    LOG("DRM: fd=%d, connector_id=%d", drm_fd, drm_connector_id);
++
++    drm_fd = fallback_fd;
++    drm_connector_id = fallback_connector_id;
++    LOG("DRM: fd=%d, connector_id=%d (no connected connector found)", drm_fd, drm_connector_id);
+ }
+ 
+ static int (*real_wl_proxy_add_listener)(struct wl_proxy *proxy, void (**implementation)(void), void *data);

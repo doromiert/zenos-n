@@ -14,7 +14,13 @@
     };
   };
 
+  boot.kernelModules = [
+    "bridge"
+    "tap"
+  ];
+
   programs.virt-manager.enable = true;
+  virtualisation.libvirtd.qemu.swtpm.enable = true;
 
   # -------------------------------------------------------------------------
   # Guest Interaction

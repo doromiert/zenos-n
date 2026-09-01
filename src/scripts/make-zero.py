@@ -29,12 +29,12 @@ def get_svg_metrics(svg_path):
         print(f"Warning: Could not parse metrics for {svg_path}: {e}")
     return 0, 0, 12, 12
 
-def generate_font(family_name, style_name, src_dir, out_file):
+def generate_font(family_name, style_name, src_dir, out_file, is_mono=False):
     if not src_dir or not os.path.exists(src_dir):
-        print(f"Skipping {style_name}: Directory not found.")
+        print(f"Skipping {family_name}: Directory {src_dir} not found.")
         return
 
-    print(f"Generating {family_name} ({style_name})...")
+    print(f"Generating {family_name} ({style_name}) [Mono: {is_mono}]...")
     
     # 1. Initialize Font
     font = fontforge.font()
@@ -43,20 +43,29 @@ def generate_font(family_name, style_name, src_dir, out_file):
     font.fullname = f"{family_name} {style_name}"
     font.weight = style_name
     font.encoding = "UnicodeFull"
-    font.os2_panose = (2, 0, 5, 9, 0, 0, 0, 0, 0, 0) # Proportional Sans
-
-    # METRICS FOR 12px GRID
-    # We map the visual design height to 1200 font units.
-    # Ascent (1000) + Descent (200) = 1200 Total Height.
-    EM_SIZE = 1200
-    ASCENT = 1000
+    
+    # METRICS
+    EM_SIZE = (1400 if is_mono else 1200)
+    ASCENT = (1100 if is_mono else 1000)
+    DESCENT = (300 if is_mono else 200)
+    
     font.em = EM_SIZE
     font.ascent = ASCENT
-    font.descent = EM_SIZE - ASCENT
+    font.descent = DESCENT
+    
+    # Panose: 9 = Monospaced, 0 = Proportional
+    if is_mono:
+        font.os2_panose = (2, 0, 5, 9, 0, 0, 0, 0, 0, 0)
+    else:
+        font.os2_panose = (2, 0, 5, 0, 0, 0, 0, 0, 0, 0)
+
+    # CONSTANTS
+    UNITS_PER_PIXEL = 100
+    GAP_PX = 2
+    PAD_UNITS = int((GAP_PX * UNITS_PER_PIXEL) / 2)  # 100 units
+    MONO_WIDTH = 1400 # Fixed width for Mono
 
     # 2. Define Mapping
-    # Colon: 0x3A (Standard), 0x2236 (Ratio - Used by GNOME)
-    # Dot: 0x2E (Period), 0x00B7 (Middle Dot), 0x2219 (Bullet Op)
     char_map = { 
         "dot": [0x2E, 0x00B7, 0x2219], 
         "colon": [0x3A, 0x2236] 
@@ -64,12 +73,12 @@ def generate_font(family_name, style_name, src_dir, out_file):
     for i in range(97, 123): char_map[chr(i)] = [i, i - 32] # a-z -> A-Z
     for i in range(48, 58): char_map[chr(i)] = [i] # 0-9
 
-    # SPACING CALCULATION
-    # 12px height = 1200 units -> 1px = 100 units.
-    # Target: 2px gap between glyphs.
-    UNITS_PER_PIXEL = EM_SIZE / 12  # 100
-    GAP_PX = 2
-    PADDING = (GAP_PX * UNITS_PER_PIXEL) / 2  # 100 units
+    # 3. Explicitly handle Space (0x20)
+    space = font.createChar(32)
+    if is_mono:
+        space.width = MONO_WIDTH
+    else:
+        space.width = 300
 
     for fname, codepoints in char_map.items():
         svg_path = os.path.join(src_dir, fname + ".svg")
@@ -79,70 +88,109 @@ def generate_font(family_name, style_name, src_dir, out_file):
         primary_code = codepoints[0]
         glyph = font.createChar(primary_code)
         
-        # Clear any existing data
         glyph.clear()
-        
-        # Import Outlines
         glyph.importOutlines(svg_path)
         
-        # Check Layout
         bbox = glyph.boundingBox()
         imported_h = bbox[3] - bbox[1]
-
-        # Dynamic Scaling & Normalization
         vx, vy, vw, vh = get_svg_metrics(svg_path)
-        
-        # 1. Normalize Origin
-        if imported_h < 50:
-            if vx != 0 or vy != 0:
-                glyph.transform(psMat.translate(-vx, -vy))
-        
-            # 2. Calculate Scale Factor (Force strict 1px = 100 units scale)
-            scale_factor = 100.0
-            
-            # 3. Apply Transform (Scale + Flip + Baseline Shift)
-            TRANSFORM = psMat.compose(psMat.scale(scale_factor, -scale_factor), psMat.translate(0, ASCENT))
-            glyph.transform(TRANSFORM)
-        else:
-            print(f"   -> Detected auto-scaling (H={imported_h}). Skipping manual scale.")
-        
-        # 4. Round to Integers
-        glyph.round()
-        
-        # [CRITICAL UPDATE] Geometry Cleanup
-        # 1. Correct Direction: Fixes aliasing/rendering issues (Inside vs Outside)
-        # 2. Add Extrema: Adds points at min/max X/Y. Essential for clean rasterization.
-        # We DO NOT use removeOverlap() as it caused the artifacts.
-        glyph.correctDirection()
-        glyph.addExtrema()
-        
-        # 6. Horizontal Ink Trimming
-        bbox = glyph.boundingBox()
-        xmin = bbox[0]
-        if xmin != 0:
-            glyph.transform(psMat.translate(-xmin, 0))
-        
-        # 7. Apply Strict Kerning
-        glyph.left_side_bearing = int(PADDING)
-        glyph.right_side_bearing = int(PADDING)
 
-        # 8. Auto-Hinting
+        # ==========================================
+        #  BRANCH A: ZERO MONO (New Logic)
+        # ==========================================
+        if is_mono:
+            TARGET_HEIGHT = 1200.0
+            ALIGN_TOP = ASCENT - 100 # Vertical Padding (Center in 1400)
+            
+            base_h = vh if vh > 0 else 12.0
+            ideal_scale = TARGET_HEIGHT / base_h
+            
+            # Case 1: Tiny Import
+            if imported_h < 50:
+                if vx != 0 or vy != 0:
+                    glyph.transform(psMat.translate(-vx, -vy))
+                TRANSFORM = psMat.compose(psMat.scale(ideal_scale, -ideal_scale), psMat.translate(0, ALIGN_TOP))
+                glyph.transform(TRANSFORM)
+
+            # Case 2: Auto-Scaled Import (Correction)
+            else:
+                curr_h = glyph.boundingBox()[3] - glyph.boundingBox()[1]
+                if curr_h > 0:
+                    correction = TARGET_HEIGHT / curr_h
+                    if abs(correction - 1.0) > 0.01:
+                        glyph.transform(psMat.scale(correction))
+                        # Re-align top
+                        new_bbox = glyph.boundingBox()
+                        shift_y = ALIGN_TOP - new_bbox[3]
+                        glyph.transform(psMat.translate(0, shift_y))
+
+            # Standard cleanup
+            glyph.round()
+            glyph.correctDirection()
+            glyph.addExtrema() # Vital for curve rendering
+
+            # Horizontal Centering
+            bbox = glyph.boundingBox()
+            current_center_x = (bbox[0] + bbox[2]) / 2
+            target_center_x = MONO_WIDTH / 2
+            glyph.transform(psMat.translate(target_center_x - current_center_x, 0))
+            glyph.width = MONO_WIDTH
+
+        # ==========================================
+        #  BRANCH B: ZERO CLOCK (Original Logic)
+        # ==========================================
+        else:
+            # Original Logic: Only scale if tiny, hardcoded 100.0 scale, no auto-import correction.
+            if imported_h < 50:
+                if vx != 0 or vy != 0:
+                    glyph.transform(psMat.translate(-vx, -vy))
+                
+                scale_factor = 100.0
+                TRANSFORM = psMat.compose(psMat.scale(scale_factor, -scale_factor), psMat.translate(0, ASCENT))
+                glyph.transform(TRANSFORM)
+            
+            # Standard cleanup
+            glyph.round()
+            glyph.correctDirection()
+            glyph.addExtrema() # Vital for curve rendering
+            
+            # Zero Trim
+            bbox = glyph.boundingBox()
+            if bbox[0] != 0:
+                glyph.transform(psMat.translate(-bbox[0], 0))
+            
+            # Bearings
+            glyph.left_side_bearing = int(PAD_UNITS)
+            glyph.right_side_bearing = int(PAD_UNITS)
+
+
         glyph.autoHint()
+        
+        # --- DEBUG OUTPUT ---
+        final_bbox = glyph.boundingBox()
+        print(f"    -> FINAL: Width={glyph.width}, Height={final_bbox[3]-final_bbox[1]:.0f}, BBox={final_bbox}")
 
         # Create Aliases
         for alias_code in codepoints[1:]:
             alias_glyph = font.createChar(alias_code)
+            alias_glyph.clear()
             alias_glyph.addReference(glyph.glyphname)
-            alias_glyph.left_side_bearing = int(PADDING)
-            alias_glyph.right_side_bearing = int(PADDING)
+            
+            if is_mono:
+                alias_glyph.width = MONO_WIDTH  
+            else:
+                # Original logic: Explicitly set bearings for aliases
+                alias_glyph.left_side_bearing = int(PAD_UNITS)
+                alias_glyph.right_side_bearing = int(PAD_UNITS)
 
     # 4. Save
     output_dir = os.path.dirname(out_file)
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
     
-    # Enable OpenType flags for better compatibility
+    print(f"Saving to {out_file}...")
     font.generate(out_file, flags=("opentype", "short-post"))
+    font.close()
 
 # --- Execution ---
 out_root = os.environ.get('out', '.')
@@ -150,8 +198,10 @@ out_dir = f"{out_root}/share/fonts/truetype"
 
 raw_path = os.environ.get('rawPath')
 if raw_path:
-    generate_font("ZeroClock", "Regular", raw_path, f"{out_dir}/ZeroClock.ttf")
+    generate_font("ZeroClock", "Regular", raw_path, f"{out_dir}/ZeroClock.ttf", is_mono=False)
+    generate_font("ZeroMono", "Regular", raw_path, f"{out_dir}/ZeroMono.ttf", is_mono=True)
 
 condensed_src = os.environ.get('condensedPath', '')
 if condensed_src:
-    generate_font("ZeroClock Condensed", "Regular", condensed_src, f"{out_dir}/ZeroClock-Condensed.ttf")
+    generate_font("ZeroClock Condensed", "Regular", condensed_src, f"{out_dir}/ZeroClock-Condensed.ttf", is_mono=False)
+    generate_font("ZeroMono Condensed", "Regular", condensed_src, f"{out_dir}/ZeroMono-Condensed.ttf", is_mono=True)

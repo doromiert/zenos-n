@@ -29,14 +29,6 @@
 
   boot.extraModulePackages = [ ];
 
-  # [ Filesystems ]
-  # Using the UUIDs passed from flake.nix (via ZenFS logic or standard override)
-  # NOTE: ZenFS in your flake might handle this automatically via 'services.zenfs',
-  # but standard practice is to define them here as well for transparency/backup.
-
-  # Swap configuration
-  # Assuming a swapfile or swap partition is handled elsewhere or via btrfs swapfile
-
   # [ Networking ]
   networking.useDHCP = lib.mkDefault true;
 

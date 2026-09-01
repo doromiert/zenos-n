@@ -3,10 +3,6 @@
   ...
 }:
 {
-  imports = [
-    ./janitor.nix
-  ];
-
   home-manager.users.doromiert =
     {
       pkgs,
@@ -14,10 +10,11 @@
     }:
     {
       imports = [
+        ./pwa.nix
         ./shortcuts.nix
         ./dconf.nix
-        ./pwa.nix
         ./keepass.nix
+        ./bms.nix
         inputs.nixcord.homeModules.nixcord
       ];
       #home.file.".config/forge/config/windows.json".source = ./resources/windows.json;
@@ -40,6 +37,7 @@
 
         # Merged from settings.json
         profiles.default.userSettings = {
+          "terminal.integrated.inheritEnv" = true;
           # Existing Nix overrides
           "vim.useSystemClipboard" = true;
           "vim.hlsearch" = true;
@@ -71,13 +69,11 @@
           "vim.highlightedyank.duration" = 200;
 
           # JSON Configs
-          "editor.formatOnSave" = true;
           "editor.suggest.insertMode" = "replace";
           "editor.linkedEditing" = true;
           "javascript.updateImportsOnFileMove.enabled" = "always";
-          "window.zoomLevel" = 0.25;
-          "launch" = { };
-          "[json]" = { };
+          "extensions.autoUpdate" = false; # Nix manages these anyway
+          "extensions.autoCheckUpdates" = false;
           "workbench.statusBar.visible" = true;
           "editor.minimap.enabled" = false;
           "breadcrumbs.enabled" = false;
@@ -330,6 +326,13 @@
 
           # Highly Practical Plugin Configuration [p13.9 focus]
           plugins = {
+            # [UPSTREAM WORKAROUND] nixcord declares vcNarrator.voice as
+            # `nullOr str` with no default, unlike every sibling setting, but
+            # still serializes the whole plugin table into settings.json. That
+            # reads an undefined option and aborts evaluation, even though we
+            # never enable the plugin. Defining it explicitly unblocks eval.
+            vcNarrator.voice = null;
+
             # Essentials
             fakeNitro = {
               enable = true;
@@ -479,14 +482,7 @@
             youtubeAdblock.enable = true;
 
             # Custom RPC
-            CustomRPC = {
-              enable = true;
-              config = {
-                type = 0; # Playing
-                name = "Sex 2";
-                details = "Duos";
-              };
-            };
+
           };
         };
 

@@ -5,6 +5,7 @@
   lib,
   pkgs,
   modulesPath,
+  inputs,
   ...
 }:
 
@@ -16,7 +17,10 @@
   # Forces NZFS logic to override the persistent defaults in flake.nix
 
   # --- Kernel & Silicon Optimization ---
-  boot.kernelPackages = pkgs.linuxPackages_zen;
+  # boot.kernelPackages = pkgs.linuxPackagesFor popcornKernel;
+
+  # use pkgs.linuxPackagesFor to wrap the raw kernel derivation from your flake
+  boot.kernelPackages = inputs.zenpkgs.packages."x86_64-linux".system.kernels.popcorn.D.doromitul;
 
   boot.initrd.availableKernelModules = [
     "nvme"
@@ -51,6 +55,7 @@
     "amd_pstate=active"
     # [FIX] Disable Mid-Command Buffer Preemption to prevent Ring GFX timeouts/Mutter crashes
     "amdgpu.mcbp=0"
+    "usbcore.usbfs_memory_mb=64"
   ];
 
   # --- Power & Thermal Management ---

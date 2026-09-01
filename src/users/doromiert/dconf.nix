@@ -38,7 +38,7 @@ in
       # We use escapeShellArg to safely inject the raw file content.
       ExecStart = "${pkgs.writeShellScript "apply-dconf-complex" ''
         # Blur My Shell - Pipelines
-        ${pkgs.dconf}/bin/dconf write /org/gnome/shell/extensions/blur-my-shell/pipelines ${lib.strings.escapeShellArg (builtins.readFile ./resources/bms_settings.txt)}
+        # ${pkgs.dconf}/bin/dconf write /org/gnome/shell/extensions/blur-my-shell/pipelines ${lib.strings.escapeShellArg (builtins.readFile ./resources/bms_settings.txt)}
 
         # Rounded Window Corners Reborn - Global Settings
         ${pkgs.dconf}/bin/dconf write /org/gnome/shell/extensions/rounded-window-corners-reborn/global-rounded-corner-settings ${lib.strings.escapeShellArg (builtins.readFile ./resources/rwcr_settings.txt)}
@@ -102,52 +102,6 @@ in
     };
 
     # --- Blur My Shell ---
-    "org/gnome/shell/extensions/blur-my-shell" = {
-      settings-version = 2;
-      # pipelines handled by systemd service above
-    };
-
-    "org/gnome/shell/extensions/blur-my-shell/appfolder" = {
-      brightness = 0.59999999999999998;
-      sigma = 30;
-    };
-
-    "org/gnome/shell/extensions/blur-my-shell/coverflow-alt-tab" = {
-      pipeline = "pipeline_default";
-    };
-
-    "org/gnome/shell/extensions/blur-my-shell/dash-to-dock" = {
-      blur = true;
-      brightness = 0.59999999999999998;
-      pipeline = "pipeline_default_rounded";
-      sigma = 30;
-      static-blur = true;
-      style-dash-to-dock = 0;
-    };
-
-    "org/gnome/shell/extensions/blur-my-shell/lockscreen" = {
-      pipeline = "pipeline_default";
-    };
-
-    "org/gnome/shell/extensions/blur-my-shell/overview" = {
-      pipeline = "pipeline_default";
-    };
-
-    "org/gnome/shell/extensions/blur-my-shell/panel" = {
-      blur = false;
-      brightness = 0.59999999999999998;
-      pipeline = "pipeline_default";
-      sigma = 30;
-    };
-
-    "org/gnome/shell/extensions/blur-my-shell/screenshot" = {
-      pipeline = "pipeline_default";
-    };
-
-    "org/gnome/shell/extensions/blur-my-shell/window-list" = {
-      brightness = 0.59999999999999998;
-      sigma = 30;
-    };
 
     # --- Burn My Windows ---
     "org/gnome/shell/extensions/burn-my-windows" = {

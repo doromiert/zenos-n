@@ -14,6 +14,10 @@
       "wheel"
       "networkmanager"
       "zenos-rebuild"
+      "lp"
+      "video"
+      "plugdev"
+      "input"
     ];
     shell = pkgs.zsh;
     initialPassword = "setmelater";
@@ -24,6 +28,8 @@
   ];
 
   home-manager.users.doromiert = {
+
+
 
     # never touch this
     home.stateVersion = "25.11";

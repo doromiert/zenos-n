@@ -1,0 +1,84 @@
+Fix SteamVR 2.16+ compositor detection by preserving the process name.
+
+SteamVR no longer accepts vrcompositor.real as a running compositor because
+Linux truncates that process name to vrcompositor.re. Move Valve's binary into
+an alvr subdirectory while retaining its original basename.
+
+Backport of https://github.com/alvr-org/ALVR/pull/3348
+
+--- a/alvr/dashboard/src/steamvr_launcher/linux_steamvr.rs
++++ b/alvr/dashboard/src/steamvr_launcher/linux_steamvr.rs
+@@ -40,11 +40,23 @@ pub fn maybe_wrap_vrcompositor_launcher() -> alvr_common::anyhow::Result<()> {
+     };
+ 
+     let launcher_path = steamvr_bin_dir.join("vrcompositor");
++    let compositor_path = alvr_filesystem::original_vrcompositor_path(&steamvr_bin_dir);
++    let alvr_dir = alvr_filesystem::original_vrcompositor_dir(&steamvr_bin_dir);
++
++    // Older installs have the binary at vrcompositor.real
++    let old_compositor_path = steamvr_bin_dir.join("vrcompositor.real");
++    if old_compositor_path.exists() && !compositor_path.exists() {
++        fs::create_dir_all(&alvr_dir)?;
++        fs::rename(&old_compositor_path, &compositor_path)?;
++        info!("Moved vrcompositor.real to {}", compositor_path.display());
++    }
++
+     // In case of SteamVR update, vrcompositor will be restored
+     if fs::read_link(&launcher_path).is_ok() {
+         fs::remove_file(&launcher_path)?; // recreate the link
+-    } else {
+-        fs::rename(&launcher_path, steamvr_bin_dir.join("vrcompositor.real"))?;
++    } else if launcher_path.exists() {
++        fs::create_dir_all(&alvr_dir)?;
++        fs::rename(&launcher_path, &compositor_path)?;
+     }
+ 
+     std::os::unix::fs::symlink(
+@@ -52,6 +64,11 @@ pub fn maybe_wrap_vrcompositor_launcher() -> alvr_common::anyhow::Result<()> {
+         &launcher_path,
+     )?;
+ 
++    debug!(
++        "Wrapped vrcompositor, real binary at {}",
++        compositor_path.display()
++    );
++
+     Ok(())
+ }
+ #[derive(PartialEq)]
+--- a/alvr/filesystem/src/lib.rs
++++ b/alvr/filesystem/src/lib.rs
+@@ -80,6 +80,17 @@ pub fn dashboard_fname() -> &'static str {
+     }
+ }
+ 
++// SteamVR 2.16+ only accepts the compositor if the process is named
++// vrcompositor. A suffix does not work, exec takes the process name from
++// the basename and vrcompositor.real gets cut to vrcompositor.re.
++pub fn original_vrcompositor_dir(steamvr_bin_dir: &Path) -> PathBuf {
++    steamvr_bin_dir.join("alvr")
++}
++
++pub fn original_vrcompositor_path(steamvr_bin_dir: &Path) -> PathBuf {
++    original_vrcompositor_dir(steamvr_bin_dir).join("vrcompositor")
++}
++
+ // Layout of the ALVR installation. All paths are absolute
+ #[derive(Clone, Default, Debug)]
+ pub struct Layout {
+--- a/alvr/vrcompositor_wrapper/src/main.rs
++++ b/alvr/vrcompositor_wrapper/src/main.rs
+@@ -37,7 +37,12 @@ fn main() {
+         );
+     }
+ 
+-    let err = exec::execvp(argv0 + ".real", std::env::args());
++    // argv0 is the symlink in SteamVR's bin dir, not the wrapper's own
++    // location, so its parent is where the real compositor sits
++    let steamvr_bin_dir = std::path::Path::new(&argv0).parent().unwrap();
++    let compositor_path = alvr_filesystem::original_vrcompositor_path(steamvr_bin_dir);
++
++    let err = exec::execvp(compositor_path, std::env::args());
+     println!("Failed to run vrcompositor {err}");
+ }
+ 

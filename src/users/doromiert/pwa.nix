@@ -1,3 +1,4 @@
+# home manager module
 {
   inputs,
   ...
@@ -11,6 +12,7 @@ let
     ublock = mkExt "uBlock0@raymondhill.net" "https://addons.mozilla.org/firefox/downloads/latest/ublock-origin/latest.xpi";
     sponsorblock = mkExt "sponsorBlocker@ajay.app" "https://addons.mozilla.org/firefox/downloads/latest/sponsorblock/latest.xpi";
     keepass = mkExt "keepassxc-browser@keepassxc.org" "https://addons.mozilla.org/firefox/downloads/latest/keepassxc-browser/latest.xpi";
+    claudesona = mkExt "claudesona@n8python" "https://addons.mozilla.org/firefox/downloads/file/4795441/claudesona_emotion_sprites-1.0.1.xpi";
     uaswitcher = mkExt "{a6c4a591-f1b2-4f03-b3ff-767e5bedf4e7}" "https://addons.mozilla.org/firefox/downloads/latest/user-agent-string-switcher/latest.xpi";
   };
 
@@ -233,6 +235,32 @@ in
         openUrls = [
           "gemini.google.com"
           "aistudio.google.com"
+        ];
+      };
+
+      claude = {
+        id = "claude";
+        name = "Claude";
+        url = "https://claude.ai";
+        icon = "internet-chat";
+        # templateProfile = baseProfile;
+        extensions = [
+          exts.claudesona
+          exts.keepass
+        ];
+        categories = [
+          "Network"
+          "Office"
+          "X-ArtificialIntelligence"
+        ];
+        keywords = [
+          "ai"
+          "chat"
+          "llm"
+          "anthropic"
+        ];
+        openUrls = [
+          "claude.ai"
         ];
       };
 

@@ -325,6 +325,28 @@ in
     };
   }));
 
+  # zenos.desktops.gnome.extensions.customize-clock-on-lockscreen = {
+  #   enable = true;
+  #   time = {
+  #     enable = true;
+  #     text = "%H%n%M";
+  #     font = {
+  #       family = "ZeroMono";
+  #       weight = "100";
+  #       size = 84;
+  #     };
+  #   };
+  #   date = {
+  #     enable = true;
+  #     text = "%d.%m.%Y";
+  #     font = {
+  #       family = "ZeroClock";
+  #       weight = "100";
+  #       size = 24;
+  #     };
+  #   };
+  # };
+
   # ============================================================================
   # [ HOME MANAGER ]
   # ============================================================================
@@ -382,6 +404,7 @@ in
         home.file.".local/share/themes/ClockOverride/gnome-shell/gnome-shell.css".text = ''
           @import url("resource:///org/gnome/shell/theme/default.css");
 
+          /* The Top Bar Clock */
           .clock-display {
               font-family: 'ZeroClock', sans-serif !important;
               font-weight: normal !important;
@@ -395,6 +418,10 @@ in
           # This setting ensures that IF enabled, it picks the right theme.
           "org/gnome/shell/extensions/user-theme" = {
             name = "ClockOverride";
+          };
+
+          "org/gnome/desktop/notifications" = {
+            show-in-lock-screen = false;
           };
 
           "org/gnome/desktop/interface" = {

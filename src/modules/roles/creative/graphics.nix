@@ -13,4 +13,8 @@
     "re.sonny.OhMySVG" # SVG optimizer
 
   ];
+
+  environment.systemPackages = with pkgs; [
+    blender-hip
+  ];
 }

@@ -1,0 +1,251 @@
+diff --git a/alvr/server_openvr/cpp/alvr_server/PoseHistory.cpp b/alvr/server_openvr/cpp/alvr_server/PoseHistory.cpp
+index ee57fed..10fff06 100644
+--- a/alvr/server_openvr/cpp/alvr_server/PoseHistory.cpp
++++ b/alvr/server_openvr/cpp/alvr_server/PoseHistory.cpp
+@@ -10,6 +10,9 @@ void PoseHistory::OnPoseUpdated(uint64_t targetTimestampNs, FfiDeviceMotion moti
+     TrackingHistoryFrame history;
+     history.targetTimestampNs = targetTimestampNs;
+     history.motion = motion;
++    history.serverReceiveTimeNs = std::chrono::duration_cast<std::chrono::nanoseconds>(
++        std::chrono::steady_clock::now().time_since_epoch()
++    ).count();
+ 
+     HmdMatrix_QuatToMat(
+         motion.orientation.w,
+@@ -68,6 +71,14 @@ PoseHistory::GetBestPoseMatch(const vr::HmdMatrix34_t& pose) const {
+     return {};
+ }
+ 
++std::optional<PoseHistory::TrackingHistoryFrame> PoseHistory::GetLatestPose() const {
++    std::unique_lock<std::mutex> lock(m_mutex);
++    if (m_poseBuffer.empty()) {
++        return {};
++    }
++    return m_poseBuffer.back();
++}
++
+ std::optional<PoseHistory::TrackingHistoryFrame> PoseHistory::GetPoseAt(uint64_t timestampNs
+ ) const {
+     std::unique_lock<std::mutex> lock(m_mutex);
+@@ -80,6 +91,20 @@ std::optional<PoseHistory::TrackingHistoryFrame> PoseHistory::GetPoseAt(uint64_t
+     return {};
+ }
+ 
++std::optional<PoseHistory::TrackingHistoryFrame>
++PoseHistory::GetPoseByPresentTime(uint64_t presentTimeNs) const {
++    std::unique_lock<std::mutex> lock(m_mutex);
++    if (m_poseBuffer.empty()) {
++        return {};
++    }
++    for (auto it = m_poseBuffer.rbegin(); it != m_poseBuffer.rend(); ++it) {
++        if (it->serverReceiveTimeNs <= presentTimeNs) {
++            return *it;
++        }
++    }
++    return {};
++}
++
+ void PoseHistory::SetTransform(const vr::HmdMatrix34_t& transform) {
+     std::unique_lock<std::mutex> lock(m_mutex);
+     m_transform = transform;
+diff --git a/alvr/server_openvr/cpp/alvr_server/PoseHistory.h b/alvr/server_openvr/cpp/alvr_server/PoseHistory.h
+index e197b84..e0a89f9 100644
+--- a/alvr/server_openvr/cpp/alvr_server/PoseHistory.h
++++ b/alvr/server_openvr/cpp/alvr_server/PoseHistory.h
+@@ -3,6 +3,7 @@
+ #include "ALVR-common/packet_types.h"
+ #include "openvr_driver_wrap.h"
+ 
++#include <chrono>
+ #include <list>
+ #include <mutex>
+ #include <optional>
+@@ -13,13 +14,15 @@ public:
+         uint64_t targetTimestampNs;
+         FfiDeviceMotion motion;
+         vr::HmdMatrix34_t rotationMatrix;
++        uint64_t serverReceiveTimeNs;
+     };
+ 
+     void OnPoseUpdated(uint64_t targetTimestampNs, FfiDeviceMotion motion);
+ 
+     std::optional<TrackingHistoryFrame> GetBestPoseMatch(const vr::HmdMatrix34_t& pose) const;
+-    // Return the most recent pose known at the given timestamp
++    std::optional<TrackingHistoryFrame> GetLatestPose() const;
+     std::optional<TrackingHistoryFrame> GetPoseAt(uint64_t timestampNs) const;
++    std::optional<TrackingHistoryFrame> GetPoseByPresentTime(uint64_t presentTimeNs) const;
+ 
+     void SetTransform(const vr::HmdMatrix34_t& transform);
+ 
+diff --git a/alvr/server_openvr/cpp/platform/linux/CEncoder.cpp b/alvr/server_openvr/cpp/platform/linux/CEncoder.cpp
+index 8ed7ffc..d8da511 100644
+--- a/alvr/server_openvr/cpp/platform/linux/CEncoder.cpp
++++ b/alvr/server_openvr/cpp/platform/linux/CEncoder.cpp
+@@ -228,7 +228,27 @@ void CEncoder::Run() {
+ 
+             encode_pipeline->SetParams(GetDynamicEncoderParams());
+ 
+-            auto pose = m_poseHistory->GetBestPoseMatch((const vr::HmdMatrix34_t&)frame_info.pose);
++            const vr::HmdMatrix34_t& frame_pose = (const vr::HmdMatrix34_t&)frame_info.pose;
++            bool pose_is_zero = true;
++            for (int i = 0; i < 3 && pose_is_zero; ++i) {
++                for (int j = 0; j < 4; ++j) {
++                    if (frame_pose.m[i][j] != 0.0f) {
++                        pose_is_zero = false;
++                        break;
++                    }
++                }
++            }
++
++            std::optional<PoseHistory::TrackingHistoryFrame> pose;
++            if (!pose_is_zero) {
++                pose = m_poseHistory->GetBestPoseMatch(frame_pose);
++            }
++            if (!pose && frame_info.present_time_ns != 0) {
++                pose = m_poseHistory->GetPoseByPresentTime(frame_info.present_time_ns);
++            }
++            if (!pose) {
++                pose = m_poseHistory->GetLatestPose();
++            }
+             if (!pose) {
+                 continue;
+             }
+diff --git a/alvr/server_openvr/cpp/platform/linux/protocol.h b/alvr/server_openvr/cpp/platform/linux/protocol.h
+index 7c2b5b2..724b016 100644
+--- a/alvr/server_openvr/cpp/platform/linux/protocol.h
++++ b/alvr/server_openvr/cpp/platform/linux/protocol.h
+@@ -13,6 +13,7 @@ struct present_packet {
+     uint32_t frame;
+     uint64_t semaphore_value;
+     float pose[3][4];
++    uint64_t present_time_ns;
+ };
+ 
+ struct init_packet {
+diff --git a/alvr/vulkan_layer/util/pose.cpp b/alvr/vulkan_layer/util/pose.cpp
+index 3d83d21..f8830f5 100644
+--- a/alvr/vulkan_layer/util/pose.cpp
++++ b/alvr/vulkan_layer/util/pose.cpp
+@@ -72,6 +72,14 @@ const TrackedDevicePose_t & find_pose_in_call_stack()
+   if (res != nullptr)
+     return *res;
+   static TrackedDevicePose_t notfound;
++  constexpr unsigned failure_threshold = 300;
++  constexpr unsigned retry_interval = 1000;
++  static unsigned failures;
++  if (failures >= failure_threshold && failures % retry_interval != 0)
++  {
++    ++failures;
++    return notfound;
++  }
+   unw_context_t ctx;
+   unw_getcontext(&ctx);
+   unw_cursor_t cursor;
+@@ -96,8 +104,44 @@ const TrackedDevicePose_t & find_pose_in_call_stack()
+           return *p;
+         }
+       }
++      ++failures;
+       return notfound;
+     }
+   }
++
++  unw_getcontext(&ctx);
++  unw_init_local(&cursor, &ctx);
++  unsigned frame_count = 0;
++  constexpr unsigned max_frames = 20;
++  while (unw_step(&cursor) > 0 && frame_count < max_frames)
++  {
++    ++frame_count;
++    unw_word_t sp, sp_end;
++    unw_get_reg(&cursor, UNW_REG_SP, &sp);
++    unw_cursor_t next_cursor = cursor;
++    if (unw_step(&next_cursor) > 0)
++    {
++      unw_get_reg(&next_cursor, UNW_REG_SP, &sp_end);
++    }
++    else
++    {
++      sp_end = sp + 4096;
++    }
++
++    if (sp_end <= sp)
++      continue;
++
++    for (uintptr_t addr = sp; addr + sizeof(TrackedDevicePose_t) <= sp_end; addr += 8)
++    {
++      TrackedDevicePose_t * p = (TrackedDevicePose_t *) addr;
++      if (check_pose(*p))
++      {
++        res = p;
++        return *p;
++      }
++    }
++  }
++
++  ++failures;
+   return notfound;
+ }
+diff --git a/alvr/vulkan_layer/wsi/headless/swapchain.cpp b/alvr/vulkan_layer/wsi/headless/swapchain.cpp
+index f597544..d75a0ef 100644
+--- a/alvr/vulkan_layer/wsi/headless/swapchain.cpp
++++ b/alvr/vulkan_layer/wsi/headless/swapchain.cpp
+@@ -311,6 +311,7 @@ void swapchain::submit_image(uint32_t pending_index) {
+         packet.frame = m_display.m_vsync_count;
+         packet.semaphore_value = m_swapchain_images[pending_index].semaphore_value;
+         memcpy(&packet.pose, pose, sizeof(packet.pose));
++        packet.present_time_ns = m_swapchain_images[pending_index].present_time_ns;
+         ret = write(m_socket, &packet, sizeof(packet));
+         if (ret == -1) {
+             //FIXME: try to reconnect?
+diff --git a/alvr/vulkan_layer/wsi/swapchain_base.cpp b/alvr/vulkan_layer/wsi/swapchain_base.cpp
+index 66f8652..32d43e8 100644
+--- a/alvr/vulkan_layer/wsi/swapchain_base.cpp
++++ b/alvr/vulkan_layer/wsi/swapchain_base.cpp
+@@ -34,6 +34,7 @@
+ #include <array>
+ #include <cassert>
+ #include <cerrno>
++#include <chrono>
+ #include <cstdio>
+ #include <cstdlib>
+ 
+@@ -350,6 +351,9 @@ VkResult swapchain_base::acquire_next_image(uint64_t timeout, VkSemaphore semaph
+             m_swapchain_images[i].status = swapchain_image::ACQUIRED;
+             *image_index = i;
+             m_last_acquired_image = i;
++            m_swapchain_images[i].acquire_time_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
++                std::chrono::steady_clock::now().time_since_epoch()
++            ).count();
+             break;
+         }
+     }
+@@ -415,6 +419,7 @@ VkResult swapchain_base::queue_present(VkQueue queue, const VkPresentInfoKHR *pr
+     bool descendent_started_presenting = false;
+ 
+     const auto & pose = find_pose_in_call_stack();
++    auto present_time_ns = m_swapchain_images[image_index].acquire_time_ns;
+ 
+     if (m_descendant != VK_NULL_HANDLE) {
+         auto *desc = reinterpret_cast<swapchain_base *>(m_descendant);
+@@ -479,6 +484,7 @@ VkResult swapchain_base::queue_present(VkQueue queue, const VkPresentInfoKHR *pr
+ 
+     m_swapchain_images[image_index].status = swapchain_image::PENDING;
+     m_swapchain_images[image_index].pose = pose;
++    m_swapchain_images[image_index].present_time_ns = present_time_ns;
+ 
+     m_pending_buffer_pool.ring[m_pending_buffer_pool.tail] = image_index;
+     m_pending_buffer_pool.tail = (m_pending_buffer_pool.tail + 1) % m_pending_buffer_pool.size;
+diff --git a/alvr/vulkan_layer/wsi/swapchain_base.hpp b/alvr/vulkan_layer/wsi/swapchain_base.hpp
+index 040b35f..f8048c3 100644
+--- a/alvr/vulkan_layer/wsi/swapchain_base.hpp
++++ b/alvr/vulkan_layer/wsi/swapchain_base.hpp
+@@ -61,6 +61,8 @@ struct swapchain_image {
+     uint64_t semaphore_value = 0;
+ 
+     TrackedDevicePose_t pose;
++    uint64_t present_time_ns = 0;
++    uint64_t acquire_time_ns = 0;
+ };
+ 
+ /**

@@ -22,6 +22,10 @@ let
       id = "keepassxc-browser@keepassxc.org";
       url = "https://addons.mozilla.org/firefox/downloads/latest/keepassxc-browser/latest.xpi";
     };
+    consent-o-matic = {
+      id = "{2598f043-d16d-4122-9945-fd253ed12f23}";
+      url = "https://addons.mozilla.org/firefox/downloads/latest/consent-o-matic/latest.xpi";
+    };
   };
 
   # Helper to lock preferences
@@ -109,39 +113,15 @@ in
           Preferences = {
             # --- [P13.D] REPLICATED "WORKING PROFILE" CONFIG ---
 
-            # 1. Disable the broken Fractional Scale Protocol
-            # (Forces integer scaling which avoids the blur)
-            "widget.wayland.fractional-scale.enabled" = lock false;
-
-            # 2. Force Software Rendering
-            # (Bypasses the Intel GPU driver bug causing the blur)
-            "gfx.webrender.software" = lock false;
-            "gfx.webrender.all" = lock true; # Keep enabled as per working profile
-
             # 3. Force Hardware Surface Export
             # (Ensures correct window buffer transport)
             "widget.dmabuf.force-enabled" = lock true;
             "gfx.webrender.compositor.force-enabled" = lock true;
             "media.ffmpeg.vaapi.enabled" = lock true;
 
-            # 4. Auto-detect Scale
-            # (Working profile uses -1, allowing it to snap to 2x integer scale)
-            "layout.css.devPixelsPerPx" = lock (-1.0);
-
             # 5. Security Check
             # (Ensure this doesn't override scaling)
             "privacy.resistFingerprinting" = lock false;
-
-            # --- END SCALING FIXES ---
-            # Disable Accessibility Services
-            # Drastically lowers CPU usage on Linux by preventing the browser from
-            # constantly scanning the DOM for accessibility tools.
-            "accessibility.force_disabled" = lock 1;
-
-            # Hard Limit on Content Processes
-            # Default is 8+. Reducing to 4 significantly lowers RAM usage per tab
-            # by sharing processes, at a slight risk of multi-tab crashing.
-            "dom.ipc.processCount" = lock 4;
 
             # Reduce Session History
             # Limits RAM used to store "Back" button pages (Default is 50).
@@ -150,14 +130,6 @@ in
             # Disable Prefetching
             # Stops loading pages you haven't clicked yet. Saves CPU/Bandwidth.
             "network.prefetch-next" = lock false;
-
-            # Limit Memory Cache
-            # Cap the RAM cache to 512MB (Value in KB).
-            "browser.cache.memory.capacity" = lock 524288;
-
-            # Disk Writes
-            # Write session data to disk every 60s instead of 15s (Saves SSD/CPU).
-            "browser.sessionstore.interval" = lock 60000;
 
             # [P5.4] Force Libadwaita Picker
             "widget.use-xdg-desktop-portal.file-picker" = lock 1;
@@ -172,7 +144,6 @@ in
             "extensions.enabledScopes" = lock 15;
             "xpinstall.signatures.required" = lock false;
             "extensions.langpacks.signatures.required" = lock false;
-            "layers.acceleration.force-enabled" = lock true;
             "font.name.sans-serif.x-western" = lock "Atkinson Hyperlegible Next";
             "font.default.x-western" = lock "sans-serif";
             "font.size.variable.x-western" = lock 15;

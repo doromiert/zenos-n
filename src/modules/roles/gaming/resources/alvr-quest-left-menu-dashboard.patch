@@ -1,0 +1,26 @@
+Map the Quest left menu button to SteamVR's left system action.
+
+SteamVR's Oculus Touch dashboard binding listens on /user/hand/left/input/system,
+but ALVR's automatic mapper preserves the Quest source as menu/click. SteamVR
+then reports the system input as unavailable and the dashboard cannot open.
+
+--- a/alvr/server_core/src/input_mapping.rs
++++ b/alvr/server_core/src/input_mapping.rs
+@@ -245,13 +245,11 @@ pub fn automatic_bindings(
+     // Menu buttons
+     if s_set.contains(&*LEFT_MENU_CLICK_ID) {
+-        let click = click(*LEFT_MENU_CLICK_ID);
++        let source_click = click(*LEFT_MENU_CLICK_ID);
+-        if d_set.contains(&*LEFT_MENU_CLICK_ID) {
+-            bindings.extend(map_button_pair_automatic(click, click, config));
+-        } else if d_set.contains(&*LEFT_SYSTEM_CLICK_ID) {
++        if d_set.contains(&*LEFT_MENU_CLICK_ID) || d_set.contains(&*LEFT_SYSTEM_CLICK_ID) {
+             bindings.extend(map_button_pair_automatic(
+-                click,
+-                ct(s_set, *LEFT_SYSTEM_CLICK_ID, *LEFT_SYSTEM_TOUCH_ID),
++                source_click,
++                click(*LEFT_SYSTEM_CLICK_ID),
+                 config,
+             ));
+         }
+     }

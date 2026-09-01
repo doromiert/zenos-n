@@ -162,6 +162,9 @@ in
       detect_urls yes
     '';
 
+    variables = {
+      GST_PLUGIN_PATH = "/run/current-system/sw/lib/gstreamer-1.0/";
+    };
     systemPackages =
       with pkgs;
       [
@@ -233,6 +236,7 @@ in
             enable-hot-corners = false;
             gtk-enable-primary-paste = false;
           };
+
           "com/github/stunkymonkey/nautilus-open-any-terminal" = {
             terminal = "kitty";
             keybindings = "<Ctrl><Alt>t";

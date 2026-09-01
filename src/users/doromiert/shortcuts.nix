@@ -75,6 +75,12 @@
       binding = "<Control><Shift>Escape";
     };
 
+    "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom4" = {
+      name = "Zane dummy";
+      command = "echo 'boioioing'";
+      binding = "<Super>slash";
+    };
+
     # --- Extensions ---
 
     # Clipboard Indicator
@@ -204,10 +210,6 @@
       # [FIXED] Changed to avoid conflict with Undo (Ctrl+Z)
       key = "ctrl+alt+z";
       command = "workbench.action.toggleZenMode";
-    }
-    {
-      key = "ctrl+shift+c";
-      command = "workbench.action.toggleMaximizeEditorGroup";
     }
   ];
 }

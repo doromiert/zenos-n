@@ -3,10 +3,6 @@
   ...
 }:
 {
-  imports = [
-    ./janitor.nix
-  ];
-
   home-manager.users.blade0 =
     {
       pkgs,

@@ -2,12 +2,44 @@
 { pkgs, ... }:
 
 {
+
   environment.systemPackages = [
     pkgs.nixd
     pkgs.nixfmt-rfc-style
     pkgs.android-tools
+    pkgs.meson
+    pkgs.ninja
     pkgs.scrcpy
     pkgs.unityhub
+    pkgs.unstable.claude-code
+    pkgs.unstable.zed-editor
+    pkgs.vscode-css-languageserver
+    pkgs.clang-tools # provides clangd
+    pkgs.rust-analyzer
+    pkgs.cargo
+
+    # JS/TS/Svelte/HTML/CSS
+    pkgs.nodePackages.typescript-language-server
+    pkgs.nodePackages.svelte-language-server
+    pkgs.prettierd # faster prettier daemon (or pkgs.nodePackages.prettier)
+
+    # Python
+    pkgs.pyright # intellisense/types
+    pkgs.ruff # fast linter + formatter
+    (pkgs.gnome-builder.overrideAttrs (oldAttrs: {
+      nativeBuildInputs = oldAttrs.nativeBuildInputs ++ [ pkgs.makeWrapper ];
+      postInstall = ''
+        wrapProgram $out/bin/gnome-builder \
+          --prefix PATH : ${
+            pkgs.lib.makeBinPath [
+              pkgs.python3Packages.python-lsp-server
+              pkgs.rust-analyzer
+              pkgs.clang-tools # for c/c++
+              pkgs.nodePackages.typescript-language-server
+            ]
+          }
+      '';
+    }))
   ];
 
   # -- Flatpak Dev Tools --
@@ -34,6 +66,11 @@
 
               # 2. THE FIX: Force it to ignore System 1.25x and render at 1:1
               "--force-device-scale-factor=1"
+
+              "--force-renderer-accessibility"
+
+              # Optional: If you need to expose the tree to external tools via bus
+              "--enable-caret-browsing"
             ];
           }
         );
@@ -43,8 +80,6 @@
           [
             # Essential for NixOS/CachyOS workflow
             bbenoist.nix
-            jnoortheen.nix-ide
-            mkhl.direnv
             piousdeer.adwaita-theme
             ms-vsliveshare.vsliveshare
 
@@ -76,7 +111,6 @@
 
           # Structural Settings
           "editor.formatOnSave" = true;
-          "editor.tabSize" = 4;
           "editor.insertSpaces" = true;
           "editor.detectIndentation" = false;
 
@@ -87,9 +121,7 @@
           # Git
           "gitlens.codeLens.enabled" = true;
           "git.confirmSync" = false;
-          "git.enableSmartCommit" = true;
-          "git.suggestSmartCommit" = false;
-          "git.autofetch" = true;
+          "git.autofetch" = false;
         };
       };
     }

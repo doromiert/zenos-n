@@ -2,9 +2,12 @@
   description = "ZenOS N (NixOS-based ZenOS)";
 
   inputs = {
+    popcorn.url = "path:///home/doromiert/Projects/popcorn/popcorn-m";
+    zenpkgs.url = "path:///home/doromiert/Projects/zenpkgs-2";
     nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
     chaotic.url = "github:chaotic-cx/nyx";
+    mg.url = "github:doromiert/masterful-gestures";
 
     home-manager = {
       url = "github:nix-community/home-manager/release-25.11";
@@ -16,7 +19,11 @@
     jovian.url = "github:Jovian-Experiments/Jovian-NixOS";
 
     vsc-extensions.url = "github:nix-community/nix-vscode-extensions";
-    nixcord.url = "github:kaylorben/nixcord";
+    # [ PIN ] Last commit before nixcord's "chore: migrate to 26.05".
+    # Newer revisions need lib.types.json, pnpm_11 and fetchPnpmDeps
+    # fetcherVersion 4, none of which exist in nixpkgs 25.11.
+    # Unpin when nixpkgs above is bumped to 26.05.
+    nixcord.url = "github:kaylorben/nixcord/e0f07ebefc985e1cc8aa4c9b7bbceb81431f7012";
     nix-minecraft.url = "github:Infinidoge/nix-minecraft";
     nix-flatpak.url = "github:gmodena/nix-flatpak";
     nur = {
@@ -29,12 +36,6 @@
     zbridge = {
       # url = "github:doromiert/zerobridge";
       url = "path:/home/doromiert/Projects/zerobridge";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    # [ ZenFS ] Local Input
-    zenfs = {
-      url = "github:doromiert/zenfs";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -55,6 +56,7 @@
       url = "github:rafaelmardojai/firefox-gnome-theme";
       flake = false;
     };
+
   };
 
   outputs =
@@ -67,6 +69,23 @@
     let
       system = "x86_64-linux";
       lib = nixpkgs.lib;
+      flattenTree =
+        tree:
+        if
+          builtins.isPath tree
+          || (
+            builtins.isAttrs tree
+            && !(
+              builtins.hasAttr "imports" tree || builtins.hasAttr "options" tree || builtins.hasAttr "config" tree
+            )
+            && (tree ? outPath || tree ? _type)
+          )
+        then
+          [ tree ] # It's a path or a derivation
+        else if builtins.isAttrs tree then
+          lib.concatMap flattenTree (builtins.attrValues tree)
+        else
+          [ ];
 
       # helper to import all .nix files in a directory
       importDir =
@@ -114,7 +133,7 @@
           hostName = lib.strings.toLower (builtins.replaceStrings [ " " ] [ "-" ] prettyName);
         in
         nixpkgs.lib.nixosSystem {
-          inherit system;
+          system = "x86_64-linux";
           specialArgs = {
             inherit
               deviceIcon
@@ -131,7 +150,7 @@
             devicePrettyName = prettyName;
 
             pkgs-unstable = import nixpkgs-unstable {
-              inherit system;
+              system = "x86_64-linux";
               config.allowUnfree = true;
             };
           };
@@ -153,26 +172,34 @@
                   # Enforces redistributable firmware (linux-firmware) for all hosts.
                   hardware.enableRedistributableFirmware = true;
 
-                  # [ ZenFS ] Core Configuration
-                  services.zenfs = {
+                  # Standard NixOS storage configuration.
+                  fileSystems."/" = {
+                    device = "/dev/disk/by-uuid/${rootUUID}";
+                    fsType = "btrfs";
+                    neededForBoot = true;
+                  };
+                  fileSystems."/boot" = {
+                    device = "/dev/disk/by-uuid/${bootUUID}";
+                    fsType = "vfat";
+                    neededForBoot = true;
+                  };
+
+                  # Keep swap entirely in compressed RAM. Hosts can override the
+                  # sizing defaults without re-enabling disk-backed swap.
+                  swapDevices = lib.mkForce [ ];
+                  zramSwap = {
                     enable = true;
-                    roaming.enable = true;
-                    janitor = {
-                      offloader = {
-                        enable = true;
-                        threshold = 80;
-                      };
-                    };
-                    mainDrive = rootUUID;
-                    bootDrive = bootUUID;
+                    algorithm = lib.mkDefault "zstd";
+                    memoryPercent = lib.mkDefault 50;
+                    priority = lib.mkDefault 100;
                   };
 
                   # [ ZenOS Maintenance ] Default Enable
                   # This ensures all hosts (laptop, PC, VM) get auto-updates & cleanup.
-                  zenos.maintenance = {
-                    enable = true;
-                    flakePath = "/home/doromiert/Projects/zenos-n";
-                  };
+                  # zenos.maintenance = {
+                  #   enable = true;
+                  #   flakePath = "/home/doromiert/Projects/zenos-n";
+                  # };
 
                   # [LOGIC] Set the system hostname automatically
                   networking.hostName = hostName;
@@ -188,7 +215,7 @@
                   nixpkgs.overlays = [
                     (final: prev: {
                       unstable = import nixpkgs-unstable {
-                        inherit system;
+                        system = "x86_64-linux";
                         config.allowUnfree = true;
                       };
                     })
@@ -207,11 +234,12 @@
               }
             )
 
-            # [ ZenFS ] Module Import
-            inputs.zenfs.nixosModules.default
+            inputs.mg.nixosModules.default
+
 
             # [ ZenOS Maintenance ] Module Import
             inputs.zenos-maintenance.nixosModules.default
+
 
             inputs.home-manager.nixosModules.home-manager
             inputs.nix-flatpak.nixosModules.nix-flatpak
@@ -259,6 +287,7 @@
           roles = [
             "web"
             # "gaming"
+            "gaming/xr"
             "creative/audio"
             "creative/graphics"
             "creative/video"
@@ -266,13 +295,22 @@
             "dev"
             "pipewire"
             "zbridge"
+            "virtualization"
+            "containers"
           ];
           extraModules = [
             inputs.nixos-hardware.nixosModules.common-cpu-amd
             inputs.nixos-hardware.nixosModules.common-gpu-amd
+              "${inputs.nixpkgs-unstable}/nixos/modules/services/hardware/logiops.nix"
             inputs.nixos-hardware.nixosModules.common-pc-ssd
             inputs.nix-gaming.nixosModules.platformOptimizations
-            inputs.jovian.nixosModules.default
+            # [ REMOVED ] inputs.jovian.nixosModules.default
+            # Jovian's overlay swaps in steam_jupiter, which puts jovian-stubs
+            # ahead of the real pkexec in Steam's PATH. That stub only echoes
+            # its arguments, so SteamVR's `pkexec setcap CAP_SYS_NICE=eip
+            # vrcompositor-launcher` silently no-ops and setup never completes.
+            # Nothing here enables jovian.steam anyway (the 'gaming' role that
+            # did is disabled), so the module was pure liability.
           ];
           excludeCoreModules = [
             "syncthing"
