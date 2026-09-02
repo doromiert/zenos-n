@@ -10,7 +10,6 @@
     { self, zenpkgs, ... }:
     let
       # [CRITICAL] Rehydrate the inputs set from zenpkgs
-      # This makes inputs.nixpkgs, inputs.home-manager, etc. available to modules
       inputs = zenpkgs.inputs // {
         inherit zenpkgs self;
       };
@@ -34,6 +33,7 @@
         hostName:
         lib.nixosSystem {
           specialArgs = {
+            pkgs = utils.mkUserPkgs inputs.nixpkgs.legacyPackages.x86_64-linux;
             inherit
               inputs
               self
@@ -42,14 +42,26 @@
               ;
           };
           modules = [
-            (./hosts + "/${hostName}/main.nix")
-            ./modules/structure.nix
+            # 1. Structure
+            inputs.zenpkgs.nixosModules.default
 
+            # 2. Overlays
             { nixpkgs.overlays = [ zenOverlay ]; }
 
-            # Import modules directly from zenpkgs if needed
-            inputs.zenpkgs.nixosModules.zenfs
+            # 3. [CRITICAL] SANDBOX LOADER
+            # Instead of importing the file at the root (which allows global access),
+            # we import the file and assign its result to 'zenos.config'.
+            # This forces the user configuration into the strict sandbox.
+            (
+              { config, pkgs, ... }@args:
+              {
+                zenos.config = import (./hosts + "/${hostName}/main.nix") args;
+              }
+            )
           ]
+          # 4. Optional: Recursive imports (Make sure these modules support the sandbox!)
+          # If these modules try to set 'networking.hostName' directly, they will work
+          # because they are root modules. Only the USER config (main.nix) is sandboxed above.
           ++ (utils.recursiveImports ./modules)
           ++ (utils.recursiveImports ./deviceConfigs)
           ++ (utils.recursiveImports ./coremodules)
